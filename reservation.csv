@@ -1,0 +1,4 @@
+"Reservation ID","Customer Name",Mobile,Email,"Reservation Date","Reservation Time",Guests,Occasion,"Special Request",Status,"Created Date","Created Time"
+RES20260820232612469,"Prachi Kirpan",9372190881,kirpanprachii14@gmail.com,2026-08-22,00:12,2,Birthday,,Pending,20-08-2026,"11:26 PM"
+RES20260821175743669,"Prachi Kirpan",1234567890,kirpanprachii14@gmail.com,2026-08-23,08:05,4,"Casual Visit",,Pending,21-08-2026,"05:57 PM"
+RES20260822165113543,"sakshi patil",3984793843,sakshi@gmail.com,2026-08-22,22:02,8,"Family Gathering",hi,Pending,Pending,UPI,"22-08-2026 16:51:13"
