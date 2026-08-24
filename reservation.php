@@ -25,6 +25,13 @@ $payment_status = "Pending";
 
 
 // ======================================================
+// RESERVATION FEE
+// ======================================================
+
+$reservation_fee = 100;
+
+
+// ======================================================
 // FORM SUBMIT
 // ======================================================
 
@@ -40,7 +47,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $special_request = trim($_POST["special_request"] ?? "");
     $payment_method = trim($_POST["payment_method"] ?? "");
 
-    // Payment status always starts as Pending
     $payment_status = "Pending";
 
 
@@ -67,11 +73,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $error = "Please select today or a future reservation date.";
 
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL) && $email !== "") {
+    } elseif (
+        !filter_var($email, FILTER_VALIDATE_EMAIL)
+        && $email !== ""
+    ) {
 
         $error = "Please enter a valid email address.";
 
-    } elseif (!is_numeric($guests) || $guests < 1 || $guests > 10) {
+    } elseif (
+        !is_numeric($guests)
+        || $guests < 1
+        || $guests > 10
+    ) {
 
         $error = "Please select a valid number of guests.";
 
@@ -106,7 +119,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // CSV FILE
         // ==================================================
 
-        $csv_file = __DIR__ . "/reservations.csv";
+        $csv_file =
+            __DIR__ . "/reservations.csv";
 
 
         // ==================================================
@@ -114,6 +128,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // ==================================================
 
         $headers = [
+
             "Reservation ID",
             "Customer Name",
             "Mobile",
@@ -123,10 +138,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             "Guests",
             "Occasion",
             "Special Request",
+            "Reservation Fee",
             "Status",
             "Payment Status",
             "Payment Method",
             "Created At"
+
         ];
 
 
@@ -135,6 +152,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // ==================================================
 
         $data = [
+
             $reservation_id,
             $name,
             $phone,
@@ -144,10 +162,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $guests,
             $occasion,
             $special_request,
+            $reservation_fee,
             $status,
             $payment_status,
             $payment_method,
             $created_at
+
         ];
 
 
@@ -155,9 +175,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // OPEN CSV
         // ==================================================
 
-        $file_exists = file_exists($csv_file);
+        $file_exists =
+            file_exists($csv_file);
 
-        $file = fopen($csv_file, "a");
+        $file =
+            fopen($csv_file, "a");
 
 
         if ($file === false) {
@@ -180,12 +202,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 // ==================================================
 
                 if (
-                    !$file_exists ||
-                    filesize($csv_file) === 0
+                    !$file_exists
+                    || filesize($csv_file) === 0
                 ) {
 
-                    // UTF-8 BOM for Excel
-                    fwrite($file, "\xEF\xBB\xBF");
+                    fwrite(
+                        $file,
+                        "\xEF\xBB\xBF"
+                    );
 
                     fputcsv(
                         $file,
@@ -213,10 +237,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 fclose($file);
 
-
-                // ==================================================
-                // SUCCESS
-                // ==================================================
 
                 $success = true;
 
@@ -267,16 +287,18 @@ VELOURE | Reservation
 ====================================================== */
 
 * {
+
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-}
 
+}
 
 html {
-    scroll-behavior: smooth;
-}
 
+    scroll-behavior: smooth;
+
+}
 
 body {
 
@@ -319,7 +341,6 @@ body {
 
 }
 
-
 .logo {
 
     text-decoration: none;
@@ -327,7 +348,6 @@ body {
     color: #35251d;
 
 }
-
 
 .logo h1 {
 
@@ -342,7 +362,6 @@ body {
     letter-spacing: 5px;
 
 }
-
 
 .logo span {
 
@@ -360,7 +379,6 @@ body {
 
 }
 
-
 .nav-links {
 
     display: flex;
@@ -368,7 +386,6 @@ body {
     gap: 18px;
 
 }
-
 
 .nav-links a {
 
@@ -382,13 +399,11 @@ body {
 
 }
 
-
 .nav-links a:hover {
 
     color: #a47b4c;
 
 }
-
 
 .back-btn {
 
@@ -405,7 +420,6 @@ body {
     font-size: 13px;
 
 }
-
 
 .back-btn:hover {
 
@@ -473,7 +487,6 @@ body {
 
 }
 
-
 .left small {
 
     color: #d4b27f;
@@ -483,7 +496,6 @@ body {
     font-size: 11px;
 
 }
-
 
 .left h2 {
 
@@ -499,7 +511,6 @@ body {
 
 }
 
-
 .left p {
 
     color: #ddd0c5;
@@ -509,7 +520,6 @@ body {
     font-size: 14px;
 
 }
-
 
 .info {
 
@@ -525,6 +535,51 @@ body {
 
 
 /* ======================================================
+   RESERVATION FEE INFO
+====================================================== */
+
+.fee-info {
+
+    margin-top: 30px;
+
+    padding: 18px;
+
+    border: 1px solid rgba(255,255,255,.15);
+
+    border-radius: 14px;
+
+    background: rgba(255,255,255,.06);
+
+}
+
+.fee-info span {
+
+    display: block;
+
+    color: #d4b27f;
+
+    font-size: 11px;
+
+    letter-spacing: 2px;
+
+    margin-bottom: 5px;
+
+}
+
+.fee-info strong {
+
+    font-family:
+        "Cormorant Garamond",
+        serif;
+
+    font-size: 32px;
+
+    color: #fff;
+
+}
+
+
+/* ======================================================
    RIGHT SIDE
 ====================================================== */
 
@@ -533,7 +588,6 @@ body {
     padding: 48px;
 
 }
-
 
 .right h1 {
 
@@ -546,7 +600,6 @@ body {
     margin-bottom: 5px;
 
 }
-
 
 .subtitle {
 
@@ -596,13 +649,11 @@ body {
 
 }
 
-
 .group {
 
     margin-bottom: 18px;
 
 }
-
 
 label {
 
@@ -615,7 +666,6 @@ label {
     margin-bottom: 7px;
 
 }
-
 
 input,
 select,
@@ -641,7 +691,6 @@ textarea {
 
 }
 
-
 input:focus,
 select:focus,
 textarea:focus {
@@ -653,7 +702,6 @@ textarea:focus {
         rgba(164,123,76,.12);
 
 }
-
 
 textarea {
 
@@ -680,7 +728,6 @@ textarea {
 
 }
 
-
 .payment h3 {
 
     font-family:
@@ -693,7 +740,6 @@ textarea {
 
 }
 
-
 .payment-row {
 
     display: flex;
@@ -702,20 +748,17 @@ textarea {
 
 }
 
-
 .payment-option {
 
     flex: 1;
 
 }
 
-
 .payment-row input {
 
     display: none;
 
 }
-
 
 .payment-row label {
 
@@ -735,13 +778,11 @@ textarea {
 
 }
 
-
 .payment-row label:hover {
 
     border-color: #a47b4c;
 
 }
-
 
 .payment-row input:checked + label {
 
@@ -750,6 +791,125 @@ textarea {
     color: white;
 
     border-color: #35251d;
+
+}
+
+
+/* ======================================================
+   UPI QR PAYMENT
+====================================================== */
+
+.qr-payment {
+
+    display: none;
+
+    background: #fffaf4;
+
+    border: 1px solid #d9cbbb;
+
+    padding: 25px;
+
+    border-radius: 15px;
+
+    margin-bottom: 20px;
+
+    text-align: center;
+
+}
+
+.qr-payment.show {
+
+    display: block;
+
+}
+
+.qr-payment h3 {
+
+    font-family:
+        "Cormorant Garamond",
+        serif;
+
+    font-size: 28px;
+
+    margin-bottom: 8px;
+
+}
+
+.qr-payment p {
+
+    color: #806f61;
+
+    font-size: 13px;
+
+    margin-bottom: 12px;
+
+}
+
+.upi-qr {
+
+    width: 200px;
+
+    height: 200px;
+
+    object-fit: contain;
+
+    display: block;
+
+    margin: 15px auto;
+
+    border-radius: 10px;
+
+    border: 1px solid #dfd2c2;
+
+    background: white;
+
+    padding: 8px;
+
+}
+
+.qr-amount {
+
+    background: #f6f1e8;
+
+    padding: 12px;
+
+    border-radius: 10px;
+
+    margin: 10px 0;
+
+}
+
+.qr-amount span {
+
+    display: block;
+
+    color: #806f61;
+
+    font-size: 12px;
+
+    margin-bottom: 5px;
+
+}
+
+.qr-amount strong {
+
+    font-family:
+        "Cormorant Garamond",
+        serif;
+
+    font-size: 32px;
+
+    color: #a47b4c;
+
+}
+
+.qr-note {
+
+    font-size: 11px !important;
+
+    margin-top: 10px;
+
+    color: #806f61;
 
 }
 
@@ -781,7 +941,6 @@ textarea {
     transition: .3s;
 
 }
-
 
 .submit-btn:hover {
 
@@ -816,7 +975,6 @@ textarea {
 
 }
 
-
 .success-icon {
 
     width: 80px;
@@ -841,7 +999,6 @@ textarea {
 
 }
 
-
 .success h1 {
 
     font-family:
@@ -854,13 +1011,11 @@ textarea {
 
 }
 
-
 .success > p {
 
     color: #806f61;
 
 }
-
 
 .details {
 
@@ -876,7 +1031,6 @@ textarea {
 
 }
 
-
 .details p {
 
     margin: 11px 0;
@@ -889,13 +1043,11 @@ textarea {
 
 }
 
-
 .details p:last-child {
 
     border-bottom: none;
 
 }
-
 
 .home-btn {
 
@@ -914,7 +1066,6 @@ textarea {
     font-weight: 600;
 
 }
-
 
 .home-btn:hover {
 
@@ -939,7 +1090,6 @@ footer {
 
 }
 
-
 .footer-logo {
 
     font-family:
@@ -951,7 +1101,6 @@ footer {
     letter-spacing: 5px;
 
 }
-
 
 footer p {
 
@@ -989,7 +1138,6 @@ footer p {
     }
 
 }
-
 
 @media (max-width: 600px) {
 
@@ -1063,6 +1211,14 @@ footer p {
 
     }
 
+    .upi-qr {
+
+        width: 170px;
+
+        height: 170px;
+
+    }
+
 }
 
 </style>
@@ -1079,7 +1235,6 @@ footer p {
 
 <nav class="navbar">
 
-
     <a
         href="index.php"
         class="logo"
@@ -1094,37 +1249,21 @@ footer p {
 
     <div class="nav-links">
 
-        <a href="index.php">
-            Home
-        </a>
+        <a href="index.php">Home</a>
 
-        <a href="about.php">
-            About
-        </a>
+        <a href="about.php">About</a>
 
-        <a href="menu.php">
-            Menu
-        </a>
+        <a href="menu.php">Menu</a>
 
-        <a href="offers.php">
-            Offers
-        </a>
+        <a href="offers.php">Offers</a>
 
-        <a href="gallery.php">
-            Gallery
-        </a>
+        <a href="gallery.php">Gallery</a>
 
-        <a href="services.php">
-            Services
-        </a>
+        <a href="services.php">Services</a>
 
-        <a href="reservation.php">
-            Reservation
-        </a>
+        <a href="reservation.php">Reservation</a>
 
-        <a href="reviews.php">
-            Reviews
-        </a>
+        <a href="reviews.php">Reviews</a>
 
     </div>
 
@@ -1135,7 +1274,6 @@ footer p {
     >
         ← Back
     </a>
-
 
 </nav>
 
@@ -1156,7 +1294,6 @@ footer p {
 
 <div class="success">
 
-
     <div class="success-icon">
         ✓
     </div>
@@ -1173,7 +1310,6 @@ footer p {
 
 
     <div class="details">
-
 
         <p>
             <strong>Reservation ID:</strong>
@@ -1298,10 +1434,15 @@ footer p {
 
 
         <p>
+            <strong>Reservation Fee:</strong>
+            ₹<?php echo $reservation_fee; ?>
+        </p>
+
+
+        <p>
             <strong>Reservation Status:</strong>
             Pending Confirmation
         </p>
-
 
     </div>
 
@@ -1312,7 +1453,6 @@ footer p {
     >
         Back to Home
     </a>
-
 
 </div>
 
@@ -1330,7 +1470,6 @@ footer p {
     <!-- LEFT -->
 
     <div class="left">
-
 
         <small>
             RESERVE YOUR EXPERIENCE
@@ -1364,6 +1503,20 @@ footer p {
         </div>
 
 
+        <!-- RESERVATION FEE -->
+
+        <div class="fee-info">
+
+            <span>
+                RESERVATION FEE
+            </span>
+
+            <strong>
+                ₹<?php echo $reservation_fee; ?>
+            </strong>
+
+        </div>
+
     </div>
 
 
@@ -1371,7 +1524,6 @@ footer p {
     <!-- RIGHT -->
 
     <div class="right">
-
 
         <h1>
             Reserve a Table
@@ -1406,7 +1558,6 @@ footer p {
             <!-- NAME + PHONE -->
 
             <div class="row">
-
 
                 <div class="group">
 
@@ -1449,7 +1600,6 @@ footer p {
 
                 </div>
 
-
             </div>
 
 
@@ -1478,7 +1628,6 @@ footer p {
             <!-- DATE + TIME -->
 
             <div class="row">
-
 
                 <div class="group">
 
@@ -1518,7 +1667,6 @@ footer p {
 
                 </div>
 
-
             </div>
 
 
@@ -1526,7 +1674,6 @@ footer p {
             <!-- GUESTS + OCCASION -->
 
             <div class="row">
-
 
                 <div class="group">
 
@@ -1567,7 +1714,6 @@ footer p {
 
                         <?php endfor; ?>
 
-
                     </select>
 
                 </div>
@@ -1588,7 +1734,6 @@ footer p {
                             Select occasion
                         </option>
 
-
                         <option
                             value="Casual Visit"
                             <?php
@@ -1599,7 +1744,6 @@ footer p {
                         >
                             Casual Visit
                         </option>
-
 
                         <option
                             value="Birthday"
@@ -1612,7 +1756,6 @@ footer p {
                             Birthday
                         </option>
 
-
                         <option
                             value="Anniversary"
                             <?php
@@ -1623,7 +1766,6 @@ footer p {
                         >
                             Anniversary
                         </option>
-
 
                         <option
                             value="Date"
@@ -1636,7 +1778,6 @@ footer p {
                             Date
                         </option>
 
-
                         <option
                             value="Business Meeting"
                             <?php
@@ -1647,7 +1788,6 @@ footer p {
                         >
                             Business Meeting
                         </option>
-
 
                         <option
                             value="Family Gathering"
@@ -1660,11 +1800,9 @@ footer p {
                             Family Gathering
                         </option>
 
-
                     </select>
 
                 </div>
-
 
             </div>
 
@@ -1695,7 +1833,6 @@ footer p {
             <!-- PAYMENT -->
 
             <div class="payment">
-
 
                 <h3>
                     Payment Method
@@ -1770,9 +1907,57 @@ footer p {
 
                     </div>
 
+                </div>
+
+            </div>
+
+
+
+            <!-- ==================================================
+                 UPI QR PAYMENT
+            ================================================== -->
+
+            <div
+                class="qr-payment"
+                id="qrPayment"
+            >
+
+                <h3>
+                    📱 UPI Payment
+                </h3>
+
+                <p>
+                    Scan the QR code below to pay the reservation fee.
+                </p>
+
+
+                <img
+                    src="images/upi-qr.jpg"
+                    alt="VELOURE UPI QR Code"
+                    class="upi-qr"
+                    onerror="this.style.display='none';"
+                >
+
+
+                <div class="qr-amount">
+
+                    <span>
+                        Reservation Amount
+                    </span>
+
+                    <strong>
+                        ₹<?php echo $reservation_fee; ?>
+                    </strong>
 
                 </div>
 
+
+                <p class="qr-note">
+
+                    After payment, please keep your
+                    transaction confirmation.
+
+                </p>
 
             </div>
 
@@ -1790,15 +1975,12 @@ footer p {
 
         </form>
 
-
     </div>
-
 
 </div>
 
 
 <?php endif; ?>
-
 
 </div>
 
@@ -1844,6 +2026,56 @@ document.addEventListener(
         }
 
 
+        /* ==================================================
+           UPI QR SHOW / HIDE
+        ================================================== */
+
+        const paymentOptions =
+            document.querySelectorAll(
+                'input[name="payment_method"]'
+            );
+
+
+        const qrPayment =
+            document.getElementById(
+                "qrPayment"
+            );
+
+
+        paymentOptions.forEach(
+            function (radio) {
+
+                radio.addEventListener(
+                    "change",
+                    function () {
+
+                        if (
+                            this.value === "UPI"
+                        ) {
+
+                            qrPayment.classList.add(
+                                "show"
+                            );
+
+                        } else {
+
+                            qrPayment.classList.remove(
+                                "show"
+                            );
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+
+        /* ==================================================
+           PHONE VALIDATION
+        ================================================== */
+
         form.addEventListener(
             "submit",
             function (event) {
@@ -1870,6 +2102,8 @@ document.addEventListener(
                 }
 
 
+                /* DATE */
+
                 const date =
                     form.querySelector(
                         'input[name="date"]'
@@ -1889,6 +2123,8 @@ document.addEventListener(
                 }
 
 
+                /* PAYMENT */
+
                 const payment =
                     form.querySelector(
                         'input[name="payment_method"]:checked'
@@ -1907,9 +2143,30 @@ document.addEventListener(
 
                 }
 
-
             }
         );
+
+
+        /* ==================================================
+           SHOW QR IF UPI IS ALREADY SELECTED
+        ================================================== */
+
+        const selectedPayment =
+            document.querySelector(
+                'input[name="payment_method"]:checked'
+            );
+
+
+        if (
+            selectedPayment &&
+            selectedPayment.value === "UPI"
+        ) {
+
+            qrPayment.classList.add(
+                "show"
+            );
+
+        }
 
     }
 );
