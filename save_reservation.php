@@ -89,39 +89,90 @@ if ($date < $today) {
 
 
 // ======================================================
-// TEMPORARY CSV STORAGE
+// PAYMENT DETAILS
+// ======================================================
+
+$paymentMethod = trim(
+    $_POST["payment_method"] ?? "Not Selected"
+);
+
+$paymentStatus = trim(
+    $_POST["payment_status"] ?? "Pending"
+);
+
+
+// ======================================================
+// RESERVATION STATUS
+// ======================================================
+
+$reservationStatus = "Confirmed";
+
+
+// ======================================================
+// CREATE RESERVATION ID
+// ======================================================
+
+$reservationID =
+    "VR-" .
+    date("YmdHis") .
+    "-" .
+    rand(100, 999);
+
+
+// ======================================================
+// TEMPORARY WRITABLE STORAGE
 // ======================================================
 //
-// Data CSV format मध्ये save होईल.
-// CSV file Excel मध्ये open करता येईल.
-//
-// /tmp folder temporary आहे.
-// Server restart/redeploy झाल्यावर data delete होऊ शकतो.
+// Docker / Apache environment मध्ये writable location
+// म्हणून PHP temporary directory वापरली आहे.
 //
 
-$dataFolder = "/tmp/veloure_data";
+$baseFolder = sys_get_temp_dir();
+
+$dataFolder = $baseFolder .
+              DIRECTORY_SEPARATOR .
+              "veloure_data";
 
 
 // ------------------------------------------------------
-// CREATE TEMPORARY FOLDER
+// CREATE FOLDER
 // ------------------------------------------------------
 
 if (!is_dir($dataFolder)) {
 
-    if (!mkdir($dataFolder, 0777, true)) {
+    if (!@mkdir($dataFolder, 0777, true)) {
 
-        die(
-            "Unable to create temporary storage folder."
-        );
+        // Second attempt using /tmp
+        $dataFolder = "/tmp/veloure_data";
+
+        if (!is_dir($dataFolder)) {
+
+            @mkdir($dataFolder, 0777, true);
+        }
     }
 }
 
 
 // ------------------------------------------------------
-// CSV FILE PATH
+// CHECK FOLDER
 // ------------------------------------------------------
 
-$file = $dataFolder . "/reservation.csv";
+if (!is_dir($dataFolder) || !is_writable($dataFolder)) {
+
+    die(
+        "Reservation storage is temporarily unavailable. Please try again."
+    );
+}
+
+
+// ======================================================
+// CSV FILE
+// ======================================================
+
+$file =
+    $dataFolder .
+    DIRECTORY_SEPARATOR .
+    "reservation.csv";
 
 
 // ------------------------------------------------------
@@ -133,35 +184,35 @@ $isNewFile =
     filesize($file) === 0;
 
 
-// ------------------------------------------------------
-// OPEN CSV FILE
-// ------------------------------------------------------
+// ======================================================
+// OPEN CSV
+// ======================================================
 
-$handle = fopen($file, "a");
+$handle = @fopen($file, "a");
 
 
 // ------------------------------------------------------
-// CHECK FILE OPEN
+// CHECK FILE
 // ------------------------------------------------------
 
 if ($handle === false) {
 
     die(
-        "Unable to save reservation. Please try again."
+        "Reservation could not be saved. Please try again."
     );
 }
 
 
-// ------------------------------------------------------
+// ======================================================
 // LOCK FILE
-// ------------------------------------------------------
+// ======================================================
 
 if (!flock($handle, LOCK_EX)) {
 
     fclose($handle);
 
     die(
-        "Unable to save reservation. Please try again."
+        "Reservation could not be saved. Please try again."
     );
 }
 
@@ -172,111 +223,73 @@ if (!flock($handle, LOCK_EX)) {
 
 if ($isNewFile) {
 
-    fputcsv($handle, [
+    $headerSuccess = fputcsv(
+        $handle,
+        [
+            "Reservation ID",
+            "Saved Date & Time",
+            "Customer Name",
+            "Mobile Number",
+            "Email",
+            "Reservation Date",
+            "Reservation Time",
+            "Guests",
+            "Occasion",
+            "Special Request",
+            "Payment Method",
+            "Payment Status",
+            "Reservation Status"
+        ]
+    );
 
-        "Reservation ID",
-        "Saved Date & Time",
-        "Customer Name",
-        "Mobile Number",
-        "Email",
-        "Reservation Date",
-        "Reservation Time",
-        "Guests",
-        "Occasion",
-        "Special Request",
-        "Payment Method",
-        "Payment Status",
-        "Reservation Status"
+    if ($headerSuccess === false) {
 
-    ]);
+        flock($handle, LOCK_UN);
+        fclose($handle);
+
+        die(
+            "Reservation could not be saved. Please try again."
+        );
+    }
 }
 
 
 // ======================================================
-// RESERVATION ID
-// ======================================================
-
-$reservationID =
-    "VR-" .
-    date("YmdHis") .
-    "-" .
-    rand(100, 999);
-
-
-// ======================================================
-// PAYMENT DETAILS
-// ======================================================
-
-$paymentMethod =
-    trim(
-        $_POST["payment_method"] ??
-        "Not Selected"
-    );
-
-$paymentStatus =
-    trim(
-        $_POST["payment_status"] ??
-        "Pending"
-    );
-
-
-// ======================================================
-// RESERVATION STATUS
-// ======================================================
-
-$reservationStatus = "Confirmed";
-
-
-// ======================================================
-// SAVE DATA
+// SAVE RESERVATION
 // ======================================================
 
 $success = fputcsv(
     $handle,
     [
-
         $reservationID,
-
         date("Y-m-d H:i:s"),
-
         $name,
-
         $phone,
-
         $email,
-
         $date,
-
         $time,
-
         $guestsNumber,
-
         $occasion,
-
         $message,
-
         $paymentMethod,
-
         $paymentStatus,
-
         $reservationStatus
-
     ]
 );
 
 
-// ------------------------------------------------------
+// ======================================================
 // UNLOCK + CLOSE
-// ------------------------------------------------------
+// ======================================================
 
 flock($handle, LOCK_UN);
 
 fclose($handle);
 
 
-// ------------------------------------------------------
+// ======================================================
 // CHECK SAVE
-// ------------------------------------------------------
+// ======================================================
 
 if ($success === false) {
 
@@ -309,12 +322,10 @@ if ($success === false) {
 Reservation Confirmed | VELOURE Café
 </title>
 
-
 <link
     href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet"
 >
-
 
 <style>
 
@@ -323,7 +334,6 @@ Reservation Confirmed | VELOURE Café
     padding:0;
     box-sizing:border-box;
 }
-
 
 body{
 
@@ -342,9 +352,7 @@ body{
     color:#35251d;
 
     font-family:"DM Sans",sans-serif;
-
 }
-
 
 .success-box{
 
@@ -365,7 +373,6 @@ body{
         rgba(53,37,29,.15);
 
 }
-
 
 .success-icon{
 
@@ -391,7 +398,6 @@ body{
 
 }
 
-
 .success-box h1{
 
     font-family:"Cormorant Garamond",serif;
@@ -402,13 +408,11 @@ body{
 
 }
 
-
 .success-box h1 span{
 
     color:#a47b4c;
 
 }
-
 
 .success-box p{
 
@@ -419,7 +423,6 @@ body{
     font-size:14px;
 
 }
-
 
 .booking-id{
 
@@ -432,7 +435,6 @@ body{
     border-radius:12px;
 
 }
-
 
 .booking-id small{
 
@@ -448,7 +450,6 @@ body{
 
 }
 
-
 .booking-id strong{
 
     font-size:20px;
@@ -456,7 +457,6 @@ body{
     color:#a47b4c;
 
 }
-
 
 .details{
 
@@ -467,7 +467,6 @@ body{
     border-top:1px solid #eadfd3;
 
 }
-
 
 .detail-row{
 
@@ -485,20 +484,17 @@ body{
 
 }
 
-
 .detail-row span{
 
     color:#806f61;
 
 }
 
-
 .detail-row strong{
 
     text-align:right;
 
 }
-
 
 .home-btn{
 
@@ -524,7 +520,6 @@ body{
 
 }
 
-
 .home-btn:hover{
 
     background:#a47b4c;
@@ -532,7 +527,6 @@ body{
     transform:translateY(-2px);
 
 }
-
 
 @media(max-width:600px){
 
