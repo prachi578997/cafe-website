@@ -1,7 +1,8 @@
 <?php
 
 // ======================================================
-// VELOURE CAFE - FINAL RESERVATION SYSTEM
+// VELOURE CAFE - RESERVATION SYSTEM
+// GOOGLE SHEET STORAGE
 // ======================================================
 
 date_default_timezone_set("Asia/Kolkata");
@@ -23,12 +24,15 @@ $special_request = "";
 $payment_method = "";
 $payment_status = "Pending";
 
-
-// ======================================================
-// RESERVATION FEE
-// ======================================================
-
 $reservation_fee = 100;
+
+
+// ======================================================
+// GOOGLE SHEET WEB APP URL
+// ======================================================
+
+$googleSheetURL =
+"https://script.google.com/macros/s/AKfycbzRqE9u-c5RuoGC7ZA2MWp2de4Decqymz5yH6AZRdSP6XlT7HQU5FCHrmeTLoliBB51/exec";
 
 
 // ======================================================
@@ -74,19 +78,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $error = "Please select today or a future reservation date.";
 
     } elseif (
+        $email !== "" &&
         !filter_var($email, FILTER_VALIDATE_EMAIL)
-        && $email !== ""
     ) {
 
         $error = "Please enter a valid email address.";
 
     } elseif (
-        !is_numeric($guests)
-        || $guests < 1
-        || $guests > 10
+        !is_numeric($guests) ||
+        $guests < 1 ||
+        $guests > 10
     ) {
 
-        $error = "Please select a valid number of guests.";
+        $error = "Please select between 1 and 10 guests.";
 
     } else {
 
@@ -105,7 +109,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // RESERVATION STATUS
         // ==================================================
 
-        $status = "Pending";
+        $reservation_status = "Pending Confirmation";
 
 
         // ==================================================
@@ -116,143 +120,148 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
         // ==================================================
-        // CSV FILE
+        // DATA FOR GOOGLE SHEET
         // ==================================================
 
-        $csv_file =
-            __DIR__ . "/reservations.csv";
+        $googleData = [
 
+            "reservation_id" => $reservation_id,
 
-        // ==================================================
-        // CSV HEADERS
-        // ==================================================
+            "name" => $name,
 
-        $headers = [
+            "phone" => $phone,
 
-            "Reservation ID",
-            "Customer Name",
-            "Mobile",
-            "Email",
-            "Reservation Date",
-            "Reservation Time",
-            "Guests",
-            "Occasion",
-            "Special Request",
-            "Reservation Fee",
-            "Status",
-            "Payment Status",
-            "Payment Method",
-            "Created At"
+            "email" => $email,
+
+            "date" => $date,
+
+            "time" => $time,
+
+            "guests" => $guests,
+
+            "occasion" => $occasion,
+
+            "special_request" => $special_request,
+
+            "reservation_fee" => $reservation_fee,
+
+            "reservation_status" => $reservation_status,
+
+            "payment_method" => $payment_method,
+
+            "payment_status" => $payment_status,
+
+            "created_at" => $created_at
 
         ];
 
 
         // ==================================================
-        // RESERVATION DATA
+        // SEND TO GOOGLE SHEET
         // ==================================================
 
-        $data = [
+        $ch = curl_init($googleSheetURL);
 
-            $reservation_id,
-            $name,
-            $phone,
-            $email,
-            $date,
-            $time,
-            $guests,
-            $occasion,
-            $special_request,
-            $reservation_fee,
-            $status,
-            $payment_status,
-            $payment_method,
-            $created_at
 
-        ];
+        curl_setopt(
+            $ch,
+            CURLOPT_POST,
+            true
+        );
+
+
+        curl_setopt(
+            $ch,
+            CURLOPT_POSTFIELDS,
+            json_encode($googleData)
+        );
+
+
+        curl_setopt(
+            $ch,
+            CURLOPT_HTTPHEADER,
+            [
+                "Content-Type: application/json"
+            ]
+        );
+
+
+        curl_setopt(
+            $ch,
+            CURLOPT_RETURNTRANSFER,
+            true
+        );
+
+
+        curl_setopt(
+            $ch,
+            CURLOPT_FOLLOWLOCATION,
+            true
+        );
+
+
+        curl_setopt(
+            $ch,
+            CURLOPT_TIMEOUT,
+            20
+        );
 
 
         // ==================================================
-        // OPEN CSV
+        // EXECUTE REQUEST
         // ==================================================
 
-        $file_exists =
-            file_exists($csv_file);
+        $googleResponse = curl_exec($ch);
 
-        $file =
-            fopen($csv_file, "a");
+        $curlError = curl_error($ch);
+
+        curl_close($ch);
 
 
-        if ($file === false) {
+        // ==================================================
+        // CHECK GOOGLE SHEET RESPONSE
+        // ==================================================
+
+        if (
+            $googleResponse === false ||
+            $curlError !== ""
+        ) {
 
             $error =
-                "Unable to save reservation. Please check folder permission.";
+                "Unable to connect to Google Sheet. Please try again.";
 
         } else {
 
-
-            // ==================================================
-            // FILE LOCK
-            // ==================================================
-
-            if (flock($file, LOCK_EX)) {
-
-
-                // ==================================================
-                // ADD CSV HEADER
-                // ==================================================
-
-                if (
-                    !$file_exists
-                    || filesize($csv_file) === 0
-                ) {
-
-                    fwrite(
-                        $file,
-                        "\xEF\xBB\xBF"
-                    );
-
-                    fputcsv(
-                        $file,
-                        $headers
-                    );
-                }
-
-
-                // ==================================================
-                // SAVE RESERVATION
-                // ==================================================
-
-                fputcsv(
-                    $file,
-                    $data
+            $responseData =
+                json_decode(
+                    $googleResponse,
+                    true
                 );
 
 
-                fflush($file);
+            if (
+                is_array($responseData) &&
+                isset($responseData["success"]) &&
+                $responseData["success"] === false
+            ) {
 
-                flock(
-                    $file,
-                    LOCK_UN
-                );
-
-                fclose($file);
-
-
-                $success = true;
+                $error =
+                    "Reservation could not be saved to Google Sheet.";
 
             } else {
 
-                fclose($file);
-
-                $error =
-                    "Unable to access reservation file.";
+                $success = true;
 
             }
+
         }
+
     }
+
 }
 
 ?>
+
 
 <!DOCTYPE html>
 
@@ -267,12 +276,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     content="width=device-width, initial-scale=1.0"
 >
 
-<title>
-VELOURE | Reservation
-</title>
+<title>VELOURE | Reservation</title>
 
 
-<!-- GOOGLE FONT -->
+<!-- GOOGLE FONTS -->
 
 <link
     href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap"
@@ -287,17 +294,13 @@ VELOURE | Reservation
 ====================================================== */
 
 * {
-
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-
 }
 
 html {
-
     scroll-behavior: smooth;
-
 }
 
 body {
@@ -351,9 +354,7 @@ body {
 
 .logo h1 {
 
-    font-family:
-        "Cormorant Garamond",
-        serif;
+    font-family: "Cormorant Garamond", serif;
 
     font-size: 34px;
 
@@ -446,7 +447,7 @@ body {
 
 
 /* ======================================================
-   RESERVATION CARD
+   CARD
 ====================================================== */
 
 .card {
@@ -462,14 +463,13 @@ body {
     overflow: hidden;
 
     box-shadow:
-        0 20px 60px
-        rgba(53,37,29,.15);
+        0 20px 60px rgba(53,37,29,.15);
 
 }
 
 
 /* ======================================================
-   LEFT SIDE
+   LEFT
 ====================================================== */
 
 .left {
@@ -499,9 +499,7 @@ body {
 
 .left h2 {
 
-    font-family:
-        "Cormorant Garamond",
-        serif;
+    font-family: "Cormorant Garamond", serif;
 
     font-size: 52px;
 
@@ -535,7 +533,7 @@ body {
 
 
 /* ======================================================
-   RESERVATION FEE INFO
+   FEE
 ====================================================== */
 
 .fee-info {
@@ -568,9 +566,7 @@ body {
 
 .fee-info strong {
 
-    font-family:
-        "Cormorant Garamond",
-        serif;
+    font-family: "Cormorant Garamond", serif;
 
     font-size: 32px;
 
@@ -580,7 +576,7 @@ body {
 
 
 /* ======================================================
-   RIGHT SIDE
+   RIGHT
 ====================================================== */
 
 .right {
@@ -591,9 +587,7 @@ body {
 
 .right h1 {
 
-    font-family:
-        "Cormorant Garamond",
-        serif;
+    font-family: "Cormorant Garamond", serif;
 
     font-size: 48px;
 
@@ -730,9 +724,7 @@ textarea {
 
 .payment h3 {
 
-    font-family:
-        "Cormorant Garamond",
-        serif;
+    font-family: "Cormorant Garamond", serif;
 
     font-size: 24px;
 
@@ -774,8 +766,6 @@ textarea {
 
     background: white;
 
-    transition: .2s;
-
 }
 
 .payment-row label:hover {
@@ -796,7 +786,7 @@ textarea {
 
 
 /* ======================================================
-   UPI QR PAYMENT
+   UPI QR
 ====================================================== */
 
 .qr-payment {
@@ -825,9 +815,7 @@ textarea {
 
 .qr-payment h3 {
 
-    font-family:
-        "Cormorant Garamond",
-        serif;
+    font-family: "Cormorant Garamond", serif;
 
     font-size: 28px;
 
@@ -893,9 +881,7 @@ textarea {
 
 .qr-amount strong {
 
-    font-family:
-        "Cormorant Garamond",
-        serif;
+    font-family: "Cormorant Garamond", serif;
 
     font-size: 32px;
 
@@ -907,15 +893,11 @@ textarea {
 
     font-size: 11px !important;
 
-    margin-top: 10px;
-
-    color: #806f61;
-
 }
 
 
 /* ======================================================
-   SUBMIT BUTTON
+   BUTTON
 ====================================================== */
 
 .submit-btn {
@@ -938,21 +920,17 @@ textarea {
 
     cursor: pointer;
 
-    transition: .3s;
-
 }
 
 .submit-btn:hover {
 
     background: #a47b4c;
 
-    transform: translateY(-2px);
-
 }
 
 
 /* ======================================================
-   SUCCESS PAGE
+   SUCCESS
 ====================================================== */
 
 .success {
@@ -970,8 +948,7 @@ textarea {
     text-align: center;
 
     box-shadow:
-        0 20px 60px
-        rgba(53,37,29,.15);
+        0 20px 60px rgba(53,37,29,.15);
 
 }
 
@@ -1001,9 +978,7 @@ textarea {
 
 .success h1 {
 
-    font-family:
-        "Cormorant Garamond",
-        serif;
+    font-family: "Cormorant Garamond", serif;
 
     font-size: 45px;
 
@@ -1043,12 +1018,6 @@ textarea {
 
 }
 
-.details p:last-child {
-
-    border-bottom: none;
-
-}
-
 .home-btn {
 
     display: inline-block;
@@ -1064,12 +1033,6 @@ textarea {
     border-radius: 25px;
 
     font-weight: 600;
-
-}
-
-.home-btn:hover {
-
-    background: #a47b4c;
 
 }
 
@@ -1092,9 +1055,7 @@ footer {
 
 .footer-logo {
 
-    font-family:
-        "Cormorant Garamond",
-        serif;
+    font-family: "Cormorant Garamond", serif;
 
     font-size: 35px;
 
@@ -1120,21 +1081,15 @@ footer p {
 @media (max-width: 900px) {
 
     .nav-links {
-
         display: none;
-
     }
 
     .card {
-
         grid-template-columns: 1fr;
-
     }
 
     .row {
-
         grid-template-columns: 1fr;
-
     }
 
 }
@@ -1142,81 +1097,49 @@ footer p {
 @media (max-width: 600px) {
 
     .navbar {
-
         padding: 0 15px;
-
     }
 
     .logo h1 {
-
         font-size: 27px;
-
-    }
-
-    .back-btn {
-
-        font-size: 11px;
-
-        padding: 8px 12px;
-
     }
 
     .container {
-
         width: 96%;
-
         margin-top: 25px;
-
     }
 
     .left {
-
         padding: 40px 25px;
-
     }
 
     .left h2 {
-
         font-size: 43px;
-
     }
 
     .right {
-
         padding: 30px 20px;
-
     }
 
     .right h1 {
-
         font-size: 40px;
-
     }
 
     .payment-row {
-
         flex-direction: column;
-
     }
 
     .success {
-
         padding: 30px 20px;
-
     }
 
     .success h1 {
-
         font-size: 36px;
-
     }
 
     .upi-qr {
-
         width: 170px;
-
         height: 170px;
-
     }
 
 }
@@ -1235,10 +1158,7 @@ footer p {
 
 <nav class="navbar">
 
-    <a
-        href="index.php"
-        class="logo"
-    >
+    <a href="index.php" class="logo">
 
         <h1>VELOURE</h1>
 
@@ -1268,10 +1188,7 @@ footer p {
     </div>
 
 
-    <a
-        href="offers.php"
-        class="back-btn"
-    >
+    <a href="offers.php" class="back-btn">
         ← Back
     </a>
 
@@ -1279,10 +1196,7 @@ footer p {
 
 
 
-<div
-    class="container"
-    id="booking"
->
+<div class="container" id="booking">
 
 
 <?php if ($success): ?>
@@ -1298,11 +1212,9 @@ footer p {
         ✓
     </div>
 
-
     <h1>
         Reservation Confirmed!
     </h1>
-
 
     <p>
         Thank you for choosing VELOURE Café.
@@ -1313,31 +1225,17 @@ footer p {
 
         <p>
             <strong>Reservation ID:</strong>
-            <?php
-            echo htmlspecialchars(
-                $reservation_id
-            );
-            ?>
+            <?php echo htmlspecialchars($reservation_id); ?>
         </p>
-
 
         <p>
             <strong>Name:</strong>
-            <?php
-            echo htmlspecialchars(
-                $name
-            );
-            ?>
+            <?php echo htmlspecialchars($name); ?>
         </p>
-
 
         <p>
             <strong>Mobile:</strong>
-            <?php
-            echo htmlspecialchars(
-                $phone
-            );
-            ?>
+            <?php echo htmlspecialchars($phone); ?>
         </p>
 
 
@@ -1345,11 +1243,7 @@ footer p {
 
         <p>
             <strong>Email:</strong>
-            <?php
-            echo htmlspecialchars(
-                $email
-            );
-            ?>
+            <?php echo htmlspecialchars($email); ?>
         </p>
 
         <?php endif; ?>
@@ -1357,44 +1251,27 @@ footer p {
 
         <p>
             <strong>Date:</strong>
-            <?php
-            echo htmlspecialchars(
-                $date
-            );
-            ?>
+            <?php echo htmlspecialchars($date); ?>
         </p>
-
 
         <p>
             <strong>Time:</strong>
-            <?php
-            echo htmlspecialchars(
-                $time
-            );
-            ?>
+            <?php echo htmlspecialchars($time); ?>
         </p>
-
 
         <p>
             <strong>Guests:</strong>
-            <?php
-            echo htmlspecialchars(
-                $guests
-            );
-            ?>
+            <?php echo htmlspecialchars($guests); ?>
         </p>
-
 
         <p>
             <strong>Occasion:</strong>
             <?php
-
             echo htmlspecialchars(
                 $occasion !== ""
-                    ? $occasion
-                    : "Not specified"
+                ? $occasion
+                : "Not specified"
             );
-
             ?>
         </p>
 
@@ -1403,11 +1280,7 @@ footer p {
 
         <p>
             <strong>Special Request:</strong>
-            <?php
-            echo htmlspecialchars(
-                $special_request
-            );
-            ?>
+            <?php echo htmlspecialchars($special_request); ?>
         </p>
 
         <?php endif; ?>
@@ -1415,29 +1288,18 @@ footer p {
 
         <p>
             <strong>Payment Method:</strong>
-            <?php
-            echo htmlspecialchars(
-                $payment_method
-            );
-            ?>
+            <?php echo htmlspecialchars($payment_method); ?>
         </p>
-
 
         <p>
             <strong>Payment Status:</strong>
-            <?php
-            echo htmlspecialchars(
-                $payment_status
-            );
-            ?>
+            <?php echo htmlspecialchars($payment_status); ?>
         </p>
-
 
         <p>
             <strong>Reservation Fee:</strong>
             ₹<?php echo $reservation_fee; ?>
         </p>
-
 
         <p>
             <strong>Reservation Status:</strong>
@@ -1447,10 +1309,7 @@ footer p {
     </div>
 
 
-    <a
-        href="index.php"
-        class="home-btn"
-    >
+    <a href="index.php" class="home-btn">
         Back to Home
     </a>
 
@@ -1475,12 +1334,10 @@ footer p {
             RESERVE YOUR EXPERIENCE
         </small>
 
-
         <h2>
             Your Table,<br>
             Your Moment.
         </h2>
-
 
         <p>
             Reserve your table at VELOURE Café
@@ -1502,8 +1359,6 @@ footer p {
 
         </div>
 
-
-        <!-- RESERVATION FEE -->
 
         <div class="fee-info">
 
@@ -1529,7 +1384,6 @@ footer p {
             Reserve a Table
         </h1>
 
-
         <p class="subtitle">
             Enter your details to confirm your reservation.
         </p>
@@ -1538,11 +1392,7 @@ footer p {
         <?php if ($error !== ""): ?>
 
         <div class="error">
-
-            <?php
-            echo htmlspecialchars($error);
-            ?>
-
+            <?php echo htmlspecialchars($error); ?>
         </div>
 
         <?php endif; ?>
@@ -1568,9 +1418,7 @@ footer p {
                     <input
                         type="text"
                         name="name"
-                        value="<?php
-                        echo htmlspecialchars($name);
-                        ?>"
+                        value="<?php echo htmlspecialchars($name); ?>"
                         placeholder="Enter your full name"
                         maxlength="60"
                         required
@@ -1588,9 +1436,7 @@ footer p {
                     <input
                         type="tel"
                         name="phone"
-                        value="<?php
-                        echo htmlspecialchars($phone);
-                        ?>"
+                        value="<?php echo htmlspecialchars($phone); ?>"
                         placeholder="10-digit mobile number"
                         maxlength="10"
                         pattern="[0-9]{10}"
@@ -1601,7 +1447,6 @@ footer p {
                 </div>
 
             </div>
-
 
 
             <!-- EMAIL -->
@@ -1615,14 +1460,11 @@ footer p {
                 <input
                     type="email"
                     name="email"
-                    value="<?php
-                    echo htmlspecialchars($email);
-                    ?>"
+                    value="<?php echo htmlspecialchars($email); ?>"
                     placeholder="Enter your email"
                 >
 
             </div>
-
 
 
             <!-- DATE + TIME -->
@@ -1638,9 +1480,7 @@ footer p {
                     <input
                         type="date"
                         name="date"
-                        value="<?php
-                        echo htmlspecialchars($date);
-                        ?>"
+                        value="<?php echo htmlspecialchars($date); ?>"
                         min="<?php echo $today; ?>"
                         required
                     >
@@ -1657,9 +1497,7 @@ footer p {
                     <input
                         type="time"
                         name="time"
-                        value="<?php
-                        echo htmlspecialchars($time);
-                        ?>"
+                        value="<?php echo htmlspecialchars($time); ?>"
                         min="09:00"
                         max="23:00"
                         required
@@ -1668,7 +1506,6 @@ footer p {
                 </div>
 
             </div>
-
 
 
             <!-- GUESTS + OCCASION -->
@@ -1697,8 +1534,8 @@ footer p {
                             value="<?php echo $i; ?>"
                             <?php
                             echo ($guests == $i)
-                                ? "selected"
-                                : "";
+                            ? "selected"
+                            : "";
                             ?>
                         >
 
@@ -1706,8 +1543,8 @@ footer p {
 
                             <?php
                             echo ($i == 1)
-                                ? " Guest"
-                                : " Guests";
+                            ? " Guest"
+                            : " Guests";
                             ?>
 
                         </option>
@@ -1719,84 +1556,39 @@ footer p {
                 </div>
 
 
-
                 <div class="group">
 
                     <label>
                         Occasion
                     </label>
 
-                    <select
-                        name="occasion"
-                    >
+                    <select name="occasion">
 
                         <option value="">
                             Select occasion
                         </option>
 
-                        <option
-                            value="Casual Visit"
-                            <?php
-                            echo ($occasion === "Casual Visit")
-                                ? "selected"
-                                : "";
-                            ?>
-                        >
+                        <option value="Casual Visit">
                             Casual Visit
                         </option>
 
-                        <option
-                            value="Birthday"
-                            <?php
-                            echo ($occasion === "Birthday")
-                                ? "selected"
-                                : "";
-                            ?>
-                        >
+                        <option value="Birthday">
                             Birthday
                         </option>
 
-                        <option
-                            value="Anniversary"
-                            <?php
-                            echo ($occasion === "Anniversary")
-                                ? "selected"
-                                : "";
-                            ?>
-                        >
+                        <option value="Anniversary">
                             Anniversary
                         </option>
 
-                        <option
-                            value="Date"
-                            <?php
-                            echo ($occasion === "Date")
-                                ? "selected"
-                                : "";
-                            ?>
-                        >
+                        <option value="Date">
                             Date
                         </option>
 
-                        <option
-                            value="Business Meeting"
-                            <?php
-                            echo ($occasion === "Business Meeting")
-                                ? "selected"
-                                : "";
-                            ?>
-                        >
+                        <option value="Business Meeting">
                             Business Meeting
                         </option>
 
-                        <option
-                            value="Family Gathering"
-                            <?php
-                            echo ($occasion === "Family Gathering")
-                                ? "selected"
-                                : "";
-                            ?>
-                        >
+                        <option value="Family Gathering">
                             Family Gathering
                         </option>
 
@@ -1805,7 +1597,6 @@ footer p {
                 </div>
 
             </div>
-
 
 
             <!-- SPECIAL REQUEST -->
@@ -1820,14 +1611,9 @@ footer p {
                     name="special_request"
                     placeholder="Any special request?"
                     maxlength="500"
-                ><?php
-                echo htmlspecialchars(
-                    $special_request
-                );
-                ?></textarea>
+                ><?php echo htmlspecialchars($special_request); ?></textarea>
 
             </div>
-
 
 
             <!-- PAYMENT -->
@@ -1851,8 +1637,8 @@ footer p {
                             value="Cash"
                             <?php
                             echo ($payment_method === "Cash")
-                                ? "checked"
-                                : "";
+                            ? "checked"
+                            : "";
                             ?>
                             required
                         >
@@ -1864,7 +1650,6 @@ footer p {
                     </div>
 
 
-
                     <div class="payment-option">
 
                         <input
@@ -1874,8 +1659,8 @@ footer p {
                             value="UPI"
                             <?php
                             echo ($payment_method === "UPI")
-                                ? "checked"
-                                : "";
+                            ? "checked"
+                            : "";
                             ?>
                         >
 
@@ -1884,7 +1669,6 @@ footer p {
                         </label>
 
                     </div>
-
 
 
                     <div class="payment-option">
@@ -1896,8 +1680,8 @@ footer p {
                             value="Card"
                             <?php
                             echo ($payment_method === "Card")
-                                ? "checked"
-                                : "";
+                            ? "checked"
+                            : "";
                             ?>
                         >
 
@@ -1912,10 +1696,7 @@ footer p {
             </div>
 
 
-
-            <!-- ==================================================
-                 UPI QR PAYMENT
-            ================================================== -->
+            <!-- UPI QR -->
 
             <div
                 class="qr-payment"
@@ -1962,7 +1743,6 @@ footer p {
             </div>
 
 
-
             <!-- SUBMIT -->
 
             <button
@@ -1985,7 +1765,6 @@ footer p {
 </div>
 
 
-
 <!-- ======================================================
      FOOTER
 ====================================================== -->
@@ -2004,7 +1783,6 @@ footer p {
 </footer>
 
 
-
 <!-- ======================================================
      JAVASCRIPT
 ====================================================== -->
@@ -2020,21 +1798,19 @@ document.addEventListener(
                 "reservationForm"
             );
 
-
         if (!form) {
             return;
         }
 
 
-        /* ==================================================
-           UPI QR SHOW / HIDE
-        ================================================== */
+        // ==================================================
+        // UPI QR SHOW / HIDE
+        // ==================================================
 
         const paymentOptions =
             document.querySelectorAll(
                 'input[name="payment_method"]'
             );
-
 
         const qrPayment =
             document.getElementById(
@@ -2072,14 +1848,13 @@ document.addEventListener(
         );
 
 
-        /* ==================================================
-           PHONE VALIDATION
-        ================================================== */
+        // ==================================================
+        // FORM VALIDATION
+        // ==================================================
 
         form.addEventListener(
             "submit",
             function (event) {
-
 
                 const phone =
                     form.querySelector(
@@ -2102,8 +1877,6 @@ document.addEventListener(
                 }
 
 
-                /* DATE */
-
                 const date =
                     form.querySelector(
                         'input[name="date"]'
@@ -2122,8 +1895,6 @@ document.addEventListener(
 
                 }
 
-
-                /* PAYMENT */
 
                 const payment =
                     form.querySelector(
@@ -2147,9 +1918,9 @@ document.addEventListener(
         );
 
 
-        /* ==================================================
-           SHOW QR IF UPI IS ALREADY SELECTED
-        ================================================== */
+        // ==================================================
+        // SHOW QR IF UPI SELECTED
+        // ==================================================
 
         const selectedPayment =
             document.querySelector(
