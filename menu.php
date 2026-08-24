@@ -88,7 +88,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             $file = __DIR__ . "/order.csv";
 
-            $newFile = !file_exists($file) || filesize($file) === 0;
+            $newFile =
+                !file_exists($file) ||
+                filesize($file) === 0;
 
             $handle = fopen($file, "a");
 
@@ -131,7 +133,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 $orderError =
                     "Order could not be saved. Check folder permission.";
-
             }
         }
     }
@@ -224,7 +225,6 @@ $menu = [
         ["Crispy Chicken",280,"crispy-chicken.jpg"],
         ["American-Style Desserts",250,"american-dessert.jpg"]
     ]
-
 ];
 
 
@@ -392,7 +392,6 @@ $descriptions = [
 
     "American-Style Desserts" =>
     "Delicious American-inspired desserts."
-
 ];
 
 ?>
@@ -405,10 +404,7 @@ $descriptions = [
 
 <meta charset="UTF-8">
 
-<meta
-name="viewport"
-content="width=device-width, initial-scale=1.0"
->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>VELOURE | Menu</title>
 
@@ -636,10 +632,16 @@ transition:.3s;
 transform:translateY(-6px);
 }
 
+
+/* IMAGE */
+
 .food-image{
 height:220px;
 overflow:hidden;
 cursor:pointer;
+position:relative;
+display:block;
+text-decoration:none;
 }
 
 .food-image img{
@@ -653,6 +655,54 @@ transition:.4s;
 .food-image:hover img{
 transform:scale(1.05);
 }
+
+
+/* IMAGE PRICE */
+
+.image-price{
+position:absolute;
+right:12px;
+bottom:12px;
+background:#4b3024;
+color:white;
+padding:8px 15px;
+border-radius:22px;
+font-size:14px;
+font-weight:700;
+box-shadow:0 4px 12px rgba(0,0,0,.25);
+z-index:5;
+}
+
+.food-image:hover .image-price{
+background:#a66c43;
+}
+
+
+/* CLICK LABEL */
+
+.image-reserve-label{
+position:absolute;
+left:12px;
+bottom:12px;
+background:rgba(255,250,244,.94);
+color:#4b3024;
+padding:7px 12px;
+border-radius:20px;
+font-size:11px;
+font-weight:700;
+z-index:5;
+opacity:0;
+transform:translateY(5px);
+transition:.3s;
+}
+
+.food-image:hover .image-reserve-label{
+opacity:1;
+transform:translateY(0);
+}
+
+
+/* CONTENT */
 
 .menu-content{
 padding:18px;
@@ -691,6 +741,11 @@ color:white;
 padding:9px 15px;
 border-radius:20px;
 font-size:11px;
+transition:.3s;
+}
+
+.order-btn:hover{
+background:#a66c43;
 }
 
 
@@ -761,7 +816,7 @@ grid-column:1/-1;
 }
 
 
-/* QR PAYMENT */
+/* QR */
 
 .qr-box{
 display:none;
@@ -996,7 +1051,6 @@ font-size:40px;
 
 </head>
 
-
 <body>
 
 
@@ -1089,7 +1143,6 @@ type="button"
 All
 </button>
 
-
 <?php foreach ($menu as $category => $items): ?>
 
 <?php
@@ -1157,12 +1210,13 @@ data-category="<?php echo $categoryClass; ?>"
 
 <div class="menu-card">
 
-<!-- IMAGE CLICK RESERVATION -->
+
+<!-- IMAGE CLICK = RESERVATION -->
 
 <a
 href="reservation.php#booking"
 class="food-image"
-title="Reserve a Table"
+title="Click to Reserve Table"
 >
 
 <img
@@ -1171,15 +1225,28 @@ alt="<?php echo htmlspecialchars($item[0]); ?>"
 onerror="this.src='images/default-food.jpg';"
 >
 
+<!-- PRICE ON IMAGE -->
+
+<span class="image-price">
+₹<?php echo number_format($item[1]); ?>
+</span>
+
+<!-- RESERVATION LABEL -->
+
+<span class="image-reserve-label">
+Click to Reserve
+</span>
+
 </a>
 
+
+<!-- MENU CONTENT -->
 
 <div class="menu-content">
 
 <h4>
 <?php echo htmlspecialchars($item[0]); ?>
 </h4>
-
 
 <p>
 
@@ -1199,13 +1266,8 @@ $descriptions[$item[0]]
 <div class="price-row">
 
 <span class="price">
-
-₹<?php
-echo number_format($item[1]);
-?>
-
+₹<?php echo number_format($item[1]); ?>
 </span>
-
 
 <a
 href="reservation.php#booking"
@@ -1302,66 +1364,39 @@ id="coffeeType"
 required
 >
 
-<option
-value=""
-data-price="0"
->
+<option value="" data-price="0">
 Select Coffee
 </option>
 
-<option
-value="Classic Coffee"
-data-price="120"
->
+<option value="Classic Coffee" data-price="120">
 Classic Coffee — ₹120
 </option>
 
-<option
-value="Espresso"
-data-price="100"
->
+<option value="Espresso" data-price="100">
 Espresso — ₹100
 </option>
 
-<option
-value="Cappuccino"
-data-price="150"
->
+<option value="Cappuccino" data-price="150">
 Cappuccino — ₹150
 </option>
 
-<option
-value="Mocha"
-data-price="170"
->
+<option value="Mocha" data-price="170">
 Mocha — ₹170
 </option>
 
-<option
-value="Cold Coffee"
-data-price="150"
->
+<option value="Cold Coffee" data-price="150">
 Cold Coffee — ₹150
 </option>
 
-<option
-value="Iced Coffee"
-data-price="160"
->
+<option value="Iced Coffee" data-price="160">
 Iced Coffee — ₹160
 </option>
 
-<option
-value="Frappé"
-data-price="190"
->
+<option value="Frappé" data-price="190">
 Frappé — ₹190
 </option>
 
-<option
-value="Signature Coffee"
-data-price="220"
->
+<option value="Signature Coffee" data-price="220">
 Signature Coffee — ₹220
 </option>
 
@@ -1384,31 +1419,19 @@ id="coffeeSize"
 required
 >
 
-<option
-value=""
-data-price="0"
->
+<option value="" data-price="0">
 Select Size
 </option>
 
-<option
-value="Small"
-data-price="0"
->
+<option value="Small" data-price="0">
 Small — +₹0
 </option>
 
-<option
-value="Medium"
-data-price="30"
->
+<option value="Medium" data-price="30">
 Medium — +₹30
 </option>
 
-<option
-value="Large"
-data-price="50"
->
+<option value="Large" data-price="50">
 Large — +₹50
 </option>
 
@@ -1430,31 +1453,19 @@ name="milk"
 id="coffeeMilk"
 >
 
-<option
-value="Regular Milk"
-data-price="0"
->
+<option value="Regular Milk" data-price="0">
 Regular Milk — +₹0
 </option>
 
-<option
-value="Almond Milk"
-data-price="30"
->
+<option value="Almond Milk" data-price="30">
 Almond Milk — +₹30
 </option>
 
-<option
-value="Oat Milk"
-data-price="25"
->
+<option value="Oat Milk" data-price="25">
 Oat Milk — +₹25
 </option>
 
-<option
-value="Soy Milk"
-data-price="20"
->
+<option value="Soy Milk" data-price="20">
 Soy Milk — +₹20
 </option>
 
@@ -1476,31 +1487,19 @@ name="sweetness"
 id="coffeeSweetness"
 >
 
-<option
-value="Normal"
-data-price="0"
->
+<option value="Normal" data-price="0">
 Normal — +₹0
 </option>
 
-<option
-value="Less Sugar"
-data-price="0"
->
+<option value="Less Sugar" data-price="0">
 Less Sugar — +₹0
 </option>
 
-<option
-value="No Sugar"
-data-price="0"
->
+<option value="No Sugar" data-price="0">
 No Sugar — +₹0
 </option>
 
-<option
-value="Extra Sweet"
-data-price="10"
->
+<option value="Extra Sweet" data-price="10">
 Extra Sweet — +₹10
 </option>
 
@@ -1522,38 +1521,23 @@ name="topping"
 id="coffeeTopping"
 >
 
-<option
-value="No Topping"
-data-price="0"
->
+<option value="No Topping" data-price="0">
 No Topping — +₹0
 </option>
 
-<option
-value="Whipped Cream"
-data-price="20"
->
+<option value="Whipped Cream" data-price="20">
 Whipped Cream — +₹20
 </option>
 
-<option
-value="Chocolate"
-data-price="25"
->
+<option value="Chocolate" data-price="25">
 Chocolate — +₹25
 </option>
 
-<option
-value="Caramel"
-data-price="20"
->
+<option value="Caramel" data-price="20">
 Caramel — +₹20
 </option>
 
-<option
-value="Hazelnut"
-data-price="30"
->
+<option value="Hazelnut" data-price="30">
 Hazelnut — +₹30
 </option>
 
@@ -1635,7 +1619,7 @@ Card
 </div>
 
 
-<!-- QR -->
+<!-- QR PAYMENT -->
 
 <div
 class="qr-box"
@@ -1682,80 +1666,33 @@ Your Bill
 </h3>
 
 <div class="bill-row">
-
-<span>
-Coffee
-</span>
-
-<strong id="billCoffee">
-₹0
-</strong>
-
+<span>Coffee</span>
+<strong id="billCoffee">₹0</strong>
 </div>
-
 
 <div class="bill-row">
-
-<span>
-Size
-</span>
-
-<strong id="billSize">
-₹0
-</strong>
-
+<span>Size</span>
+<strong id="billSize">₹0</strong>
 </div>
-
 
 <div class="bill-row">
-
-<span>
-Milk
-</span>
-
-<strong id="billMilk">
-₹0
-</strong>
-
+<span>Milk</span>
+<strong id="billMilk">₹0</strong>
 </div>
-
 
 <div class="bill-row">
-
-<span>
-Sweetness
-</span>
-
-<strong id="billSweetness">
-₹0
-</strong>
-
+<span>Sweetness</span>
+<strong id="billSweetness">₹0</strong>
 </div>
-
 
 <div class="bill-row">
-
-<span>
-Topping
-</span>
-
-<strong id="billTopping">
-₹0
-</strong>
-
+<span>Topping</span>
+<strong id="billTopping">₹0</strong>
 </div>
-
 
 <div class="bill-total">
-
-<span>
-Total Bill
-</span>
-
-<strong id="billTotal">
-₹0
-</strong>
-
+<span>Total Bill</span>
+<strong id="billTotal">₹0</strong>
 </div>
 
 </div>
@@ -1785,7 +1722,6 @@ class="build-btn"
 Create My Coffee
 </button>
 
-
 </form>
 
 </div>
@@ -1811,7 +1747,6 @@ All Rights Reserved.
 
 <script>
 
-
 /* =========================================================
    MENU FILTER
 ========================================================= */
@@ -1822,7 +1757,6 @@ document.querySelectorAll(".filter-btn");
 const categories =
 document.querySelectorAll(".menu-category");
 
-
 filterButtons.forEach(function(button){
 
 button.addEventListener("click",function(){
@@ -1831,13 +1765,10 @@ const filter =
 this.getAttribute("data-filter");
 
 filterButtons.forEach(function(btn){
-
 btn.classList.remove("active");
-
 });
 
 this.classList.add("active");
-
 
 categories.forEach(function(category){
 
@@ -1865,7 +1796,7 @@ category.style.display = "none";
 
 
 /* =========================================================
-   PRICE CALCULATOR + BILL
+   PRICE CALCULATOR
 ========================================================= */
 
 function getPrice(id){
@@ -1874,18 +1805,14 @@ const select =
 document.getElementById(id);
 
 if(!select){
-
 return 0;
-
 }
 
 const option =
 select.options[select.selectedIndex];
 
 if(!option){
-
 return 0;
-
 }
 
 return Number(
@@ -1912,7 +1839,6 @@ getPrice("coffeeSweetness");
 const topping =
 getPrice("coffeeTopping");
 
-
 const total =
 coffee +
 size +
@@ -1929,7 +1855,7 @@ document.getElementById(
 "₹" + total;
 
 
-/* BILL DETAILS */
+/* BILL */
 
 document.getElementById(
 "billCoffee"
@@ -1998,7 +1924,6 @@ document.getElementById("paymentMethod");
 const qrBox =
 document.getElementById("qrBox");
 
-
 paymentMethod.addEventListener(
 "change",
 function(){
@@ -2013,8 +1938,7 @@ qrBox.classList.remove("show");
 
 }
 
-}
-);
+});
 
 
 /* INITIAL PRICE */
@@ -2022,7 +1946,6 @@ qrBox.classList.remove("show");
 calculateCoffeePrice();
 
 </script>
-
 
 </body>
 
