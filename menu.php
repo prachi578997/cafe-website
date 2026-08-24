@@ -1,8 +1,8 @@
-```php
 <?php
 
 /* =========================================================
    VELOURE MENU + BUILD YOUR COFFEE + QR + EXCEL CSV
+   MENU ITEM -> RESERVATION
 ========================================================= */
 
 $orderSuccess = false;
@@ -54,7 +54,7 @@ $toppingPrices = [
 
 
 /* =========================================================
-   ORDER SAVE
+   BUILD YOUR COFFEE ORDER SAVE
 ========================================================= */
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -68,10 +68,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $topping = trim($_POST["topping"] ?? "");
     $payment = trim($_POST["payment"] ?? "");
 
-    /*
-       Payment is kept as Pending because a static QR
-       cannot automatically verify successful UPI payment.
-    */
     $paymentStatus = "Pending";
 
 
@@ -110,7 +106,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         } else {
 
             /* =================================================
-               EXCEL COMPATIBLE CSV FILE
+               SAVE ORDER CSV
             ================================================= */
 
             $file = __DIR__ . "/order.csv";
@@ -119,13 +115,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 !file_exists($file) ||
                 filesize($file) === 0;
 
-
             $handle = fopen($file, "a");
 
-
             if ($handle) {
-
-                /* CSV HEADER */
 
                 if ($newFile) {
 
@@ -146,8 +138,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 }
 
 
-                /* ORDER DATA */
-
                 fputcsv($handle, [
                     date("Y-m-d H:i:s"),
                     $name,
@@ -161,7 +151,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $total,
                     $paymentStatus
                 ]);
-
 
                 fclose($handle);
 
@@ -688,6 +677,11 @@ transition:.3s;
 transform:translateY(-6px);
 }
 
+
+/* =========================================================
+   FOOD IMAGE
+========================================================= */
+
 .food-image{
 height:220px;
 overflow:hidden;
@@ -709,6 +703,9 @@ transition:.4s;
 transform:scale(1.05);
 }
 
+
+/* PRICE ON IMAGE */
+
 .image-price{
 position:absolute;
 right:12px;
@@ -727,13 +724,16 @@ z-index:5;
 background:#a66c43;
 }
 
+
+/* RESERVATION ON IMAGE */
+
 .image-reserve-label{
 position:absolute;
 left:12px;
 bottom:12px;
-background:rgba(255,250,244,.94);
+background:rgba(255,250,244,.95);
 color:#4b3024;
-padding:7px 12px;
+padding:8px 13px;
 border-radius:20px;
 font-size:11px;
 font-weight:700;
@@ -770,10 +770,14 @@ line-height:1.6;
 min-height:58px;
 }
 
+
+/* PRICE + RESERVATION */
+
 .price-row{
 display:flex;
 justify-content:space-between;
 align-items:center;
+gap:10px;
 margin-top:15px;
 }
 
@@ -783,18 +787,24 @@ font-size:18px;
 font-weight:bold;
 }
 
-.order-btn{
+
+/* RESERVATION BUTTON */
+
+.reservation-item-btn{
 text-decoration:none;
 background:#4b3024;
 color:white;
-padding:9px 15px;
-border-radius:20px;
+padding:10px 16px;
+border-radius:25px;
 font-size:11px;
+font-weight:700;
 transition:.3s;
+display:inline-block;
 }
 
-.order-btn:hover{
+.reservation-item-btn:hover{
 background:#a66c43;
+transform:translateY(-2px);
 }
 
 
@@ -1158,6 +1168,15 @@ width:180px;
 height:180px;
 }
 
+.price-row{
+align-items:flex-start;
+}
+
+.reservation-item-btn{
+padding:9px 13px;
+font-size:10px;
+}
+
 }
 
 </style>
@@ -1330,47 +1349,101 @@ data-category="<?php echo $categoryClass; ?>"
 
 <div class="menu-grid">
 
+
 <?php foreach ($items as $item): ?>
+
+<?php
+
+$itemName  = $item[0];
+$itemPrice = $item[1];
+$itemImage = $item[2];
+
+
+/* =====================================================
+   RESERVATION LINK
+===================================================== */
+
+$reservationLink =
+"reservation.php?item=" .
+urlencode($itemName) .
+"&price=" .
+urlencode($itemPrice) .
+"#booking";
+
+?>
 
 <div class="menu-card">
 
+
+<!-- =================================================
+     IMAGE
+================================================= -->
+
 <a
-href="#build-coffee"
+href="<?php echo htmlspecialchars($reservationLink); ?>"
 class="food-image"
-title="Order this item"
+title="Reserve <?php echo htmlspecialchars($itemName); ?>"
 >
 
 <img
-src="images/<?php echo htmlspecialchars($item[2]); ?>"
-alt="<?php echo htmlspecialchars($item[0]); ?>"
+src="images/<?php echo htmlspecialchars($itemImage); ?>"
+alt="<?php echo htmlspecialchars($itemName); ?>"
 onerror="this.src='images/default-food.jpg';"
 >
 
+
+<!-- PRICE -->
+
 <span class="image-price">
-₹<?php echo number_format($item[1]); ?>
+
+₹<?php echo number_format($itemPrice); ?>
+
 </span>
 
+
+<!-- RESERVATION -->
+
 <span class="image-reserve-label">
-Click to Order
+
+Reservation
+
 </span>
 
 </a>
 
 
+<!-- =================================================
+     CONTENT
+================================================= -->
+
 <div class="menu-content">
 
+
+<!-- ITEM NAME -->
+
 <h4>
-<?php echo htmlspecialchars($item[0]); ?>
+
+<?php
+echo htmlspecialchars($itemName);
+?>
+
 </h4>
+
+
+<!-- DESCRIPTION -->
 
 <p>
 
 <?php
 
 echo htmlspecialchars(
-$descriptions[$item[0]]
+
+$descriptions[$itemName]
+
 ??
+
 "A delicious creation specially prepared by VELOURE."
+
 );
 
 ?>
@@ -1378,18 +1451,29 @@ $descriptions[$item[0]]
 </p>
 
 
+<!-- =================================================
+     PRICE + RESERVATION BUTTON
+================================================= -->
+
 <div class="price-row">
 
+
 <span class="price">
-₹<?php echo number_format($item[1]); ?>
+
+₹<?php echo number_format($itemPrice); ?>
+
 </span>
 
+
 <a
-href="#build-coffee"
-class="order-btn"
+href="<?php echo htmlspecialchars($reservationLink); ?>"
+class="reservation-item-btn"
 >
-Order
+
+Reservation
+
 </a>
+
 
 </div>
 
@@ -1398,6 +1482,7 @@ Order
 </div>
 
 <?php endforeach; ?>
+
 
 </div>
 
@@ -2199,4 +2284,3 @@ calculateCoffeePrice();
 </body>
 
 </html>
-```
