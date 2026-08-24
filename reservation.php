@@ -2,7 +2,7 @@
 
 // ======================================================
 // VELOURE CAFE - RESERVATION SYSTEM
-// GOOGLE SHEET STORAGE
+// MENU ITEM + PRICE + GOOGLE SHEET + UPI QR
 // ======================================================
 
 date_default_timezone_set("Asia/Kolkata");
@@ -21,10 +21,22 @@ $time = "";
 $guests = "";
 $occasion = "";
 $special_request = "";
+
 $payment_method = "";
 $payment_status = "Pending";
 
 $reservation_fee = 100;
+
+
+// ======================================================
+// SELECTED MENU ITEMS
+// ======================================================
+
+$selected_items = [];
+
+$menu_items_total = 0;
+
+$grand_total = $reservation_fee;
 
 
 // ======================================================
@@ -41,17 +53,118 @@ $googleSheetURL =
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $name = trim($_POST["name"] ?? "");
-    $phone = trim($_POST["phone"] ?? "");
-    $email = trim($_POST["email"] ?? "");
-    $date = trim($_POST["date"] ?? "");
-    $time = trim($_POST["time"] ?? "");
-    $guests = trim($_POST["guests"] ?? "");
-    $occasion = trim($_POST["occasion"] ?? "");
-    $special_request = trim($_POST["special_request"] ?? "");
-    $payment_method = trim($_POST["payment_method"] ?? "");
+    // ==================================================
+    // BASIC FORM DATA
+    // ==================================================
 
-    $payment_status = "Pending";
+    $name =
+        trim($_POST["name"] ?? "");
+
+    $phone =
+        trim($_POST["phone"] ?? "");
+
+    $email =
+        trim($_POST["email"] ?? "");
+
+    $date =
+        trim($_POST["date"] ?? "");
+
+    $time =
+        trim($_POST["time"] ?? "");
+
+    $guests =
+        trim($_POST["guests"] ?? "");
+
+    $occasion =
+        trim($_POST["occasion"] ?? "");
+
+    $special_request =
+        trim($_POST["special_request"] ?? "");
+
+    $payment_method =
+        trim($_POST["payment_method"] ?? "");
+
+    $payment_status =
+        "Pending";
+
+
+    // ==================================================
+    // GET SELECTED MENU ITEMS
+    // ==================================================
+
+    $reservation_items_json =
+        $_POST["reservation_items"] ?? "[]";
+
+
+    $decoded_items =
+        json_decode(
+            $reservation_items_json,
+            true
+        );
+
+
+    if (is_array($decoded_items)) {
+
+        foreach ($decoded_items as $item) {
+
+            $itemName =
+                trim($item["name"] ?? "");
+
+            $itemPrice =
+                (float)($item["price"] ?? 0);
+
+            $quantity =
+                (int)($item["quantity"] ?? 1);
+
+
+            // ------------------------------------------
+            // VALID ITEM
+            // ------------------------------------------
+
+            if (
+                $itemName !== "" &&
+                $itemPrice > 0 &&
+                $quantity > 0
+            ) {
+
+                $itemTotal =
+                    $itemPrice * $quantity;
+
+
+                $selected_items[] = [
+
+                    "name" =>
+                        $itemName,
+
+                    "price" =>
+                        $itemPrice,
+
+                    "quantity" =>
+                        $quantity,
+
+                    "total" =>
+                        $itemTotal
+
+                ];
+
+
+                $menu_items_total +=
+                    $itemTotal;
+
+            }
+
+        }
+
+    }
+
+
+    // ==================================================
+    // GRAND TOTAL
+    // ==================================================
+
+    $grand_total =
+        $reservation_fee +
+        $menu_items_total;
 
 
     // ==================================================
@@ -67,32 +180,57 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $payment_method === ""
     ) {
 
-        $error = "Please fill all required fields.";
+        $error =
+            "Please fill all required fields.";
 
-    } elseif (!preg_match("/^[0-9]{10}$/", $phone)) {
+    }
 
-        $error = "Please enter a valid 10-digit mobile number.";
-
-    } elseif ($date < $today) {
-
-        $error = "Please select today or a future reservation date.";
-
-    } elseif (
-        $email !== "" &&
-        !filter_var($email, FILTER_VALIDATE_EMAIL)
+    elseif (
+        !preg_match(
+            "/^[0-9]{10}$/",
+            $phone
+        )
     ) {
 
-        $error = "Please enter a valid email address.";
+        $error =
+            "Please enter a valid 10-digit mobile number.";
 
-    } elseif (
+    }
+
+    elseif (
+        $date < $today
+    ) {
+
+        $error =
+            "Please select today or a future reservation date.";
+
+    }
+
+    elseif (
+        $email !== "" &&
+        !filter_var(
+            $email,
+            FILTER_VALIDATE_EMAIL
+        )
+    ) {
+
+        $error =
+            "Please enter a valid email address.";
+
+    }
+
+    elseif (
         !is_numeric($guests) ||
         $guests < 1 ||
         $guests > 10
     ) {
 
-        $error = "Please select between 1 and 10 guests.";
+        $error =
+            "Please select between 1 and 10 guests.";
 
-    } else {
+    }
+
+    else {
 
 
         // ==================================================
@@ -109,14 +247,58 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // RESERVATION STATUS
         // ==================================================
 
-        $reservation_status = "Pending Confirmation";
+        $reservation_status =
+            "Pending Confirmation";
 
 
         // ==================================================
         // CREATED DATE
         // ==================================================
 
-        $created_at = date("d-m-Y H:i:s");
+        $created_at =
+            date("d-m-Y H:i:s");
+
+
+        // ==================================================
+        // SELECTED ITEMS FOR GOOGLE SHEET
+        // ==================================================
+
+        $selected_items_text = "";
+
+
+        if (!empty($selected_items)) {
+
+            $itemParts = [];
+
+
+            foreach ($selected_items as $item) {
+
+                $itemParts[] =
+                    $item["name"] .
+                    " x " .
+                    $item["quantity"] .
+                    " = ₹" .
+                    number_format(
+                        $item["total"]
+                    );
+
+            }
+
+
+            $selected_items_text =
+                implode(
+                    " | ",
+                    $itemParts
+                );
+
+        }
+
+        else {
+
+            $selected_items_text =
+                "No menu item selected";
+
+        }
 
 
         // ==================================================
@@ -125,33 +307,56 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $googleData = [
 
-            "reservation_id" => $reservation_id,
+            "reservation_id" =>
+                $reservation_id,
 
-            "name" => $name,
+            "name" =>
+                $name,
 
-            "phone" => $phone,
+            "phone" =>
+                $phone,
 
-            "email" => $email,
+            "email" =>
+                $email,
 
-            "date" => $date,
+            "date" =>
+                $date,
 
-            "time" => $time,
+            "time" =>
+                $time,
 
-            "guests" => $guests,
+            "guests" =>
+                $guests,
 
-            "occasion" => $occasion,
+            "occasion" =>
+                $occasion,
 
-            "special_request" => $special_request,
+            "special_request" =>
+                $special_request,
 
-            "reservation_fee" => $reservation_fee,
+            "selected_items" =>
+                $selected_items_text,
 
-            "reservation_status" => $reservation_status,
+            "menu_items_total" =>
+                $menu_items_total,
 
-            "payment_method" => $payment_method,
+            "reservation_fee" =>
+                $reservation_fee,
 
-            "payment_status" => $payment_status,
+            "grand_total" =>
+                $grand_total,
 
-            "created_at" => $created_at
+            "reservation_status" =>
+                $reservation_status,
+
+            "payment_method" =>
+                $payment_method,
+
+            "payment_status" =>
+                $payment_status,
+
+            "created_at" =>
+                $created_at
 
         ];
 
@@ -160,7 +365,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // SEND TO GOOGLE SHEET
         // ==================================================
 
-        $ch = curl_init($googleSheetURL);
+        $ch =
+            curl_init(
+                $googleSheetURL
+            );
 
 
         curl_setopt(
@@ -173,7 +381,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         curl_setopt(
             $ch,
             CURLOPT_POSTFIELDS,
-            json_encode($googleData)
+            json_encode(
+                $googleData,
+                JSON_UNESCAPED_UNICODE
+            )
         );
 
 
@@ -208,18 +419,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
         // ==================================================
-        // EXECUTE REQUEST
+        // EXECUTE
         // ==================================================
 
-        $googleResponse = curl_exec($ch);
+        $googleResponse =
+            curl_exec($ch);
 
-        $curlError = curl_error($ch);
+
+        $curlError =
+            curl_error($ch);
+
 
         curl_close($ch);
 
 
         // ==================================================
-        // CHECK GOOGLE SHEET RESPONSE
+        // CHECK GOOGLE RESPONSE
         // ==================================================
 
         if (
@@ -230,7 +445,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $error =
                 "Unable to connect to Google Sheet. Please try again.";
 
-        } else {
+        }
+
+        else {
 
             $responseData =
                 json_decode(
@@ -241,16 +458,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             if (
                 is_array($responseData) &&
-                isset($responseData["success"]) &&
+                isset(
+                    $responseData["success"]
+                ) &&
                 $responseData["success"] === false
             ) {
 
                 $error =
                     "Reservation could not be saved to Google Sheet.";
 
-            } else {
+            }
 
-                $success = true;
+            else {
+
+                $success =
+                    true;
 
             }
 
@@ -279,7 +501,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <title>VELOURE | Reservation</title>
 
 
-<!-- GOOGLE FONTS -->
+<!-- ======================================================
+     GOOGLE FONTS
+====================================================== -->
 
 <link
     href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap"
@@ -305,13 +529,18 @@ html {
 
 body {
 
-    font-family: "DM Sans", sans-serif;
+    font-family:
+        "DM Sans",
+        sans-serif;
 
-    background: #f6f1e8;
+    background:
+        #f6f1e8;
 
-    color: #35251d;
+    color:
+        #35251d;
 
-    min-height: 100vh;
+    min-height:
+        100vh;
 
 }
 
@@ -322,111 +551,149 @@ body {
 
 .navbar {
 
-    position: sticky;
+    position:
+        sticky;
 
-    top: 0;
+    top:
+        0;
 
-    z-index: 999;
+    z-index:
+        999;
 
-    height: 78px;
+    height:
+        78px;
 
-    background: #fffaf4;
+    background:
+        #fffaf4;
 
-    border-bottom: 1px solid #dfd2c2;
+    border-bottom:
+        1px solid #dfd2c2;
 
-    display: flex;
+    display:
+        flex;
 
-    align-items: center;
+    align-items:
+        center;
 
-    justify-content: space-between;
+    justify-content:
+        space-between;
 
-    padding: 0 6%;
+    padding:
+        0 6%;
 
 }
 
 .logo {
 
-    text-decoration: none;
+    text-decoration:
+        none;
 
-    color: #35251d;
+    color:
+        #35251d;
 
 }
 
 .logo h1 {
 
-    font-family: "Cormorant Garamond", serif;
+    font-family:
+        "Cormorant Garamond",
+        serif;
 
-    font-size: 34px;
+    font-size:
+        34px;
 
-    line-height: 28px;
+    line-height:
+        28px;
 
-    letter-spacing: 5px;
+    letter-spacing:
+        5px;
 
 }
 
 .logo span {
 
-    display: block;
+    display:
+        block;
 
-    text-align: center;
+    text-align:
+        center;
 
-    font-size: 8px;
+    font-size:
+        8px;
 
-    letter-spacing: 4px;
+    letter-spacing:
+        4px;
 
-    color: #a47b4c;
+    color:
+        #a47b4c;
 
-    margin-top: 4px;
+    margin-top:
+        4px;
 
 }
 
 .nav-links {
 
-    display: flex;
+    display:
+        flex;
 
-    gap: 18px;
+    gap:
+        18px;
 
 }
 
 .nav-links a {
 
-    text-decoration: none;
+    text-decoration:
+        none;
 
-    color: #35251d;
+    color:
+        #35251d;
 
-    font-size: 13px;
+    font-size:
+        13px;
 
-    font-weight: 600;
+    font-weight:
+        600;
 
 }
 
 .nav-links a:hover {
 
-    color: #a47b4c;
+    color:
+        #a47b4c;
 
 }
 
 .back-btn {
 
-    text-decoration: none;
+    text-decoration:
+        none;
 
-    color: #35251d;
+    color:
+        #35251d;
 
-    border: 1px solid #bfa88e;
+    border:
+        1px solid #bfa88e;
 
-    padding: 10px 18px;
+    padding:
+        10px 18px;
 
-    border-radius: 25px;
+    border-radius:
+        25px;
 
-    font-size: 13px;
+    font-size:
+        13px;
 
 }
 
 .back-btn:hover {
 
-    background: #35251d;
+    background:
+        #35251d;
 
-    color: white;
+    color:
+        white;
 
 }
 
@@ -437,11 +704,14 @@ body {
 
 .container {
 
-    width: 94%;
+    width:
+        94%;
 
-    max-width: 1150px;
+    max-width:
+        1150px;
 
-    margin: 50px auto 80px;
+    margin:
+        50px auto 80px;
 
 }
 
@@ -452,15 +722,20 @@ body {
 
 .card {
 
-    display: grid;
+    display:
+        grid;
 
-    grid-template-columns: 38% 62%;
+    grid-template-columns:
+        38% 62%;
 
-    background: white;
+    background:
+        white;
 
-    border-radius: 25px;
+    border-radius:
+        25px;
 
-    overflow: hidden;
+    overflow:
+        hidden;
 
     box-shadow:
         0 20px 60px rgba(53,37,29,.15);
@@ -481,53 +756,70 @@ body {
             #241713
         );
 
-    color: white;
+    color:
+        white;
 
-    padding: 55px 40px;
+    padding:
+        55px 40px;
 
 }
 
 .left small {
 
-    color: #d4b27f;
+    color:
+        #d4b27f;
 
-    letter-spacing: 4px;
+    letter-spacing:
+        4px;
 
-    font-size: 11px;
+    font-size:
+        11px;
 
 }
 
 .left h2 {
 
-    font-family: "Cormorant Garamond", serif;
+    font-family:
+        "Cormorant Garamond",
+        serif;
 
-    font-size: 52px;
+    font-size:
+        52px;
 
-    line-height: 1;
+    line-height:
+        1;
 
-    margin: 22px 0;
+    margin:
+        22px 0;
 
 }
 
 .left p {
 
-    color: #ddd0c5;
+    color:
+        #ddd0c5;
 
-    line-height: 1.8;
+    line-height:
+        1.8;
 
-    font-size: 14px;
+    font-size:
+        14px;
 
 }
 
 .info {
 
-    margin-top: 35px;
+    margin-top:
+        35px;
 
-    line-height: 2.6;
+    line-height:
+        2.6;
 
-    color: #eee3da;
+    color:
+        #eee3da;
 
-    font-size: 14px;
+    font-size:
+        14px;
 
 }
 
@@ -538,39 +830,53 @@ body {
 
 .fee-info {
 
-    margin-top: 30px;
+    margin-top:
+        30px;
 
-    padding: 18px;
+    padding:
+        18px;
 
-    border: 1px solid rgba(255,255,255,.15);
+    border:
+        1px solid rgba(255,255,255,.15);
 
-    border-radius: 14px;
+    border-radius:
+        14px;
 
-    background: rgba(255,255,255,.06);
+    background:
+        rgba(255,255,255,.06);
 
 }
 
 .fee-info span {
 
-    display: block;
+    display:
+        block;
 
-    color: #d4b27f;
+    color:
+        #d4b27f;
 
-    font-size: 11px;
+    font-size:
+        11px;
 
-    letter-spacing: 2px;
+    letter-spacing:
+        2px;
 
-    margin-bottom: 5px;
+    margin-bottom:
+        5px;
 
 }
 
 .fee-info strong {
 
-    font-family: "Cormorant Garamond", serif;
+    font-family:
+        "Cormorant Garamond",
+        serif;
 
-    font-size: 32px;
+    font-size:
+        32px;
 
-    color: #fff;
+    color:
+        #fff;
 
 }
 
@@ -581,27 +887,35 @@ body {
 
 .right {
 
-    padding: 48px;
+    padding:
+        48px;
 
 }
 
 .right h1 {
 
-    font-family: "Cormorant Garamond", serif;
+    font-family:
+        "Cormorant Garamond",
+        serif;
 
-    font-size: 48px;
+    font-size:
+        48px;
 
-    margin-bottom: 5px;
+    margin-bottom:
+        5px;
 
 }
 
 .subtitle {
 
-    color: #806f61;
+    color:
+        #806f61;
 
-    margin-bottom: 28px;
+    margin-bottom:
+        28px;
 
-    font-size: 14px;
+    font-size:
+        14px;
 
 }
 
@@ -612,19 +926,26 @@ body {
 
 .error {
 
-    background: #ffe0e0;
+    background:
+        #ffe0e0;
 
-    color: #a52d2d;
+    color:
+        #a52d2d;
 
-    padding: 14px;
+    padding:
+        14px;
 
-    border-radius: 10px;
+    border-radius:
+        10px;
 
-    margin-bottom: 20px;
+    margin-bottom:
+        20px;
 
-    font-size: 14px;
+    font-size:
+        14px;
 
-    font-weight: 600;
+    font-weight:
+        600;
 
 }
 
@@ -635,29 +956,37 @@ body {
 
 .row {
 
-    display: grid;
+    display:
+        grid;
 
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns:
+        1fr 1fr;
 
-    gap: 16px;
+    gap:
+        16px;
 
 }
 
 .group {
 
-    margin-bottom: 18px;
+    margin-bottom:
+        18px;
 
 }
 
 label {
 
-    display: block;
+    display:
+        block;
 
-    font-weight: 600;
+    font-weight:
+        600;
 
-    font-size: 13px;
+    font-size:
+        13px;
 
-    margin-bottom: 7px;
+    margin-bottom:
+        7px;
 
 }
 
@@ -665,23 +994,32 @@ input,
 select,
 textarea {
 
-    width: 100%;
+    width:
+        100%;
 
-    padding: 14px;
+    padding:
+        14px;
 
-    border: 1px solid #d9cbbb;
+    border:
+        1px solid #d9cbbb;
 
-    border-radius: 10px;
+    border-radius:
+        10px;
 
-    background: #fffdf9;
+    background:
+        #fffdf9;
 
-    color: #35251d;
+    color:
+        #35251d;
 
-    font-family: inherit;
+    font-family:
+        inherit;
 
-    font-size: 14px;
+    font-size:
+        14px;
 
-    outline: none;
+    outline:
+        none;
 
 }
 
@@ -689,7 +1027,8 @@ input:focus,
 select:focus,
 textarea:focus {
 
-    border-color: #a47b4c;
+    border-color:
+        #a47b4c;
 
     box-shadow:
         0 0 0 3px
@@ -699,9 +1038,162 @@ textarea:focus {
 
 textarea {
 
-    min-height: 95px;
+    min-height:
+        95px;
 
-    resize: vertical;
+    resize:
+        vertical;
+
+}
+
+
+/* ======================================================
+   SELECTED MENU ITEMS
+====================================================== */
+
+.selected-items-box {
+
+    background:
+        #f6f1e8;
+
+    border:
+        1px solid #d9cbbb;
+
+    padding:
+        20px;
+
+    border-radius:
+        15px;
+
+    margin-bottom:
+        20px;
+
+}
+
+.selected-items-box h3 {
+
+    font-family:
+        "Cormorant Garamond",
+        serif;
+
+    font-size:
+        28px;
+
+    margin-bottom:
+        15px;
+
+}
+
+.selected-item {
+
+    display:
+        flex;
+
+    justify-content:
+        space-between;
+
+    align-items:
+        center;
+
+    gap:
+        15px;
+
+    padding:
+        12px 0;
+
+    border-bottom:
+        1px solid #dfd2c2;
+
+    font-size:
+        13px;
+
+}
+
+.selected-item-name {
+
+    font-weight:
+        600;
+
+}
+
+.selected-item-price {
+
+    color:
+        #a47b4c;
+
+    font-weight:
+        700;
+
+    text-align:
+        right;
+
+}
+
+.no-items {
+
+    color:
+        #806f61;
+
+    font-size:
+        13px;
+
+    padding:
+        10px 0;
+
+}
+
+.items-total {
+
+    display:
+        flex;
+
+    justify-content:
+        space-between;
+
+    padding-top:
+        12px;
+
+    font-size:
+        14px;
+
+}
+
+.items-total strong {
+
+    color:
+        #a47b4c;
+
+}
+
+.grand-total {
+
+    display:
+        flex;
+
+    justify-content:
+        space-between;
+
+    margin-top:
+        15px;
+
+    padding-top:
+        15px;
+
+    border-top:
+        2px solid #d2c2b1;
+
+    font-size:
+        20px;
+
+    font-weight:
+        700;
+
+}
+
+.grand-total strong {
+
+    color:
+        #35251d;
 
 }
 
@@ -712,75 +1204,97 @@ textarea {
 
 .payment {
 
-    background: #f6f1e8;
+    background:
+        #f6f1e8;
 
-    padding: 18px;
+    padding:
+        18px;
 
-    border-radius: 12px;
+    border-radius:
+        12px;
 
-    margin-bottom: 20px;
+    margin-bottom:
+        20px;
 
 }
 
 .payment h3 {
 
-    font-family: "Cormorant Garamond", serif;
+    font-family:
+        "Cormorant Garamond",
+        serif;
 
-    font-size: 24px;
+    font-size:
+        24px;
 
-    margin-bottom: 15px;
+    margin-bottom:
+        15px;
 
 }
 
 .payment-row {
 
-    display: flex;
+    display:
+        flex;
 
-    gap: 10px;
+    gap:
+        10px;
 
 }
 
 .payment-option {
 
-    flex: 1;
+    flex:
+        1;
 
 }
 
 .payment-row input {
 
-    display: none;
+    display:
+        none;
 
 }
 
 .payment-row label {
 
-    border: 1px solid #d2c2b1;
+    border:
+        1px solid #d2c2b1;
 
-    padding: 13px 8px;
+    padding:
+        13px 8px;
 
-    text-align: center;
+    text-align:
+        center;
 
-    border-radius: 10px;
+    border-radius:
+        10px;
 
-    cursor: pointer;
+    cursor:
+        pointer;
 
-    background: white;
+    background:
+        white;
 
 }
 
 .payment-row label:hover {
 
-    border-color: #a47b4c;
+    border-color:
+        #a47b4c;
 
 }
 
 .payment-row input:checked + label {
 
-    background: #35251d;
+    background:
+        #35251d;
 
-    color: white;
+    color:
+        white;
 
-    border-color: #35251d;
+    border-color:
+        #35251d;
 
 }
 
@@ -791,107 +1305,144 @@ textarea {
 
 .qr-payment {
 
-    display: none;
+    display:
+        none;
 
-    background: #fffaf4;
+    background:
+        #fffaf4;
 
-    border: 1px solid #d9cbbb;
+    border:
+        1px solid #d9cbbb;
 
-    padding: 25px;
+    padding:
+        25px;
 
-    border-radius: 15px;
+    border-radius:
+        15px;
 
-    margin-bottom: 20px;
+    margin-bottom:
+        20px;
 
-    text-align: center;
+    text-align:
+        center;
 
 }
 
 .qr-payment.show {
 
-    display: block;
+    display:
+        block;
 
 }
 
 .qr-payment h3 {
 
-    font-family: "Cormorant Garamond", serif;
+    font-family:
+        "Cormorant Garamond",
+        serif;
 
-    font-size: 28px;
+    font-size:
+        28px;
 
-    margin-bottom: 8px;
+    margin-bottom:
+        8px;
 
 }
 
 .qr-payment p {
 
-    color: #806f61;
+    color:
+        #806f61;
 
-    font-size: 13px;
+    font-size:
+        13px;
 
-    margin-bottom: 12px;
+    margin-bottom:
+        12px;
 
 }
 
 .upi-qr {
 
-    width: 200px;
+    width:
+        200px;
 
-    height: 200px;
+    height:
+        200px;
 
-    object-fit: contain;
+    object-fit:
+        contain;
 
-    display: block;
+    display:
+        block;
 
-    margin: 15px auto;
+    margin:
+        15px auto;
 
-    border-radius: 10px;
+    border-radius:
+        10px;
 
-    border: 1px solid #dfd2c2;
+    border:
+        1px solid #dfd2c2;
 
-    background: white;
+    background:
+        white;
 
-    padding: 8px;
+    padding:
+        8px;
 
 }
 
 .qr-amount {
 
-    background: #f6f1e8;
+    background:
+        #f6f1e8;
 
-    padding: 12px;
+    padding:
+        12px;
 
-    border-radius: 10px;
+    border-radius:
+        10px;
 
-    margin: 10px 0;
+    margin:
+        10px 0;
 
 }
 
 .qr-amount span {
 
-    display: block;
+    display:
+        block;
 
-    color: #806f61;
+    color:
+        #806f61;
 
-    font-size: 12px;
+    font-size:
+        12px;
 
-    margin-bottom: 5px;
+    margin-bottom:
+        5px;
 
 }
 
 .qr-amount strong {
 
-    font-family: "Cormorant Garamond", serif;
+    font-family:
+        "Cormorant Garamond",
+        serif;
 
-    font-size: 32px;
+    font-size:
+        32px;
 
-    color: #a47b4c;
+    color:
+        #a47b4c;
 
 }
 
 .qr-note {
 
-    font-size: 11px !important;
+    font-size:
+        11px !important;
 
 }
 
@@ -902,29 +1453,39 @@ textarea {
 
 .submit-btn {
 
-    width: 100%;
+    width:
+        100%;
 
-    border: none;
+    border:
+        none;
 
-    background: #35251d;
+    background:
+        #35251d;
 
-    color: white;
+    color:
+        white;
 
-    padding: 16px;
+    padding:
+        16px;
 
-    border-radius: 12px;
+    border-radius:
+        12px;
 
-    font-size: 15px;
+    font-size:
+        15px;
 
-    font-weight: 700;
+    font-weight:
+        700;
 
-    cursor: pointer;
+    cursor:
+        pointer;
 
 }
 
 .submit-btn:hover {
 
-    background: #a47b4c;
+    background:
+        #a47b4c;
 
 }
 
@@ -935,17 +1496,23 @@ textarea {
 
 .success {
 
-    max-width: 700px;
+    max-width:
+        700px;
 
-    margin: 60px auto;
+    margin:
+        60px auto;
 
-    background: white;
+    background:
+        white;
 
-    padding: 50px;
+    padding:
+        50px;
 
-    border-radius: 25px;
+    border-radius:
+        25px;
 
-    text-align: center;
+    text-align:
+        center;
 
     box-shadow:
         0 20px 60px rgba(53,37,29,.15);
@@ -954,85 +1521,116 @@ textarea {
 
 .success-icon {
 
-    width: 80px;
+    width:
+        80px;
 
-    height: 80px;
+    height:
+        80px;
 
-    background: #35251d;
+    background:
+        #35251d;
 
-    color: white;
+    color:
+        white;
 
-    border-radius: 50%;
+    border-radius:
+        50%;
 
-    display: flex;
+    display:
+        flex;
 
-    align-items: center;
+    align-items:
+        center;
 
-    justify-content: center;
+    justify-content:
+        center;
 
-    font-size: 40px;
+    font-size:
+        40px;
 
-    margin: auto;
+    margin:
+        auto;
 
 }
 
 .success h1 {
 
-    font-family: "Cormorant Garamond", serif;
+    font-family:
+        "Cormorant Garamond",
+        serif;
 
-    font-size: 45px;
+    font-size:
+        45px;
 
-    margin: 20px 0 8px;
+    margin:
+        20px 0 8px;
 
 }
 
 .success > p {
 
-    color: #806f61;
+    color:
+        #806f61;
 
 }
 
 .details {
 
-    text-align: left;
+    text-align:
+        left;
 
-    background: #f6f1e8;
+    background:
+        #f6f1e8;
 
-    padding: 22px;
+    padding:
+        22px;
 
-    border-radius: 14px;
+    border-radius:
+        14px;
 
-    margin: 28px 0;
+    margin:
+        28px 0;
 
 }
 
 .details p {
 
-    margin: 11px 0;
+    margin:
+        11px 0;
 
-    font-size: 14px;
+    font-size:
+        14px;
 
-    border-bottom: 1px solid #dfd2c2;
+    border-bottom:
+        1px solid #dfd2c2;
 
-    padding-bottom: 8px;
+    padding-bottom:
+        8px;
 
 }
 
 .home-btn {
 
-    display: inline-block;
+    display:
+        inline-block;
 
-    background: #35251d;
+    background:
+        #35251d;
 
-    color: white;
+    color:
+        white;
 
-    text-decoration: none;
+    text-decoration:
+        none;
 
-    padding: 14px 28px;
+    padding:
+        14px 28px;
 
-    border-radius: 25px;
+    border-radius:
+        25px;
 
-    font-weight: 600;
+    font-weight:
+        600;
 
 }
 
@@ -1043,33 +1641,44 @@ textarea {
 
 footer {
 
-    background: #241713;
+    background:
+        #241713;
 
-    color: white;
+    color:
+        white;
 
-    text-align: center;
+    text-align:
+        center;
 
-    padding: 40px 20px;
+    padding:
+        40px 20px;
 
 }
 
 .footer-logo {
 
-    font-family: "Cormorant Garamond", serif;
+    font-family:
+        "Cormorant Garamond",
+        serif;
 
-    font-size: 35px;
+    font-size:
+        35px;
 
-    letter-spacing: 5px;
+    letter-spacing:
+        5px;
 
 }
 
 footer p {
 
-    margin-top: 8px;
+    margin-top:
+        8px;
 
-    opacity: .6;
+    opacity:
+        .6;
 
-    font-size: 12px;
+    font-size:
+        12px;
 
 }
 
@@ -1081,15 +1690,18 @@ footer p {
 @media (max-width: 900px) {
 
     .nav-links {
-        display: none;
+        display:
+            none;
     }
 
     .card {
-        grid-template-columns: 1fr;
+        grid-template-columns:
+            1fr;
     }
 
     .row {
-        grid-template-columns: 1fr;
+        grid-template-columns:
+            1fr;
     }
 
 }
@@ -1097,49 +1709,69 @@ footer p {
 @media (max-width: 600px) {
 
     .navbar {
-        padding: 0 15px;
+        padding:
+            0 15px;
     }
 
     .logo h1 {
-        font-size: 27px;
+        font-size:
+            27px;
     }
 
     .container {
-        width: 96%;
-        margin-top: 25px;
+        width:
+            96%;
+
+        margin-top:
+            25px;
     }
 
     .left {
-        padding: 40px 25px;
+        padding:
+            40px 25px;
     }
 
     .left h2 {
-        font-size: 43px;
+        font-size:
+            43px;
     }
 
     .right {
-        padding: 30px 20px;
+        padding:
+            30px 20px;
     }
 
     .right h1 {
-        font-size: 40px;
+        font-size:
+            40px;
     }
 
     .payment-row {
-        flex-direction: column;
+        flex-direction:
+            column;
     }
 
     .success {
-        padding: 30px 20px;
+        padding:
+            30px 20px;
     }
 
     .success h1 {
-        font-size: 36px;
+        font-size:
+            36px;
     }
 
     .upi-qr {
-        width: 170px;
-        height: 170px;
+        width:
+            170px;
+
+        height:
+            170px;
+    }
+
+    .selected-item {
+        align-items:
+            flex-start;
     }
 
 }
@@ -1158,37 +1790,63 @@ footer p {
 
 <nav class="navbar">
 
-    <a href="index.php" class="logo">
+    <a
+        href="index.php"
+        class="logo"
+    >
 
-        <h1>VELOURE</h1>
+        <h1>
+            VELOURE
+        </h1>
 
-        <span>ARTISAN CAFÉ</span>
+        <span>
+            ARTISAN CAFÉ
+        </span>
 
     </a>
 
 
     <div class="nav-links">
 
-        <a href="index.php">Home</a>
+        <a href="index.php">
+            Home
+        </a>
 
-        <a href="about.php">About</a>
+        <a href="about.php">
+            About
+        </a>
 
-        <a href="menu.php">Menu</a>
+        <a href="menu.php">
+            Menu
+        </a>
 
-        <a href="offers.php">Offers</a>
+        <a href="offers.php">
+            Offers
+        </a>
 
-        <a href="gallery.php">Gallery</a>
+        <a href="gallery.php">
+            Gallery
+        </a>
 
-        <a href="services.php">Services</a>
+        <a href="services.php">
+            Services
+        </a>
 
-        <a href="reservation.php">Reservation</a>
+        <a href="reservation.php">
+            Reservation
+        </a>
 
-        <a href="reviews.php">Reviews</a>
+        <a href="reviews.php">
+            Reviews
+        </a>
 
     </div>
 
 
-    <a href="offers.php" class="back-btn">
+    <a
+        href="menu.php"
+        class="back-btn"
+    >
         ← Back
     </a>
 
@@ -1196,7 +1854,10 @@ footer p {
 
 
 
-<div class="container" id="booking">
+<div
+    class="container"
+    id="booking"
+>
 
 
 <?php if ($success): ?>
@@ -1223,93 +1884,314 @@ footer p {
 
     <div class="details">
 
-        <p>
-            <strong>Reservation ID:</strong>
-            <?php echo htmlspecialchars($reservation_id); ?>
-        </p>
 
         <p>
-            <strong>Name:</strong>
-            <?php echo htmlspecialchars($name); ?>
+
+            <strong>
+                Reservation ID:
+            </strong>
+
+            <?php
+            echo htmlspecialchars(
+                $reservation_id
+            );
+            ?>
+
         </p>
 
+
         <p>
-            <strong>Mobile:</strong>
-            <?php echo htmlspecialchars($phone); ?>
+
+            <strong>
+                Name:
+            </strong>
+
+            <?php
+            echo htmlspecialchars(
+                $name
+            );
+            ?>
+
+        </p>
+
+
+        <p>
+
+            <strong>
+                Mobile:
+            </strong>
+
+            <?php
+            echo htmlspecialchars(
+                $phone
+            );
+            ?>
+
         </p>
 
 
         <?php if ($email !== ""): ?>
 
         <p>
-            <strong>Email:</strong>
-            <?php echo htmlspecialchars($email); ?>
+
+            <strong>
+                Email:
+            </strong>
+
+            <?php
+            echo htmlspecialchars(
+                $email
+            );
+            ?>
+
         </p>
 
         <?php endif; ?>
 
 
         <p>
-            <strong>Date:</strong>
-            <?php echo htmlspecialchars($date); ?>
-        </p>
 
-        <p>
-            <strong>Time:</strong>
-            <?php echo htmlspecialchars($time); ?>
-        </p>
+            <strong>
+                Date:
+            </strong>
 
-        <p>
-            <strong>Guests:</strong>
-            <?php echo htmlspecialchars($guests); ?>
-        </p>
-
-        <p>
-            <strong>Occasion:</strong>
             <?php
             echo htmlspecialchars(
+                $date
+            );
+            ?>
+
+        </p>
+
+
+        <p>
+
+            <strong>
+                Time:
+            </strong>
+
+            <?php
+            echo htmlspecialchars(
+                $time
+            );
+            ?>
+
+        </p>
+
+
+        <p>
+
+            <strong>
+                Guests:
+            </strong>
+
+            <?php
+            echo htmlspecialchars(
+                $guests
+            );
+            ?>
+
+        </p>
+
+
+        <p>
+
+            <strong>
+                Occasion:
+            </strong>
+
+            <?php
+
+            echo htmlspecialchars(
+
                 $occasion !== ""
                 ? $occasion
                 : "Not specified"
+
             );
+
             ?>
+
         </p>
 
 
         <?php if ($special_request !== ""): ?>
 
         <p>
-            <strong>Special Request:</strong>
-            <?php echo htmlspecialchars($special_request); ?>
+
+            <strong>
+                Special Request:
+            </strong>
+
+            <?php
+
+            echo htmlspecialchars(
+                $special_request
+            );
+
+            ?>
+
+        </p>
+
+        <?php endif; ?>
+
+
+        <!-- ==========================================
+             SELECTED MENU ITEMS
+        =========================================== -->
+
+        <?php if (!empty($selected_items)): ?>
+
+        <p>
+
+            <strong>
+                Selected Menu Items:
+            </strong>
+
+            <br><br>
+
+            <?php foreach (
+                $selected_items as $item
+            ): ?>
+
+                <?php
+
+                echo htmlspecialchars(
+                    $item["name"]
+                );
+
+                ?>
+
+                ×
+
+                <?php
+                echo (int)$item["quantity"];
+                ?>
+
+                —
+
+                ₹<?php
+                echo number_format(
+                    $item["total"]
+                );
+                ?>
+
+                <br>
+
+            <?php endforeach; ?>
+
+        </p>
+
+
+        <p>
+
+            <strong>
+                Menu Items Total:
+            </strong>
+
+            ₹<?php
+
+            echo number_format(
+                $menu_items_total
+            );
+
+            ?>
+
+        </p>
+
+        <?php else: ?>
+
+        <p>
+
+            <strong>
+                Selected Menu Items:
+            </strong>
+
+            No menu item selected
+
         </p>
 
         <?php endif; ?>
 
 
         <p>
-            <strong>Payment Method:</strong>
-            <?php echo htmlspecialchars($payment_method); ?>
+
+            <strong>
+                Reservation Fee:
+            </strong>
+
+            ₹<?php
+            echo number_format(
+                $reservation_fee
+            );
+            ?>
+
         </p>
 
-        <p>
-            <strong>Payment Status:</strong>
-            <?php echo htmlspecialchars($payment_status); ?>
-        </p>
 
         <p>
-            <strong>Reservation Fee:</strong>
-            ₹<?php echo $reservation_fee; ?>
+
+            <strong>
+                Grand Total:
+            </strong>
+
+            ₹<?php
+            echo number_format(
+                $grand_total
+            );
+            ?>
+
         </p>
 
+
         <p>
-            <strong>Reservation Status:</strong>
+
+            <strong>
+                Payment Method:
+            </strong>
+
+            <?php
+            echo htmlspecialchars(
+                $payment_method
+            );
+            ?>
+
+        </p>
+
+
+        <p>
+
+            <strong>
+                Payment Status:
+            </strong>
+
+            <?php
+            echo htmlspecialchars(
+                $payment_status
+            );
+            ?>
+
+        </p>
+
+
+        <p>
+
+            <strong>
+                Reservation Status:
+            </strong>
+
             Pending Confirmation
+
         </p>
+
 
     </div>
 
 
-    <a href="index.php" class="home-btn">
+    <a
+        href="index.php"
+        class="home-btn"
+    >
         Back to Home
     </a>
 
@@ -1326,7 +2208,9 @@ footer p {
 <div class="card">
 
 
-    <!-- LEFT -->
+    <!-- ==================================================
+         LEFT
+    =================================================== -->
 
     <div class="left">
 
@@ -1335,15 +2219,20 @@ footer p {
         </small>
 
         <h2>
+
             Your Table,<br>
+
             Your Moment.
+
         </h2>
 
         <p>
+
             Reserve your table at VELOURE Café
             and enjoy handcrafted coffee,
             delicious cuisine and an elegant
             ambience.
+
         </p>
 
 
@@ -1367,7 +2256,13 @@ footer p {
             </span>
 
             <strong>
-                ₹<?php echo $reservation_fee; ?>
+
+                ₹<?php
+                echo number_format(
+                    $reservation_fee
+                );
+                ?>
+
             </strong>
 
         </div>
@@ -1376,7 +2271,9 @@ footer p {
 
 
 
-    <!-- RIGHT -->
+    <!-- ==================================================
+         RIGHT
+    =================================================== -->
 
     <div class="right">
 
@@ -1385,14 +2282,23 @@ footer p {
         </h1>
 
         <p class="subtitle">
-            Enter your details to confirm your reservation.
+
+            Enter your details to confirm
+            your reservation.
+
         </p>
 
 
         <?php if ($error !== ""): ?>
 
         <div class="error">
-            <?php echo htmlspecialchars($error); ?>
+
+            <?php
+            echo htmlspecialchars(
+                $error
+            );
+            ?>
+
         </div>
 
         <?php endif; ?>
@@ -1405,9 +2311,109 @@ footer p {
         >
 
 
-            <!-- NAME + PHONE -->
+            <!-- ==================================================
+                 HIDDEN SELECTED ITEMS
+            =================================================== -->
+
+            <input
+                type="hidden"
+                name="reservation_items"
+                id="reservationItems"
+                value="[]"
+            >
+
+
+            <!-- ==================================================
+                 SELECTED MENU ITEMS
+            =================================================== -->
+
+            <div
+                class="selected-items-box"
+                id="selectedItemsBox"
+            >
+
+                <h3>
+                    Selected Menu Items
+                </h3>
+
+
+                <div
+                    id="selectedItemsList"
+                >
+
+                    <p class="no-items">
+
+                        No menu item selected.
+
+                    </p>
+
+                </div>
+
+
+                <div class="items-total">
+
+                    <span>
+                        Menu Items Total
+                    </span>
+
+                    <strong
+                        id="menuItemsTotal"
+                    >
+                        ₹0
+                    </strong>
+
+                </div>
+
+
+                <div class="items-total">
+
+                    <span>
+                        Reservation Fee
+                    </span>
+
+                    <strong>
+
+                        ₹<?php
+                        echo number_format(
+                            $reservation_fee
+                        );
+                        ?>
+
+                    </strong>
+
+                </div>
+
+
+                <div class="grand-total">
+
+                    <span>
+                        Grand Total
+                    </span>
+
+                    <strong
+                        id="grandTotal"
+                    >
+
+                        ₹<?php
+                        echo number_format(
+                            $reservation_fee
+                        );
+                        ?>
+
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- ==================================================
+                 NAME + PHONE
+            =================================================== -->
 
             <div class="row">
+
 
                 <div class="group">
 
@@ -1418,7 +2424,11 @@ footer p {
                     <input
                         type="text"
                         name="name"
-                        value="<?php echo htmlspecialchars($name); ?>"
+                        value="<?php
+                        echo htmlspecialchars(
+                            $name
+                        );
+                        ?>"
                         placeholder="Enter your full name"
                         maxlength="60"
                         required
@@ -1436,7 +2446,11 @@ footer p {
                     <input
                         type="tel"
                         name="phone"
-                        value="<?php echo htmlspecialchars($phone); ?>"
+                        value="<?php
+                        echo htmlspecialchars(
+                            $phone
+                        );
+                        ?>"
                         placeholder="10-digit mobile number"
                         maxlength="10"
                         pattern="[0-9]{10}"
@@ -1449,7 +2463,10 @@ footer p {
             </div>
 
 
-            <!-- EMAIL -->
+
+            <!-- ==================================================
+                 EMAIL
+            =================================================== -->
 
             <div class="group">
 
@@ -1460,16 +2477,24 @@ footer p {
                 <input
                     type="email"
                     name="email"
-                    value="<?php echo htmlspecialchars($email); ?>"
+                    value="<?php
+                    echo htmlspecialchars(
+                        $email
+                    );
+                    ?>"
                     placeholder="Enter your email"
                 >
 
             </div>
 
 
-            <!-- DATE + TIME -->
+
+            <!-- ==================================================
+                 DATE + TIME
+            =================================================== -->
 
             <div class="row">
+
 
                 <div class="group">
 
@@ -1480,8 +2505,14 @@ footer p {
                     <input
                         type="date"
                         name="date"
-                        value="<?php echo htmlspecialchars($date); ?>"
-                        min="<?php echo $today; ?>"
+                        value="<?php
+                        echo htmlspecialchars(
+                            $date
+                        );
+                        ?>"
+                        min="<?php
+                        echo $today;
+                        ?>"
                         required
                     >
 
@@ -1497,7 +2528,11 @@ footer p {
                     <input
                         type="time"
                         name="time"
-                        value="<?php echo htmlspecialchars($time); ?>"
+                        value="<?php
+                        echo htmlspecialchars(
+                            $time
+                        );
+                        ?>"
                         min="09:00"
                         max="23:00"
                         required
@@ -1508,9 +2543,13 @@ footer p {
             </div>
 
 
-            <!-- GUESTS + OCCASION -->
+
+            <!-- ==================================================
+                 GUESTS + OCCASION
+            =================================================== -->
 
             <div class="row">
+
 
                 <div class="group">
 
@@ -1528,21 +2567,35 @@ footer p {
                         </option>
 
 
-                        <?php for ($i = 1; $i <= 10; $i++): ?>
+                        <?php
+                        for (
+                            $i = 1;
+                            $i <= 10;
+                            $i++
+                        ):
+                        ?>
 
                         <option
-                            value="<?php echo $i; ?>"
+                            value="<?php
+                            echo $i;
+                            ?>"
                             <?php
-                            echo ($guests == $i)
+                            echo (
+                                $guests == $i
+                            )
                             ? "selected"
                             : "";
                             ?>
                         >
 
-                            <?php echo $i; ?>
+                            <?php
+                            echo $i;
+                            ?>
 
                             <?php
-                            echo ($i == 1)
+                            echo (
+                                $i == 1
+                            )
                             ? " Guest"
                             : " Guests";
                             ?>
@@ -1562,7 +2615,9 @@ footer p {
                         Occasion
                     </label>
 
-                    <select name="occasion">
+                    <select
+                        name="occasion"
+                    >
 
                         <option value="">
                             Select occasion
@@ -1599,7 +2654,10 @@ footer p {
             </div>
 
 
-            <!-- SPECIAL REQUEST -->
+
+            <!-- ==================================================
+                 SPECIAL REQUEST
+            =================================================== -->
 
             <div class="group">
 
@@ -1611,12 +2669,19 @@ footer p {
                     name="special_request"
                     placeholder="Any special request?"
                     maxlength="500"
-                ><?php echo htmlspecialchars($special_request); ?></textarea>
+                ><?php
+                echo htmlspecialchars(
+                    $special_request
+                );
+                ?></textarea>
 
             </div>
 
 
-            <!-- PAYMENT -->
+
+            <!-- ==================================================
+                 PAYMENT
+            =================================================== -->
 
             <div class="payment">
 
@@ -1636,10 +2701,15 @@ footer p {
                             id="cash"
                             value="Cash"
                             <?php
-                            echo ($payment_method === "Cash")
+
+                            echo (
+                                $payment_method === "Cash"
+                            )
                             ? "checked"
                             : "";
+
                             ?>
+
                             required
                         >
 
@@ -1657,11 +2727,17 @@ footer p {
                             name="payment_method"
                             id="upi"
                             value="UPI"
+
                             <?php
-                            echo ($payment_method === "UPI")
+
+                            echo (
+                                $payment_method === "UPI"
+                            )
                             ? "checked"
                             : "";
+
                             ?>
+
                         >
 
                         <label for="upi">
@@ -1678,11 +2754,17 @@ footer p {
                             name="payment_method"
                             id="card"
                             value="Card"
+
                             <?php
-                            echo ($payment_method === "Card")
+
+                            echo (
+                                $payment_method === "Card"
+                            )
                             ? "checked"
                             : "";
+
                             ?>
+
                         >
 
                         <label for="card">
@@ -1696,7 +2778,10 @@ footer p {
             </div>
 
 
-            <!-- UPI QR -->
+
+            <!-- ==================================================
+                 UPI QR
+            =================================================== -->
 
             <div
                 class="qr-payment"
@@ -1708,7 +2793,8 @@ footer p {
                 </h3>
 
                 <p>
-                    Scan the QR code below to pay the reservation fee.
+                    Scan the QR code below to pay
+                    the reservation amount.
                 </p>
 
 
@@ -1716,7 +2802,9 @@ footer p {
                     src="images/upi-qr.jpg"
                     alt="VELOURE UPI QR Code"
                     class="upi-qr"
-                    onerror="this.style.display='none';"
+                    onerror="
+                        this.style.display='none';
+                    "
                 >
 
 
@@ -1727,7 +2815,13 @@ footer p {
                     </span>
 
                     <strong>
-                        ₹<?php echo $reservation_fee; ?>
+
+                        ₹<?php
+                        echo number_format(
+                            $reservation_fee
+                        );
+                        ?>
+
                     </strong>
 
                 </div>
@@ -1743,13 +2837,18 @@ footer p {
             </div>
 
 
-            <!-- SUBMIT -->
+
+            <!-- ==================================================
+                 SUBMIT
+            =================================================== -->
 
             <button
                 type="submit"
                 class="submit-btn"
             >
+
                 Confirm Reservation
+
             </button>
 
 
@@ -1765,6 +2864,7 @@ footer p {
 </div>
 
 
+
 <!-- ======================================================
      FOOTER
 ====================================================== -->
@@ -1776,11 +2876,14 @@ footer p {
     </div>
 
     <p>
+
         © 2026 VELOURE Artisan Café.
         All Rights Reserved.
+
     </p>
 
 </footer>
+
 
 
 <!-- ======================================================
@@ -1793,24 +2896,349 @@ document.addEventListener(
     "DOMContentLoaded",
     function () {
 
+
+        // ==================================================
+        // FORM
+        // ==================================================
+
         const form =
             document.getElementById(
                 "reservationForm"
             );
 
+
         if (!form) {
+
             return;
+
         }
 
 
+
         // ==================================================
-        // UPI QR SHOW / HIDE
+        // SELECTED ITEMS ELEMENTS
+        // ==================================================
+
+        const reservationItemsInput =
+            document.getElementById(
+                "reservationItems"
+            );
+
+
+        const selectedItemsList =
+            document.getElementById(
+                "selectedItemsList"
+            );
+
+
+        const menuItemsTotalElement =
+            document.getElementById(
+                "menuItemsTotal"
+            );
+
+
+        const grandTotalElement =
+            document.getElementById(
+                "grandTotal"
+            );
+
+
+
+        // ==================================================
+        // LOAD ITEMS FROM LOCAL STORAGE
+        // ==================================================
+
+        let selectedReservations = [];
+
+
+        try {
+
+            selectedReservations =
+                JSON.parse(
+                    localStorage.getItem(
+                        "veloureReservations"
+                    )
+                ) || [];
+
+
+        } catch (error) {
+
+            selectedReservations =
+                [];
+
+        }
+
+
+
+        // ==================================================
+        // DISPLAY SELECTED ITEMS
+        // ==================================================
+
+        function displaySelectedItems() {
+
+
+            if (!selectedItemsList) {
+
+                return;
+
+            }
+
+
+            // ----------------------------------------------
+            // NO ITEMS
+            // ----------------------------------------------
+
+            if (
+                !Array.isArray(
+                    selectedReservations
+                ) ||
+                selectedReservations.length === 0
+            ) {
+
+
+                selectedItemsList.innerHTML =
+
+                    '<p class="no-items">' +
+                    'No menu item selected.' +
+                    '</p>';
+
+
+                if (
+                    reservationItemsInput
+                ) {
+
+                    reservationItemsInput.value =
+                        "[]";
+
+                }
+
+
+                if (
+                    menuItemsTotalElement
+                ) {
+
+                    menuItemsTotalElement.textContent =
+                        "₹0";
+
+                }
+
+
+                if (
+                    grandTotalElement
+                ) {
+
+                    grandTotalElement.textContent =
+                        "₹<?php echo $reservation_fee; ?>";
+
+                }
+
+
+                return;
+
+            }
+
+
+
+            // ----------------------------------------------
+            // ITEMS EXIST
+            // ----------------------------------------------
+
+            let menuTotal = 0;
+
+
+            selectedItemsList.innerHTML =
+                "";
+
+
+
+            selectedReservations.forEach(
+                function(item) {
+
+
+                    const name =
+                        String(
+                            item.name || ""
+                        );
+
+
+                    const price =
+                        Number(
+                            item.price || 0
+                        );
+
+
+                    const quantity =
+                        Number(
+                            item.quantity || 1
+                        );
+
+
+                    const total =
+                        price *
+                        quantity;
+
+
+                    menuTotal +=
+                        total;
+
+
+
+                    // --------------------------------------
+                    // ITEM ROW
+                    // --------------------------------------
+
+                    const div =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    div.className =
+                        "selected-item";
+
+
+
+                    // --------------------------------------
+                    // ITEM NAME
+                    // --------------------------------------
+
+                    const nameDiv =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    nameDiv.className =
+                        "selected-item-name";
+
+
+                    nameDiv.textContent =
+                        name +
+                        " × " +
+                        quantity;
+
+
+
+                    // --------------------------------------
+                    // ITEM PRICE
+                    // --------------------------------------
+
+                    const priceDiv =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    priceDiv.className =
+                        "selected-item-price";
+
+
+                    priceDiv.textContent =
+                        "₹" +
+                        total;
+
+
+
+                    div.appendChild(
+                        nameDiv
+                    );
+
+
+                    div.appendChild(
+                        priceDiv
+                    );
+
+
+                    selectedItemsList.appendChild(
+                        div
+                    );
+
+
+                }
+            );
+
+
+
+            // ----------------------------------------------
+            // GRAND TOTAL
+            // ----------------------------------------------
+
+            const grandTotal =
+                menuTotal +
+                <?php
+                echo (float)$reservation_fee;
+                ?>;
+
+
+
+            // ----------------------------------------------
+            // SHOW MENU TOTAL
+            // ----------------------------------------------
+
+            if (
+                menuItemsTotalElement
+            ) {
+
+                menuItemsTotalElement.textContent =
+                    "₹" +
+                    menuTotal;
+
+            }
+
+
+
+            // ----------------------------------------------
+            // SHOW GRAND TOTAL
+            // ----------------------------------------------
+
+            if (
+                grandTotalElement
+            ) {
+
+                grandTotalElement.textContent =
+                    "₹" +
+                    grandTotal;
+
+            }
+
+
+
+            // ----------------------------------------------
+            // HIDDEN INPUT
+            // ----------------------------------------------
+
+            if (
+                reservationItemsInput
+            ) {
+
+                reservationItemsInput.value =
+                    JSON.stringify(
+                        selectedReservations
+                    );
+
+            }
+
+        }
+
+
+
+        // ==================================================
+        // DISPLAY ITEMS
+        // ==================================================
+
+        displaySelectedItems();
+
+
+
+        // ==================================================
+        // UPI QR
         // ==================================================
 
         const paymentOptions =
             document.querySelectorAll(
                 'input[name="payment_method"]'
             );
+
 
         const qrPayment =
             document.getElementById(
@@ -1821,19 +3249,26 @@ document.addEventListener(
         paymentOptions.forEach(
             function (radio) {
 
+
                 radio.addEventListener(
                     "change",
                     function () {
+
 
                         if (
                             this.value === "UPI"
                         ) {
 
+
                             qrPayment.classList.add(
                                 "show"
                             );
 
-                        } else {
+
+                        }
+
+                        else {
+
 
                             qrPayment.classList.remove(
                                 "show"
@@ -1848,78 +3283,9 @@ document.addEventListener(
         );
 
 
-        // ==================================================
-        // FORM VALIDATION
-        // ==================================================
-
-        form.addEventListener(
-            "submit",
-            function (event) {
-
-                const phone =
-                    form.querySelector(
-                        'input[name="phone"]'
-                    ).value.trim();
-
-
-                if (
-                    !/^[0-9]{10}$/.test(phone)
-                ) {
-
-                    event.preventDefault();
-
-                    alert(
-                        "Please enter a valid 10-digit mobile number."
-                    );
-
-                    return;
-
-                }
-
-
-                const date =
-                    form.querySelector(
-                        'input[name="date"]'
-                    ).value;
-
-
-                if (!date) {
-
-                    event.preventDefault();
-
-                    alert(
-                        "Please select a reservation date."
-                    );
-
-                    return;
-
-                }
-
-
-                const payment =
-                    form.querySelector(
-                        'input[name="payment_method"]:checked'
-                    );
-
-
-                if (!payment) {
-
-                    event.preventDefault();
-
-                    alert(
-                        "Please select a payment method."
-                    );
-
-                    return;
-
-                }
-
-            }
-        );
-
 
         // ==================================================
-        // SHOW QR IF UPI SELECTED
+        // SHOW QR IF ALREADY SELECTED
         // ==================================================
 
         const selectedPayment =
@@ -1938,6 +3304,164 @@ document.addEventListener(
             );
 
         }
+
+
+
+        // ==================================================
+        // FORM SUBMIT
+        // ==================================================
+
+        form.addEventListener(
+            "submit",
+            function (event) {
+
+
+                // ------------------------------------------
+                // SAVE ITEMS BEFORE SUBMIT
+                // ------------------------------------------
+
+                if (
+                    reservationItemsInput
+                ) {
+
+                    reservationItemsInput.value =
+                        JSON.stringify(
+                            selectedReservations
+                        );
+
+                }
+
+
+
+                // ------------------------------------------
+                // PHONE
+                // ------------------------------------------
+
+                const phone =
+                    form.querySelector(
+                        'input[name="phone"]'
+                    ).value.trim();
+
+
+                if (
+                    !/^[0-9]{10}$/.test(
+                        phone
+                    )
+                ) {
+
+
+                    event.preventDefault();
+
+
+                    alert(
+                        "Please enter a valid 10-digit mobile number."
+                    );
+
+
+                    return;
+
+                }
+
+
+
+                // ------------------------------------------
+                // DATE
+                // ------------------------------------------
+
+                const date =
+                    form.querySelector(
+                        'input[name="date"]'
+                    ).value;
+
+
+                if (!date) {
+
+
+                    event.preventDefault();
+
+
+                    alert(
+                        "Please select a reservation date."
+                    );
+
+
+                    return;
+
+                }
+
+
+
+                // ------------------------------------------
+                // PAYMENT
+                // ------------------------------------------
+
+                const payment =
+                    form.querySelector(
+                        'input[name="payment_method"]:checked'
+                    );
+
+
+                if (!payment) {
+
+
+                    event.preventDefault();
+
+
+                    alert(
+                        "Please select a payment method."
+                    );
+
+
+                    return;
+
+                }
+
+
+
+                // ------------------------------------------
+                // UPI CONFIRMATION
+                // ------------------------------------------
+
+                if (
+                    payment.value === "UPI"
+                ) {
+
+
+                    const total =
+                        <?php
+                        echo (float)$grand_total;
+                        ?>;
+
+
+                    const confirmPayment =
+                        confirm(
+
+                            "Grand Total: ₹" +
+                            total +
+
+                            "\n\n" +
+
+                            "Please complete the UPI payment using the QR code." +
+
+                            "\n\n" +
+
+                            "Continue with reservation?"
+
+                        );
+
+
+                    if (!confirmPayment) {
+
+                        event.preventDefault();
+
+                        return;
+
+                    }
+
+                }
+
+            }
+        );
 
     }
 );

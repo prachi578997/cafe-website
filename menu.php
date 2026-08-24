@@ -1,12 +1,21 @@
 <?php
 
 /* =========================================================
-   VELOURE MENU + BUILD YOUR COFFEE + QR + CSV
-   COMPLETE VERSION
+   VELOURE MENU + RESERVATION + BUILD YOUR COFFEE
+   CSV + GOOGLE SHEET + UPI QR
 ========================================================= */
+
+date_default_timezone_set("Asia/Kolkata");
 
 $orderSuccess = false;
 $orderError = "";
+
+/* =========================================================
+   GOOGLE APPS SCRIPT URL
+========================================================= */
+
+$googleScriptUrl =
+"https://script.google.com/macros/s/AKfycbzRqE9u-c5RuoGC7ZA2MWp2de4Decqymz5yH6AZRdSP6XlT7HQU5FCHrmeTLoliBB51/exec";
 
 
 /* =========================================================
@@ -54,7 +63,7 @@ $toppingPrices = [
 
 
 /* =========================================================
-   BUILD YOUR COFFEE ORDER
+   BUILD YOUR COFFEE - PHP SAVE
 ========================================================= */
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -92,20 +101,36 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $orderError = "Please select a valid size.";
 
+    } elseif (!isset($milkPrices[$milk])) {
+
+        $orderError = "Please select a valid milk.";
+
+    } elseif (!isset($sweetnessPrices[$sweetness])) {
+
+        $orderError = "Please select a valid sweetness.";
+
+    } elseif (!isset($toppingPrices[$topping])) {
+
+        $orderError = "Please select a valid topping.";
+
     } else {
 
         $total =
-            ($coffeePrices[$coffee] ?? 0) +
-            ($sizePrices[$size] ?? 0) +
-            ($milkPrices[$milk] ?? 0) +
-            ($sweetnessPrices[$sweetness] ?? 0) +
-            ($toppingPrices[$topping] ?? 0);
+            $coffeePrices[$coffee] +
+            $sizePrices[$size] +
+            $milkPrices[$milk] +
+            $sweetnessPrices[$sweetness] +
+            $toppingPrices[$topping];
 
         if ($total <= 0) {
 
             $orderError = "Please select a valid coffee.";
 
         } else {
+
+            /* -----------------------------------------
+               SAVE TO CSV
+            ----------------------------------------- */
 
             $file = __DIR__ . "/order.csv";
 
@@ -258,164 +283,67 @@ $menu = [
 
 $descriptions = [
 
-    "Classic Coffee" =>
-    "Rich and aromatic classic coffee, freshly brewed for a smooth and comforting taste.",
+    "Classic Coffee" => "Rich and aromatic classic coffee, freshly brewed for a smooth and comforting taste.",
+    "Espresso Bar" => "Strong and bold espresso with a rich aroma and perfectly balanced flavour.",
+    "Cappuccino Collection" => "Creamy cappuccino topped with velvety milk foam for a smooth coffee experience.",
+    "Mocha Collection" => "A delicious blend of rich chocolate and freshly brewed coffee with a creamy finish.",
+    "Cold Coffee" => "Refreshing chilled coffee blended with creamy milk for a smooth and delicious taste.",
+    "Iced Coffee" => "Cool and refreshing iced coffee served chilled for a perfect coffee break.",
+    "Frappé Collection" => "Creamy blended frappé with a refreshing texture and delightful coffee flavour.",
+    "Flavoured Coffee" => "Aromatic coffee infused with delicious flavours for a unique experience.",
+    "Signature Coffee" => "VELOURE's signature coffee crafted with premium ingredients and rich unforgettable taste.",
 
-    "Espresso Bar" =>
-    "Strong and bold espresso with a rich aroma and perfectly balanced flavour.",
+    "Classic Tea" => "Freshly brewed classic tea with a soothing aroma and refreshing taste.",
+    "Masala Tea" => "Traditional Indian tea infused with aromatic spices.",
+    "Green Tea" => "Light and refreshing green tea made for a calm experience.",
+    "Herbal Tea" => "Soothing herbal tea prepared with refreshing natural ingredients.",
+    "Iced Tea" => "Chilled tea with a refreshing flavour.",
+    "Mint Refreshers" => "Cool and refreshing mint drink with a fresh flavour.",
+    "Fruit Refreshers" => "Refreshing fruit-based drink bursting with fruity flavours.",
 
-    "Cappuccino Collection" =>
-    "Creamy cappuccino topped with velvety milk foam for a smooth coffee experience.",
+    "Fruit Mojito" => "Refreshing fruit mojito blended with citrus flavours and mint.",
+    "Berry Coolers" => "Refreshing berry cooler packed with sweet and tangy flavours.",
+    "Tropical Coolers" => "Refreshing tropical drink inspired by exotic fruits.",
+    "Passion Fruit" => "Sweet and tangy passion fruit refresher.",
+    "Watermelon Drinks" => "Fresh and juicy watermelon drink served chilled.",
 
-    "Mocha Collection" =>
-    "A delicious blend of rich chocolate and freshly brewed coffee with a creamy finish.",
+    "French Fries" => "Golden crispy French fries seasoned perfectly and served hot.",
+    "Peri Peri Fries" => "Crispy fries tossed with spicy peri peri seasoning.",
+    "Garlic Bread" => "Freshly baked bread topped with aromatic garlic butter.",
+    "Nachos" => "Crunchy nachos loaded with delicious toppings.",
+    "Bruschetta" => "Crispy toasted bread topped with fresh ingredients.",
+    "Light Bites" => "A delicious selection of light and tasty snacks.",
 
-    "Cold Coffee" =>
-    "Refreshing chilled coffee blended with creamy milk for a smooth and delicious taste.",
+    "Veg Burgers" => "Juicy and flavourful vegetarian burger with fresh ingredients.",
+    "Sandwiches" => "Freshly prepared sandwiches filled with delicious ingredients.",
+    "Wraps" => "Soft wraps filled with fresh vegetables and tasty fillings.",
+    "Pizza" => "Freshly baked pizza topped with delicious ingredients and cheese.",
+    "Pasta" => "Creamy and flavourful pasta prepared with fresh ingredients.",
+    "Café Combos" => "A perfect combination of popular café favourites.",
 
-    "Iced Coffee" =>
-    "Cool and refreshing iced coffee served chilled for a perfect coffee break.",
+    "Brownies" => "Rich and fudgy chocolate brownies with a soft centre.",
+    "Lava Cakes" => "Warm chocolate cake with a delicious molten centre.",
+    "Cheesecakes" => "Creamy and smooth cheesecake with a delicate base.",
+    "Waffles" => "Golden crispy waffles served with delicious toppings.",
+    "Pancakes" => "Soft and fluffy pancakes prepared fresh.",
 
-    "Frappé Collection" =>
-    "Creamy blended frappé with a refreshing texture and delightful coffee flavour.",
+    "Fresh Fruit Bowls" => "A colourful bowl of fresh seasonal fruits.",
+    "Greek Yogurt Bowls" => "Creamy Greek yogurt topped with fresh fruits.",
+    "Paneer Salads" => "Fresh vegetables combined with flavourful paneer.",
+    "Avocado Toast" => "Crispy toast topped with creamy avocado.",
+    "Smoothie Bowls" => "Thick and creamy fruit smoothie bowl.",
 
-    "Flavoured Coffee" =>
-    "Aromatic coffee infused with delicious flavours for a unique experience.",
+    "Premium Latte" => "Smooth and creamy premium latte.",
+    "Royal Frappé" => "Luxurious creamy frappé crafted with premium ingredients.",
+    "Premium Burger" => "Premium burger with delicious fillings.",
+    "Chef's Special Pizza" => "Chef's special pizza loaded with premium toppings.",
+    "Luxury Dessert Platter" => "Elegant platter featuring VELOURE's finest desserts.",
 
-    "Signature Coffee" =>
-    "VELOURE's signature coffee crafted with premium ingredients and rich unforgettable taste.",
-
-    "Classic Tea" =>
-    "Freshly brewed classic tea with a soothing aroma and refreshing taste.",
-
-    "Masala Tea" =>
-    "Traditional Indian tea infused with aromatic spices.",
-
-    "Green Tea" =>
-    "Light and refreshing green tea made for a calm experience.",
-
-    "Herbal Tea" =>
-    "Soothing herbal tea prepared with refreshing natural ingredients.",
-
-    "Iced Tea" =>
-    "Chilled tea with a refreshing flavour.",
-
-    "Mint Refreshers" =>
-    "Cool and refreshing mint drink with a fresh flavour.",
-
-    "Fruit Refreshers" =>
-    "Refreshing fruit-based drink bursting with fruity flavours.",
-
-    "Fruit Mojito" =>
-    "Refreshing fruit mojito blended with citrus flavours and mint.",
-
-    "Berry Coolers" =>
-    "Refreshing berry cooler packed with sweet and tangy flavours.",
-
-    "Tropical Coolers" =>
-    "Refreshing tropical drink inspired by exotic fruits.",
-
-    "Passion Fruit" =>
-    "Sweet and tangy passion fruit refresher.",
-
-    "Watermelon Drinks" =>
-    "Fresh and juicy watermelon drink served chilled.",
-
-    "French Fries" =>
-    "Golden crispy French fries seasoned perfectly and served hot.",
-
-    "Peri Peri Fries" =>
-    "Crispy fries tossed with spicy peri peri seasoning.",
-
-    "Garlic Bread" =>
-    "Freshly baked bread topped with aromatic garlic butter.",
-
-    "Nachos" =>
-    "Crunchy nachos loaded with delicious toppings.",
-
-    "Bruschetta" =>
-    "Crispy toasted bread topped with fresh ingredients.",
-
-    "Light Bites" =>
-    "A delicious selection of light and tasty snacks.",
-
-    "Veg Burgers" =>
-    "Juicy and flavourful vegetarian burger with fresh ingredients.",
-
-    "Sandwiches" =>
-    "Freshly prepared sandwiches filled with delicious ingredients.",
-
-    "Wraps" =>
-    "Soft wraps filled with fresh vegetables and tasty fillings.",
-
-    "Pizza" =>
-    "Freshly baked pizza topped with delicious ingredients and cheese.",
-
-    "Pasta" =>
-    "Creamy and flavourful pasta prepared with fresh ingredients.",
-
-    "Café Combos" =>
-    "A perfect combination of popular café favourites.",
-
-    "Brownies" =>
-    "Rich and fudgy chocolate brownies with a soft centre.",
-
-    "Lava Cakes" =>
-    "Warm chocolate cake with a delicious molten centre.",
-
-    "Cheesecakes" =>
-    "Creamy and smooth cheesecake with a delicate base.",
-
-    "Waffles" =>
-    "Golden crispy waffles served with delicious toppings.",
-
-    "Pancakes" =>
-    "Soft and fluffy pancakes prepared fresh.",
-
-    "Fresh Fruit Bowls" =>
-    "A colourful bowl of fresh seasonal fruits.",
-
-    "Greek Yogurt Bowls" =>
-    "Creamy Greek yogurt topped with fresh fruits.",
-
-    "Paneer Salads" =>
-    "Fresh vegetables combined with flavourful paneer.",
-
-    "Avocado Toast" =>
-    "Crispy toast topped with creamy avocado.",
-
-    "Smoothie Bowls" =>
-    "Thick and creamy fruit smoothie bowl.",
-
-    "Premium Latte" =>
-    "Smooth and creamy premium latte.",
-
-    "Royal Frappé" =>
-    "Luxurious creamy frappé crafted with premium ingredients.",
-
-    "Premium Burger" =>
-    "Premium burger with delicious fillings.",
-
-    "Chef's Special Pizza" =>
-    "Chef's special pizza loaded with premium toppings.",
-
-    "Luxury Dessert Platter" =>
-    "Elegant platter featuring VELOURE's finest desserts.",
-
-    "Loaded Fries" =>
-    "Crispy fries loaded with delicious toppings.",
-
-    "Mac & Cheese" =>
-    "Creamy macaroni pasta blended with rich melted cheese.",
-
-    "Hot Dogs" =>
-    "Soft hot dog bun with delicious toppings.",
-
-    "Crispy Chicken" =>
-    "Crispy golden chicken with a flavourful coating.",
-
-    "American-Style Desserts" =>
-    "Delicious American-inspired desserts."
+    "Loaded Fries" => "Crispy fries loaded with delicious toppings.",
+    "Mac & Cheese" => "Creamy macaroni pasta blended with rich melted cheese.",
+    "Hot Dogs" => "Soft hot dog bun with delicious toppings.",
+    "Crispy Chicken" => "Crispy golden chicken with a flavourful coating.",
+    "American-Style Desserts" => "Delicious American-inspired desserts."
 ];
 
 ?>
@@ -426,7 +354,6 @@ $descriptions = [
 <head>
 
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>VELOURE | Menu</title>
@@ -453,11 +380,6 @@ body{
     background:#f7f1e9;
     color:#38271f;
 }
-
-
-/* =========================================================
-   NAVBAR
-========================================================= */
 
 .navbar{
     position:sticky;
@@ -510,26 +432,12 @@ body{
     font-size:12px;
 }
 
-
-/* =========================================================
-   HERO
-========================================================= */
-
 .hero{
     padding:120px 7% 80px;
     text-align:center;
-
     background:
-    radial-gradient(
-        circle at 20% 30%,
-        rgba(166,108,67,.18),
-        transparent 30%
-    ),
-    radial-gradient(
-        circle at 80% 70%,
-        rgba(80,50,35,.12),
-        transparent 30%
-    );
+    radial-gradient(circle at 20% 30%,rgba(166,108,67,.18),transparent 30%),
+    radial-gradient(circle at 80% 70%,rgba(80,50,35,.12),transparent 30%);
 }
 
 .eyebrow{
@@ -558,11 +466,6 @@ body{
     line-height:1.8;
 }
 
-
-/* =========================================================
-   MENU
-========================================================= */
-
 .menu-section{
     padding:80px 6%;
     background:#fffaf4;
@@ -588,11 +491,6 @@ body{
     color:#756359;
 }
 
-
-/* =========================================================
-   FILTER
-========================================================= */
-
 .filters{
     display:flex;
     justify-content:center;
@@ -617,11 +515,6 @@ body{
     color:white;
 }
 
-
-/* =========================================================
-   CATEGORY
-========================================================= */
-
 .menu-category{
     max-width:1250px;
     margin:0 auto 70px;
@@ -645,11 +538,6 @@ body{
     background:#dfd0c3;
 }
 
-
-/* =========================================================
-   CARDS
-========================================================= */
-
 .menu-grid{
     display:grid;
     grid-template-columns:repeat(4,1fr);
@@ -667,11 +555,6 @@ body{
 .menu-card:hover{
     transform:translateY(-6px);
 }
-
-
-/* =========================================================
-   FOOD IMAGE
-========================================================= */
 
 .food-image{
     height:220px;
@@ -704,8 +587,6 @@ body{
     border-radius:22px;
     font-size:14px;
     font-weight:700;
-    box-shadow:0 4px 12px rgba(0,0,0,.25);
-    z-index:5;
 }
 
 .food-image:hover .image-price{
@@ -722,7 +603,6 @@ body{
     border-radius:20px;
     font-size:11px;
     font-weight:700;
-    z-index:5;
     opacity:0;
     transform:translateY(5px);
     transition:.3s;
@@ -732,11 +612,6 @@ body{
     opacity:1;
     transform:translateY(0);
 }
-
-
-/* =========================================================
-   CONTENT
-========================================================= */
 
 .menu-content{
     padding:18px;
@@ -755,11 +630,6 @@ body{
     min-height:58px;
 }
 
-
-/* =========================================================
-   PRICE ROW
-========================================================= */
-
 .price-row{
     display:flex;
     justify-content:space-between;
@@ -774,11 +644,6 @@ body{
     font-weight:bold;
 }
 
-
-/* =========================================================
-   RESERVATION BUTTON
-========================================================= */
-
 .reservation-item-btn{
     border:none;
     cursor:pointer;
@@ -789,52 +654,11 @@ body{
     font-size:11px;
     font-weight:700;
     transition:.3s;
-    display:inline-block;
 }
 
 .reservation-item-btn:hover{
     background:#a66c43;
     transform:translateY(-2px);
-}
-
-
-/* =========================================================
-   FLOATING RESERVATION
-========================================================= */
-
-.reservation-count-box{
-    position:fixed;
-    right:25px;
-    bottom:25px;
-    z-index:9998;
-}
-
-.reservation-count-btn{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    background:#4b3024;
-    color:white;
-    text-decoration:none;
-    padding:13px 20px;
-    border-radius:30px;
-    font-size:13px;
-    font-weight:700;
-    box-shadow:0 8px 25px rgba(0,0,0,.25);
-}
-
-.reservation-count-btn:hover{
-    background:#a66c43;
-}
-
-#reservationCount{
-    background:#c18a61;
-    min-width:25px;
-    height:25px;
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
 }
 
 
@@ -846,11 +670,7 @@ body{
     max-width:1250px;
     margin:20px auto 70px;
     padding:55px 45px;
-    background:linear-gradient(
-        135deg,
-        #4b3024,
-        #241713
-    );
+    background:linear-gradient(135deg,#4b3024,#241713);
     border-radius:28px;
     color:white;
 }
@@ -902,29 +722,22 @@ body{
     font-family:inherit;
 }
 
-
-/* =========================================================
-   PAYMENT
-========================================================= */
-
-.payment-box{
+.payment-box,
+.qr-box,
+.payment-status,
+.bill-details,
+.price-box,
+.build-btn{
     grid-column:1/-1;
 }
 
-
-/* =========================================================
-   QR
-========================================================= */
-
 .qr-box{
     display:none;
-    grid-column:1/-1;
     text-align:center;
     background:#fffaf4;
     color:#38271f;
     padding:30px;
     border-radius:18px;
-    margin-top:5px;
 }
 
 .qr-box.show{
@@ -953,27 +766,15 @@ body{
     margin:7px 0;
 }
 
-.qr-amount-label{
-    margin-top:12px !important;
-    font-weight:600;
-}
-
 #qrAmount{
     display:block;
     font-size:34px;
     color:#a66c43;
     font-weight:bold;
-    margin-top:5px;
 }
-
-
-/* =========================================================
-   PAYMENT STATUS
-========================================================= */
 
 .payment-status{
     display:none;
-    grid-column:1/-1;
     background:#fff3cd;
     color:#735c00;
     padding:15px;
@@ -987,13 +788,7 @@ body{
     display:block;
 }
 
-
-/* =========================================================
-   BILL
-========================================================= */
-
 .bill-details{
-    grid-column:1/-1;
     background:rgba(255,255,255,.06);
     border:1px solid rgba(255,255,255,.12);
     border-radius:15px;
@@ -1016,10 +811,6 @@ body{
     border-bottom:1px solid rgba(255,255,255,.08);
 }
 
-.bill-row:last-of-type{
-    border-bottom:none;
-}
-
 .bill-total{
     display:flex;
     justify-content:space-between;
@@ -1029,13 +820,7 @@ body{
     padding-top:14px;
 }
 
-
-/* =========================================================
-   PRICE BOX
-========================================================= */
-
 .price-box{
-    grid-column:1/-1;
     text-align:center;
     padding:25px;
     background:rgba(255,255,255,.08);
@@ -1058,13 +843,7 @@ body{
     font-weight:bold;
 }
 
-
-/* =========================================================
-   BUTTON
-========================================================= */
-
 .build-btn{
-    grid-column:1/-1;
     border:none;
     padding:15px;
     border-radius:30px;
@@ -1079,15 +858,9 @@ body{
     background:#d09a70;
 }
 
-
-/* =========================================================
-   SUCCESS / ERROR
-========================================================= */
-
 .success{
-    max-width:700px;
-    margin:30px auto;
-    padding:25px;
+    margin:20px auto;
+    padding:20px;
     text-align:center;
     background:#e8f6e8;
     color:#245c2a;
@@ -1096,9 +869,8 @@ body{
 }
 
 .error{
-    max-width:700px;
-    margin:30px auto;
-    padding:25px;
+    margin:20px auto;
+    padding:20px;
     text-align:center;
     background:#ffe9e9;
     color:#9b2226;
@@ -1108,8 +880,39 @@ body{
 
 
 /* =========================================================
-   FOOTER
+   FLOATING RESERVATION
 ========================================================= */
+
+.reservation-count-box{
+    position:fixed;
+    right:25px;
+    bottom:25px;
+    z-index:9998;
+}
+
+.reservation-count-btn{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:#4b3024;
+    color:white;
+    text-decoration:none;
+    padding:13px 20px;
+    border-radius:30px;
+    font-size:13px;
+    font-weight:700;
+    box-shadow:0 8px 25px rgba(0,0,0,.25);
+}
+
+#reservationCount{
+    background:#c18a61;
+    min-width:25px;
+    height:25px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
 
 footer{
     background:#241713;
@@ -1128,11 +931,6 @@ footer p{
     margin-top:8px;
     opacity:.6;
 }
-
-
-/* =========================================================
-   RESPONSIVE
-========================================================= */
 
 @media(max-width:1100px){
 
@@ -1154,15 +952,6 @@ footer p{
 
     .build-form{
         grid-template-columns:1fr;
-    }
-
-    .price-box,
-    .build-btn,
-    .payment-box,
-    .qr-box,
-    .bill-details,
-    .payment-status{
-        grid-column:1/-1;
     }
 
     .hero h1{
@@ -1198,15 +987,6 @@ footer p{
         height:180px;
     }
 
-    .price-row{
-        align-items:flex-start;
-    }
-
-    .reservation-item-btn{
-        padding:9px 13px;
-        font-size:10px;
-    }
-
     .reservation-count-box{
         right:15px;
         bottom:15px;
@@ -1234,27 +1014,17 @@ footer p{
     <div class="nav-links">
 
         <a href="index.php">Home</a>
-
         <a href="about.php">About</a>
-
         <a href="menu.php">Menu</a>
-
         <a href="offers.php">Offers</a>
-
         <a href="gallery.php">Gallery</a>
-
         <a href="services.php">Services</a>
-
         <a href="reservation.php">Reservation</a>
-
         <a href="reviews.php">Reviews</a>
 
     </div>
 
-    <a
-        href="reservation.php"
-        class="reserve-btn"
-    >
+    <a href="reservation.php" class="reserve-btn">
         Reserve Table
     </a>
 
@@ -1293,686 +1063,661 @@ footer p{
 
 <section class="menu-section">
 
-    <div class="section-heading">
+<div class="section-heading">
 
-        <small>
-            EXPLORE OUR SELECTION
-        </small>
+    <small>EXPLORE OUR SELECTION</small>
 
-        <h2>
-            Crafted For Every Craving
-        </h2>
+    <h2>
+        Crafted For Every Craving
+    </h2>
 
-        <p>
-            From your first morning coffee
-            to an indulgent evening dessert.
-        </p>
+    <p>
+        From your first morning coffee
+        to an indulgent evening dessert.
+    </p>
 
-    </div>
+</div>
 
 
-    <!-- FILTER -->
+<!-- FILTER -->
 
-    <div class="filters">
+<div class="filters">
 
-        <button
-            class="filter-btn active"
-            data-filter="all"
-            type="button"
-        >
-            All
-        </button>
+    <button
+        class="filter-btn active"
+        data-filter="all"
+        type="button"
+    >
+        All
+    </button>
 
-        <?php foreach ($menu as $category => $items): ?>
-
-            <?php
-
-            $filter =
-                strtolower(
-                    preg_replace(
-                        '/[^a-z0-9]+/',
-                        '-',
-                        $category
-                    )
-                );
-
-            ?>
-
-            <button
-                class="filter-btn"
-                data-filter="<?php echo htmlspecialchars($filter); ?>"
-                type="button"
-            >
-                <?php echo htmlspecialchars($category); ?>
-            </button>
-
-        <?php endforeach; ?>
-
-    </div>
-
-
-    <!-- =====================================================
-         MENU CATEGORIES
-    ====================================================== -->
-
-    <?php foreach ($menu as $category => $items): ?>
+    <?php foreach($menu as $category => $items): ?>
 
         <?php
 
-        $categoryClass =
-            strtolower(
-                preg_replace(
-                    '/[^a-z0-9]+/',
-                    '-',
-                    $category
-                )
-            );
+        $filter = strtolower(
+            preg_replace(
+                '/[^a-z0-9]+/',
+                '-',
+                $category
+            )
+        );
 
         ?>
 
-        <div
-            class="menu-category"
-            data-category="<?php echo htmlspecialchars($categoryClass); ?>"
+        <button
+            class="filter-btn"
+            data-filter="<?php echo htmlspecialchars($filter); ?>"
+            type="button"
         >
-
-            <div class="category-title">
-
-                <h3>
-                    <?php echo htmlspecialchars($category); ?>
-                </h3>
-
-                <div class="category-line"></div>
-
-            </div>
-
-
-            <div class="menu-grid">
-
-                <?php foreach ($items as $item): ?>
-
-                    <?php
-
-                    $itemName  = $item[0];
-                    $itemPrice = $item[1];
-                    $itemImage = $item[2];
-
-                    ?>
-
-                    <div
-                        class="menu-card"
-                        data-item-name="<?php echo htmlspecialchars($itemName, ENT_QUOTES); ?>"
-                        data-item-price="<?php echo (float)$itemPrice; ?>"
-                    >
-
-
-                        <!-- IMAGE -->
-
-                        <a
-                            href="#"
-                            class="food-image reservation-image-link"
-                            data-name="<?php echo htmlspecialchars($itemName, ENT_QUOTES); ?>"
-                            data-price="<?php echo (float)$itemPrice; ?>"
-                            title="Add <?php echo htmlspecialchars($itemName, ENT_QUOTES); ?> to reservation"
-                        >
-
-                            <img
-                                src="images/<?php echo htmlspecialchars($itemImage); ?>"
-                                alt="<?php echo htmlspecialchars($itemName); ?>"
-                                onerror="this.src='images/default-food.jpg';"
-                            >
-
-                            <span class="image-price">
-                                ₹<?php echo number_format($itemPrice); ?>
-                            </span>
-
-                            <span class="image-reserve-label">
-                                + Reservation
-                            </span>
-
-                        </a>
-
-
-                        <!-- CONTENT -->
-
-                        <div class="menu-content">
-
-                            <h4>
-                                <?php echo htmlspecialchars($itemName); ?>
-                            </h4>
-
-                            <p>
-                                <?php
-
-                                echo htmlspecialchars(
-                                    $descriptions[$itemName]
-                                    ??
-                                    "A delicious creation specially prepared by VELOURE."
-                                );
-
-                                ?>
-                            </p>
-
-
-                            <!-- PRICE + RESERVATION -->
-
-                            <div class="price-row">
-
-                                <span class="price">
-                                    ₹<?php echo number_format($itemPrice); ?>
-                                </span>
-
-                                <button
-                                    type="button"
-                                    class="reservation-item-btn add-reservation-btn"
-                                    data-name="<?php echo htmlspecialchars($itemName, ENT_QUOTES); ?>"
-                                    data-price="<?php echo (float)$itemPrice; ?>"
-                                >
-                                    + Reservation
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                <?php endforeach; ?>
-
-            </div>
-
-        </div>
+            <?php echo htmlspecialchars($category); ?>
+        </button>
 
     <?php endforeach; ?>
 
+</div>
 
-    <!-- =====================================================
-         BUILD YOUR COFFEE
-    ====================================================== -->
 
-    <div
-        class="build-coffee"
-        id="build-coffee"
-    >
+<!-- =========================================================
+   MENU CATEGORIES
+========================================================= -->
 
-        <div class="build-title">
+<?php foreach($menu as $category => $items): ?>
 
-            <small>
-                YOUR COFFEE · YOUR WAY
-            </small>
+<?php
 
-            <h2>
-                Build Your Coffee
-            </h2>
+$categoryClass = strtolower(
+    preg_replace(
+        '/[^a-z0-9]+/',
+        '-',
+        $category
+    )
+);
 
-            <p>
-                Create your perfect coffee
-                exactly the way you like it.
-            </p>
+?>
 
-        </div>
+<div
+    class="menu-category"
+    data-category="<?php echo htmlspecialchars($categoryClass); ?>"
+>
 
+<div class="category-title">
 
-        <?php if ($orderSuccess): ?>
+    <h3>
+        <?php echo htmlspecialchars($category); ?>
+    </h3>
 
-            <div class="success">
+    <div class="category-line"></div>
 
-                ✅ Order placed successfully!
+</div>
 
-                <br>
 
-                Your order has been saved in
-                <strong>order.csv</strong>.
+<div class="menu-grid">
 
-                <br><br>
+<?php foreach($items as $item): ?>
 
-                You can open <strong>order.csv</strong>
-                with Microsoft Excel.
+<?php
 
-            </div>
+$itemName = $item[0];
+$itemPrice = $item[1];
+$itemImage = $item[2];
 
-        <?php endif; ?>
+?>
 
+<div
+    class="menu-card"
+    data-item-name="<?php echo htmlspecialchars($itemName,ENT_QUOTES); ?>"
+    data-item-price="<?php echo (float)$itemPrice; ?>"
+>
 
-        <?php if ($orderError !== ""): ?>
 
-            <div class="error">
+<!-- IMAGE -->
 
-                ❌
-                <?php echo htmlspecialchars($orderError); ?>
+<a
+    href="#"
+    class="food-image reservation-image-link"
 
-            </div>
+    data-name="<?php echo htmlspecialchars($itemName,ENT_QUOTES); ?>"
 
-        <?php endif; ?>
+    data-price="<?php echo (float)$itemPrice; ?>"
+>
 
+<img
+    src="images/<?php echo htmlspecialchars($itemImage); ?>"
+    alt="<?php echo htmlspecialchars($itemName); ?>"
+    onerror="this.src='images/default-food.jpg';"
+>
 
-        <form
-            class="build-form"
-            method="POST"
-            action="menu.php#build-coffee"
-        >
+<span class="image-price">
+    ₹<?php echo number_format($itemPrice); ?>
+</span>
 
+<span class="image-reserve-label">
+    + Reservation
+</span>
 
-            <!-- COFFEE -->
+</a>
 
-            <div class="build-group">
 
-                <label>
-                    Coffee Type *
-                </label>
+<!-- CONTENT -->
 
-                <select
-                    name="coffee"
-                    id="coffeeType"
-                    required
-                >
+<div class="menu-content">
 
-                    <option value="" data-price="0">
-                        Select Coffee
-                    </option>
+<h4>
+    <?php echo htmlspecialchars($itemName); ?>
+</h4>
 
-                    <option value="Classic Coffee" data-price="120">
-                        Classic Coffee — ₹120
-                    </option>
+<p>
+    <?php
 
-                    <option value="Espresso" data-price="100">
-                        Espresso — ₹100
-                    </option>
+    echo htmlspecialchars(
+        $descriptions[$itemName]
+        ??
+        "A delicious creation specially prepared by VELOURE."
+    );
 
-                    <option value="Cappuccino" data-price="150">
-                        Cappuccino — ₹150
-                    </option>
+    ?>
+</p>
 
-                    <option value="Mocha" data-price="170">
-                        Mocha — ₹170
-                    </option>
 
-                    <option value="Cold Coffee" data-price="150">
-                        Cold Coffee — ₹150
-                    </option>
+<div class="price-row">
 
-                    <option value="Iced Coffee" data-price="160">
-                        Iced Coffee — ₹160
-                    </option>
+<span class="price">
+    ₹<?php echo number_format($itemPrice); ?>
+</span>
 
-                    <option value="Frappé" data-price="190">
-                        Frappé — ₹190
-                    </option>
+<button
+    type="button"
+    class="reservation-item-btn add-reservation-btn"
 
-                    <option value="Signature Coffee" data-price="220">
-                        Signature Coffee — ₹220
-                    </option>
+    data-name="<?php echo htmlspecialchars($itemName,ENT_QUOTES); ?>"
 
-                </select>
+    data-price="<?php echo (float)$itemPrice; ?>"
+>
+    + Reservation
+</button>
 
-            </div>
+</div>
 
+</div>
 
-            <!-- SIZE -->
+</div>
 
-            <div class="build-group">
+<?php endforeach; ?>
 
-                <label>
-                    Size *
-                </label>
+</div>
 
-                <select
-                    name="size"
-                    id="coffeeSize"
-                    required
-                >
+</div>
 
-                    <option value="" data-price="0">
-                        Select Size
-                    </option>
+<?php endforeach; ?>
 
-                    <option value="Small" data-price="0">
-                        Small — +₹0
-                    </option>
 
-                    <option value="Medium" data-price="30">
-                        Medium — +₹30
-                    </option>
+<!-- =========================================================
+   BUILD YOUR COFFEE
+========================================================= -->
 
-                    <option value="Large" data-price="50">
-                        Large — +₹50
-                    </option>
+<div class="build-coffee" id="build-coffee">
 
-                </select>
+<div class="build-title">
 
-            </div>
+<small>
+    YOUR COFFEE · YOUR WAY
+</small>
 
+<h2>
+    Build Your Coffee
+</h2>
 
-            <!-- MILK -->
+<p>
+    Create your perfect coffee exactly the way you like it.
+</p>
 
-            <div class="build-group">
+</div>
 
-                <label>
-                    Milk
-                </label>
 
-                <select
-                    name="milk"
-                    id="coffeeMilk"
-                >
+<?php if($orderSuccess): ?>
 
-                    <option value="Regular Milk" data-price="0">
-                        Regular Milk — +₹0
-                    </option>
+<div class="success">
 
-                    <option value="Almond Milk" data-price="30">
-                        Almond Milk — +₹30
-                    </option>
+    ✅ Order placed successfully!
 
-                    <option value="Oat Milk" data-price="25">
-                        Oat Milk — +₹25
-                    </option>
+    <br><br>
 
-                    <option value="Soy Milk" data-price="20">
-                        Soy Milk — +₹20
-                    </option>
+    Your order has been saved in
+    <strong>order.csv</strong>.
 
-                </select>
+</div>
 
-            </div>
+<?php endif; ?>
 
 
-            <!-- SWEETNESS -->
+<?php if($orderError !== ""): ?>
 
-            <div class="build-group">
+<div class="error">
 
-                <label>
-                    Sweetness
-                </label>
+    ❌ <?php echo htmlspecialchars($orderError); ?>
 
-                <select
-                    name="sweetness"
-                    id="coffeeSweetness"
-                >
+</div>
 
-                    <option value="Normal" data-price="0">
-                        Normal — +₹0
-                    </option>
+<?php endif; ?>
 
-                    <option value="Less Sugar" data-price="0">
-                        Less Sugar — +₹0
-                    </option>
 
-                    <option value="No Sugar" data-price="0">
-                        No Sugar — +₹0
-                    </option>
+<form
+    class="build-form"
+    method="POST"
+    action="menu.php#build-coffee"
+    id="buildCoffeeForm"
+>
 
-                    <option value="Extra Sweet" data-price="10">
-                        Extra Sweet — +₹10
-                    </option>
 
-                </select>
+<!-- COFFEE -->
 
-            </div>
+<div class="build-group">
 
+<label>
+    Coffee Type *
+</label>
 
-            <!-- TOPPING -->
+<select
+    name="coffee"
+    id="coffeeType"
+    required
+>
 
-            <div class="build-group">
+<option value="" data-price="0">
+    Select Coffee
+</option>
 
-                <label>
-                    Toppings
-                </label>
+<option value="Classic Coffee" data-price="120">
+    Classic Coffee — ₹120
+</option>
 
-                <select
-                    name="topping"
-                    id="coffeeTopping"
-                >
+<option value="Espresso" data-price="100">
+    Espresso — ₹100
+</option>
 
-                    <option value="No Topping" data-price="0">
-                        No Topping — +₹0
-                    </option>
+<option value="Cappuccino" data-price="150">
+    Cappuccino — ₹150
+</option>
 
-                    <option value="Whipped Cream" data-price="20">
-                        Whipped Cream — +₹20
-                    </option>
+<option value="Mocha" data-price="170">
+    Mocha — ₹170
+</option>
 
-                    <option value="Chocolate" data-price="25">
-                        Chocolate — +₹25
-                    </option>
+<option value="Cold Coffee" data-price="150">
+    Cold Coffee — ₹150
+</option>
 
-                    <option value="Caramel" data-price="20">
-                        Caramel — +₹20
-                    </option>
+<option value="Iced Coffee" data-price="160">
+    Iced Coffee — ₹160
+</option>
 
-                    <option value="Hazelnut" data-price="30">
-                        Hazelnut — +₹30
-                    </option>
+<option value="Frappé" data-price="190">
+    Frappé — ₹190
+</option>
 
-                </select>
+<option value="Signature Coffee" data-price="220">
+    Signature Coffee — ₹220
+</option>
 
-            </div>
+</select>
 
+</div>
 
-            <!-- NAME -->
 
-            <div class="build-group">
+<!-- SIZE -->
 
-                <label>
-                    Your Name *
-                </label>
+<div class="build-group">
 
-                <input
-                    type="text"
-                    name="name"
-                    placeholder="Enter your name"
-                    required
-                >
+<label>
+    Size *
+</label>
 
-            </div>
+<select
+    name="size"
+    id="coffeeSize"
+    required
+>
 
+<option value="" data-price="0">
+    Select Size
+</option>
 
-            <!-- PHONE -->
+<option value="Small" data-price="0">
+    Small — +₹0
+</option>
 
-            <div class="build-group">
+<option value="Medium" data-price="30">
+    Medium — +₹30
+</option>
 
-                <label>
-                    Mobile Number *
-                </label>
+<option value="Large" data-price="50">
+    Large — +₹50
+</option>
 
-                <input
-                    type="tel"
-                    name="phone"
-                    placeholder="10 digit mobile number"
-                    maxlength="10"
-                    pattern="[0-9]{10}"
-                    required
-                >
+</select>
 
-            </div>
+</div>
 
 
-            <!-- PAYMENT -->
+<!-- MILK -->
 
-            <div class="build-group payment-box">
+<div class="build-group">
 
-                <label>
-                    Payment Method *
-                </label>
+<label>
+    Milk
+</label>
 
-                <select
-                    name="payment"
-                    id="paymentMethod"
-                    required
-                >
+<select
+    name="milk"
+    id="coffeeMilk"
+>
 
-                    <option value="">
-                        Select Payment Method
-                    </option>
+<option value="Regular Milk" data-price="0">
+    Regular Milk — +₹0
+</option>
 
-                    <option value="Cash">
-                        Cash
-                    </option>
+<option value="Almond Milk" data-price="30">
+    Almond Milk — +₹30
+</option>
 
-                    <option value="UPI">
-                        UPI
-                    </option>
+<option value="Oat Milk" data-price="25">
+    Oat Milk — +₹25
+</option>
 
-                    <option value="Card">
-                        Card
-                    </option>
+<option value="Soy Milk" data-price="20">
+    Soy Milk — +₹20
+</option>
 
-                </select>
+</select>
 
-            </div>
+</div>
 
 
-            <!-- =================================================
-                 UPI QR
-            ================================================== -->
+<!-- SWEETNESS -->
 
-            <div
-                class="qr-box"
-                id="qrBox"
-            >
+<div class="build-group">
 
-                <h3>
-                    UPI Payment
-                </h3>
+<label>
+    Sweetness
+</label>
 
-                <p>
-                    Scan this QR Code to pay your bill
-                </p>
+<select
+    name="sweetness"
+    id="coffeeSweetness"
+>
 
-                <img
-                    src="images/upi-qr.jpg"
-                    alt="VELOURE UPI QR Code"
-                    id="upiQrImage"
-                    onerror="this.style.display='none';"
-                >
+<option value="Normal" data-price="0">
+    Normal — +₹0
+</option>
 
-                <p class="qr-amount-label">
-                    Amount to Pay
-                </p>
+<option value="Less Sugar" data-price="0">
+    Less Sugar — +₹0
+</option>
 
-                <strong id="qrAmount">
-                    ₹0
-                </strong>
+<option value="No Sugar" data-price="0">
+    No Sugar — +₹0
+</option>
 
-                <p>
-                    Please scan the QR and pay the amount shown above.
-                </p>
+<option value="Extra Sweet" data-price="10">
+    Extra Sweet — +₹10
+</option>
 
-            </div>
+</select>
 
+</div>
 
-            <!-- =================================================
-                 PAYMENT STATUS
-            ================================================== -->
 
-            <div
-                class="payment-status"
-                id="paymentStatus"
-            >
+<!-- TOPPING -->
 
-                ⚠️ UPI Payment Status:
-                <strong>Pending</strong>
+<div class="build-group">
 
-                <br>
+<label>
+    Toppings
+</label>
 
-                Please complete payment using the QR code.
+<select
+    name="topping"
+    id="coffeeTopping"
+>
 
-            </div>
+<option value="No Topping" data-price="0">
+    No Topping — +₹0
+</option>
 
+<option value="Whipped Cream" data-price="20">
+    Whipped Cream — +₹20
+</option>
 
-            <!-- =================================================
-                 BILL
-            ================================================== -->
+<option value="Chocolate" data-price="25">
+    Chocolate — +₹25
+</option>
 
-            <div class="bill-details">
+<option value="Caramel" data-price="20">
+    Caramel — +₹20
+</option>
 
-                <h3>
-                    Your Bill
-                </h3>
+<option value="Hazelnut" data-price="30">
+    Hazelnut — +₹30
+</option>
 
-                <div class="bill-row">
-                    <span>Coffee</span>
-                    <strong id="billCoffee">₹0</strong>
-                </div>
+</select>
 
-                <div class="bill-row">
-                    <span>Size</span>
-                    <strong id="billSize">₹0</strong>
-                </div>
+</div>
 
-                <div class="bill-row">
-                    <span>Milk</span>
-                    <strong id="billMilk">₹0</strong>
-                </div>
 
-                <div class="bill-row">
-                    <span>Sweetness</span>
-                    <strong id="billSweetness">₹0</strong>
-                </div>
+<!-- NAME -->
 
-                <div class="bill-row">
-                    <span>Topping</span>
-                    <strong id="billTopping">₹0</strong>
-                </div>
+<div class="build-group">
 
-                <div class="bill-total">
-                    <span>Total Bill</span>
-                    <strong id="billTotal">₹0</strong>
-                </div>
+<label>
+    Your Name *
+</label>
 
-            </div>
+<input
+    type="text"
+    name="name"
+    placeholder="Enter your name"
+    required
+>
 
+</div>
 
-            <!-- =================================================
-                 TOTAL PRICE
-            ================================================== -->
 
-            <div class="price-box">
+<!-- PHONE -->
 
-                <span>
-                    YOUR COFFEE PRICE
-                </span>
+<div class="build-group">
 
-                <strong id="coffeeTotal">
-                    ₹0
-                </strong>
+<label>
+    Mobile Number *
+</label>
 
-            </div>
+<input
+    type="tel"
+    name="phone"
+    placeholder="10 digit mobile number"
+    maxlength="10"
+    pattern="[0-9]{10}"
+    required
+>
 
+</div>
 
-            <!-- SUBMIT -->
 
-            <button
-                type="submit"
-                class="build-btn"
-            >
-                Create My Coffee
-            </button>
+<!-- PAYMENT -->
 
-        </form>
+<div class="build-group payment-box">
 
-    </div>
+<label>
+    Payment Method *
+</label>
+
+<select
+    name="payment"
+    id="paymentMethod"
+    required
+>
+
+<option value="">
+    Select Payment Method
+</option>
+
+<option value="Cash">
+    Cash
+</option>
+
+<option value="UPI">
+    UPI
+</option>
+
+<option value="Card">
+    Card
+</option>
+
+</select>
+
+</div>
+
+
+<!-- UPI QR -->
+
+<div class="qr-box" id="qrBox">
+
+<h3>
+    UPI Payment
+</h3>
+
+<p>
+    Scan this QR Code to pay your bill.
+</p>
+
+<img
+    src="images/upi-qr.jpg"
+    alt="VELOURE UPI QR Code"
+    id="upiQrImage"
+    onerror="this.style.display='none';"
+>
+
+<p>
+    Amount to Pay
+</p>
+
+<strong id="qrAmount">
+    ₹0
+</strong>
+
+<p>
+    Please complete the payment using the QR code.
+</p>
+
+</div>
+
+
+<!-- PAYMENT STATUS -->
+
+<div
+    class="payment-status"
+    id="paymentStatus"
+>
+
+⚠️ UPI Payment Status:
+<strong>Pending</strong>
+
+<br>
+
+Please complete payment using the QR code.
+
+</div>
+
+
+<!-- BILL -->
+
+<div class="bill-details">
+
+<h3>
+    Your Bill
+</h3>
+
+<div class="bill-row">
+    <span>Coffee</span>
+    <strong id="billCoffee">₹0</strong>
+</div>
+
+<div class="bill-row">
+    <span>Size</span>
+    <strong id="billSize">₹0</strong>
+</div>
+
+<div class="bill-row">
+    <span>Milk</span>
+    <strong id="billMilk">₹0</strong>
+</div>
+
+<div class="bill-row">
+    <span>Sweetness</span>
+    <strong id="billSweetness">₹0</strong>
+</div>
+
+<div class="bill-row">
+    <span>Topping</span>
+    <strong id="billTopping">₹0</strong>
+</div>
+
+<div class="bill-total">
+    <span>Total Bill</span>
+    <strong id="billTotal">₹0</strong>
+</div>
+
+</div>
+
+
+<!-- TOTAL -->
+
+<div class="price-box">
+
+<span>
+    YOUR COFFEE PRICE
+</span>
+
+<strong id="coffeeTotal">
+    ₹0
+</strong>
+
+</div>
+
+
+<button
+    type="submit"
+    class="build-btn"
+>
+    Create My Coffee
+</button>
+
+</form>
+
+</div>
 
 </section>
 
 
 <!-- =========================================================
-   FLOATING RESERVATION
+   RESERVATION FLOATING BUTTON
 ========================================================= -->
 
 <div class="reservation-count-box">
 
-    <a
-        href="reservation.php"
-        class="reservation-count-btn"
-    >
+<a
+    href="reservation.php"
+    class="reservation-count-btn"
+>
 
-        Reservation
+    Reservation
 
-        <span id="reservationCount">
-            0
-        </span>
+    <span id="reservationCount">
+        0
+    </span>
 
-    </a>
+</a>
 
 </div>
 
@@ -1983,620 +1728,736 @@ footer p{
 
 <footer>
 
-    <div class="footer-logo">
-        VELOURE
-    </div>
+<div class="footer-logo">
+    VELOURE
+</div>
 
-    <p>
-        © 2026 VELOURE Artisan Café.
-        All Rights Reserved.
-    </p>
+<p>
+    © 2026 VELOURE Artisan Café.
+    All Rights Reserved.
+</p>
 
 </footer>
 
 
 <script>
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function(){
 
 
-    /* =====================================================
-       MENU FILTER
-    ===================================================== */
+/* =========================================================
+   GOOGLE SCRIPT
+========================================================= */
 
-    const filterButtons =
-        document.querySelectorAll(".filter-btn");
-
-    const categories =
-        document.querySelectorAll(".menu-category");
+const GOOGLE_SCRIPT_URL =
+"https://script.google.com/macros/s/AKfycbzRqE9u-c5RuoGC7ZA2MWp2de4Decqymz5yH6AZRdSP6XlT7HQU5FCHrmeTLoliBB51/exec";
 
 
-    filterButtons.forEach(function(button){
+/* =========================================================
+   FILTER
+========================================================= */
 
-        button.addEventListener("click", function(){
+const filterButtons =
+document.querySelectorAll(".filter-btn");
 
-            const filter =
-                this.getAttribute("data-filter");
+const categories =
+document.querySelectorAll(".menu-category");
 
+filterButtons.forEach(function(button){
 
-            filterButtons.forEach(function(btn){
+    button.addEventListener("click",function(){
 
-                btn.classList.remove("active");
+        const filter =
+        this.getAttribute("data-filter");
 
-            });
+        filterButtons.forEach(function(btn){
+            btn.classList.remove("active");
+        });
 
+        this.classList.add("active");
 
-            this.classList.add("active");
+        categories.forEach(function(category){
 
+            const categoryName =
+            category.getAttribute("data-category");
 
-            categories.forEach(function(category){
+            if(
+                filter === "all" ||
+                categoryName === filter
+            ){
 
-                const categoryName =
-                    category.getAttribute("data-category");
+                category.style.display = "block";
 
+            }else{
 
-                if(
-                    filter === "all" ||
-                    categoryName === filter
-                ){
+                category.style.display = "none";
 
-                    category.style.display =
-                        "block";
-
-                }else{
-
-                    category.style.display =
-                        "none";
-
-                }
-
-            });
+            }
 
         });
 
     });
 
-
-    /* =====================================================
-       GET PRICE FROM SELECT
-    ===================================================== */
-
-    function getPrice(selectId){
-
-        const select =
-            document.getElementById(selectId);
+});
 
 
-        if(!select){
-            return 0;
-        }
+/* =========================================================
+   RESERVATIONS
+========================================================= */
+
+let selectedReservations = [];
+
+try{
+
+    selectedReservations =
+    JSON.parse(
+        localStorage.getItem(
+            "veloureReservations"
+        )
+    ) || [];
+
+}catch(error){
+
+    selectedReservations = [];
+
+}
 
 
-        const option =
-            select.options[
-                select.selectedIndex
-            ];
+function saveReservations(){
+
+    localStorage.setItem(
+        "veloureReservations",
+        JSON.stringify(
+            selectedReservations
+        )
+    );
+
+}
 
 
-        if(!option){
-            return 0;
-        }
+function updateReservationCount(){
+
+    const count =
+    selectedReservations.reduce(
+        function(total,item){
+
+            return total +
+            Number(item.quantity || 1);
+
+        },
+        0
+    );
+
+    const countElement =
+    document.getElementById(
+        "reservationCount"
+    );
+
+    if(countElement){
+
+        countElement.textContent =
+        count;
+
+    }
+
+}
 
 
-        const price =
-            parseFloat(
-                option.getAttribute("data-price")
-            );
+function showReservationMessage(message){
+
+    let box =
+    document.getElementById(
+        "reservationMessage"
+    );
+
+    if(!box){
+
+        box =
+        document.createElement("div");
+
+        box.id =
+        "reservationMessage";
+
+        box.style.position = "fixed";
+        box.style.top = "90px";
+        box.style.right = "25px";
+        box.style.zIndex = "99999";
+        box.style.background = "#4b3024";
+        box.style.color = "#fff";
+        box.style.padding = "14px 22px";
+        box.style.borderRadius = "30px";
+        box.style.fontSize = "13px";
+        box.style.fontWeight = "600";
+        box.style.boxShadow =
+        "0 8px 25px rgba(0,0,0,.25)";
+
+        document.body.appendChild(box);
+
+    }
+
+    box.textContent =
+    "✓ " + message;
+
+    box.style.display = "block";
+
+    clearTimeout(
+        window.reservationMessageTimer
+    );
+
+    window.reservationMessageTimer =
+    setTimeout(function(){
+
+        box.style.display = "none";
+
+    },2500);
+
+}
 
 
-        return isNaN(price) ? 0 : price;
+/* =========================================================
+   ADD MENU ITEM TO RESERVATION
+   PRICE IS AUTOMATIC
+========================================================= */
+
+function addReservationItem(name,price){
+
+    name =
+    String(name || "").trim();
+
+    price =
+    parseFloat(price);
+
+    if(
+        name === "" ||
+        isNaN(price) ||
+        price <= 0
+    ){
+
+        alert("Invalid menu item.");
+        return;
 
     }
 
 
-    /* =====================================================
-       CALCULATE TOTAL
-    ===================================================== */
+    const existing =
+    selectedReservations.find(
+        function(item){
 
-    function calculateCoffeePrice(){
+            return item.name === name;
 
-        const coffee =
-            getPrice("coffeeType");
-
-        const size =
-            getPrice("coffeeSize");
-
-        const milk =
-            getPrice("coffeeMilk");
-
-        const sweetness =
-            getPrice("coffeeSweetness");
-
-        const topping =
-            getPrice("coffeeTopping");
-
-
-        const total =
-            coffee +
-            size +
-            milk +
-            sweetness +
-            topping;
-
-
-        /* BILL */
-
-        const billCoffee =
-            document.getElementById("billCoffee");
-
-        const billSize =
-            document.getElementById("billSize");
-
-        const billMilk =
-            document.getElementById("billMilk");
-
-        const billSweetness =
-            document.getElementById("billSweetness");
-
-        const billTopping =
-            document.getElementById("billTopping");
-
-        const billTotal =
-            document.getElementById("billTotal");
-
-        const coffeeTotal =
-            document.getElementById("coffeeTotal");
-
-        const qrAmount =
-            document.getElementById("qrAmount");
-
-
-        if(billCoffee){
-            billCoffee.textContent =
-                "₹" + coffee;
         }
+    );
 
 
-        if(billSize){
-            billSize.textContent =
-                "₹" + size;
-        }
+    if(existing){
 
+        existing.quantity =
+        Number(existing.quantity || 1) + 1;
 
-        if(billMilk){
-            billMilk.textContent =
-                "₹" + milk;
-        }
+    }else{
 
+        selectedReservations.push({
 
-        if(billSweetness){
-            billSweetness.textContent =
-                "₹" + sweetness;
-        }
+            name: name,
 
+            price: price,
 
-        if(billTopping){
-            billTopping.textContent =
-                "₹" + topping;
-        }
+            quantity: 1
 
-
-        if(billTotal){
-            billTotal.textContent =
-                "₹" + total;
-        }
-
-
-        if(coffeeTotal){
-            coffeeTotal.textContent =
-                "₹" + total;
-        }
-
-
-        if(qrAmount){
-            qrAmount.textContent =
-                "₹" + total;
-        }
+        });
 
     }
 
 
-    /* =====================================================
-       PRICE CHANGE EVENTS
-    ===================================================== */
-
-    const priceSelects = [
-
-        document.getElementById("coffeeType"),
-
-        document.getElementById("coffeeSize"),
-
-        document.getElementById("coffeeMilk"),
-
-        document.getElementById("coffeeSweetness"),
-
-        document.getElementById("coffeeTopping")
-
-    ];
-
-
-    priceSelects.forEach(function(select){
-
-        if(select){
-
-            select.addEventListener(
-                "change",
-                calculateCoffeePrice
-            );
-
-        }
-
-    });
-
-
-    /* =====================================================
-       PAYMENT METHOD
-    ===================================================== */
-
-    const paymentMethod =
-        document.getElementById("paymentMethod");
-
-    const qrBox =
-        document.getElementById("qrBox");
-
-    const paymentStatus =
-        document.getElementById("paymentStatus");
-
-
-    if(paymentMethod){
-
-        paymentMethod.addEventListener(
-            "change",
-            function(){
-
-                if(this.value === "UPI"){
-
-                    if(qrBox){
-                        qrBox.classList.add("show");
-                    }
-
-                    if(paymentStatus){
-                        paymentStatus.classList.add("show");
-                    }
-
-                    calculateCoffeePrice();
-
-                }else{
-
-                    if(qrBox){
-                        qrBox.classList.remove("show");
-                    }
-
-                    if(paymentStatus){
-                        paymentStatus.classList.remove("show");
-                    }
-
-                }
-
-            }
-        );
-
-    }
-
-
-    /* =====================================================
-       RESERVATION STORAGE
-    ===================================================== */
-
-    let selectedReservations = [];
-
-
-    try{
-
-        selectedReservations =
-            JSON.parse(
-                localStorage.getItem(
-                    "veloureReservations"
-                )
-            ) || [];
-
-    }catch(error){
-
-        selectedReservations = [];
-
-    }
-
-
-    /* =====================================================
-       SAVE RESERVATIONS
-    ===================================================== */
-
-    function saveReservations(){
-
-        localStorage.setItem(
-            "veloureReservations",
-            JSON.stringify(
-                selectedReservations
-            )
-        );
-
-    }
-
-
-    /* =====================================================
-       UPDATE RESERVATION COUNT
-    ===================================================== */
-
-    function updateReservationCount(){
-
-        const count =
-            selectedReservations.reduce(
-                function(total,item){
-
-                    return total +
-                        Number(
-                            item.quantity || 1
-                        );
-
-                },
-                0
-            );
-
-
-        const countElement =
-            document.getElementById(
-                "reservationCount"
-            );
-
-
-        if(countElement){
-
-            countElement.textContent =
-                count;
-
-        }
-
-    }
-
-
-    /* =====================================================
-       MESSAGE
-    ===================================================== */
-
-    function showReservationMessage(message){
-
-        let box =
-            document.getElementById(
-                "reservationMessage"
-            );
-
-
-        if(!box){
-
-            box =
-                document.createElement("div");
-
-
-            box.id =
-                "reservationMessage";
-
-
-            box.style.position =
-                "fixed";
-
-            box.style.top =
-                "90px";
-
-            box.style.right =
-                "25px";
-
-            box.style.zIndex =
-                "99999";
-
-            box.style.background =
-                "#4b3024";
-
-            box.style.color =
-                "#ffffff";
-
-            box.style.padding =
-                "14px 22px";
-
-            box.style.borderRadius =
-                "30px";
-
-            box.style.fontSize =
-                "13px";
-
-            box.style.fontWeight =
-                "600";
-
-            box.style.boxShadow =
-                "0 8px 25px rgba(0,0,0,.25)";
-
-
-            document.body.appendChild(box);
-
-        }
-
-
-        box.textContent =
-            "✓ " + message;
-
-
-        box.style.display =
-            "block";
-
-
-        clearTimeout(
-            window.reservationMessageTimer
-        );
-
-
-        window.reservationMessageTimer =
-            setTimeout(
-                function(){
-
-                    box.style.display =
-                        "none";
-
-                },
-                2500
-            );
-
-    }
-
-
-    /* =====================================================
-       ADD RESERVATION ITEM
-    ===================================================== */
-
-    function addReservationItem(name, price){
-
-        name =
-            String(name || "").trim();
-
-        price =
-            parseFloat(price);
-
-
-        if(
-            name === "" ||
-            isNaN(price) ||
-            price <= 0
-        ){
-
-            alert(
-                "Invalid menu item."
-            );
-
-            return;
-
-        }
-
-
-        const existing =
-            selectedReservations.find(
-                function(item){
-
-                    return item.name === name;
-
-                }
-            );
-
-
-        if(existing){
-
-            existing.quantity =
-                Number(
-                    existing.quantity || 1
-                ) + 1;
-
-        }else{
-
-            selectedReservations.push({
-
-                name:name,
-
-                price:price,
-
-                quantity:1
-
-            });
-
-        }
-
-
-        saveReservations();
-
-        updateReservationCount();
-
-        showReservationMessage(
-            name + " added to reservation"
-        );
-
-    }
-
-
-    /* =====================================================
-       BUTTON RESERVATION
-    ===================================================== */
-
-    document.querySelectorAll(
-        ".add-reservation-btn"
-    ).forEach(function(button){
-
-        button.addEventListener(
-            "click",
-            function(){
-
-                const name =
-                    this.getAttribute(
-                        "data-name"
-                    );
-
-                const price =
-                    this.getAttribute(
-                        "data-price"
-                    );
-
-
-                addReservationItem(
-                    name,
-                    price
-                );
-
-            }
-        );
-
-    });
-
-
-    /* =====================================================
-       IMAGE CLICK RESERVATION
-    ===================================================== */
-
-    document.querySelectorAll(
-        ".reservation-image-link"
-    ).forEach(function(image){
-
-        image.addEventListener(
-            "click",
-            function(event){
-
-                event.preventDefault();
-
-
-                const name =
-                    this.getAttribute(
-                        "data-name"
-                    );
-
-                const price =
-                    this.getAttribute(
-                        "data-price"
-                    );
-
-
-                addReservationItem(
-                    name,
-                    price
-                );
-
-            }
-        );
-
-    });
-
-
-    /* =====================================================
-       INITIAL
-    ===================================================== */
-
-    calculateCoffeePrice();
+    saveReservations();
 
     updateReservationCount();
 
+
+    showReservationMessage(
+        name + " — ₹" + price +
+        " added to reservation"
+    );
+
+}
+
+
+/* =========================================================
+   RESERVATION BUTTON
+========================================================= */
+
+document.querySelectorAll(
+    ".add-reservation-btn"
+).forEach(function(button){
+
+    button.addEventListener(
+        "click",
+        function(){
+
+            const name =
+            this.getAttribute(
+                "data-name"
+            );
+
+            const price =
+            this.getAttribute(
+                "data-price"
+            );
+
+            addReservationItem(
+                name,
+                price
+            );
+
+        }
+    );
+
+});
+
+
+/* =========================================================
+   IMAGE CLICK
+========================================================= */
+
+document.querySelectorAll(
+    ".reservation-image-link"
+).forEach(function(image){
+
+    image.addEventListener(
+        "click",
+        function(event){
+
+            event.preventDefault();
+
+            const name =
+            this.getAttribute(
+                "data-name"
+            );
+
+            const price =
+            this.getAttribute(
+                "data-price"
+            );
+
+            addReservationItem(
+                name,
+                price
+            );
+
+        }
+    );
+
+});
+
+
+/* =========================================================
+   PRICE FUNCTION
+========================================================= */
+
+function getPrice(selectId){
+
+    const select =
+    document.getElementById(selectId);
+
+    if(!select){
+        return 0;
+    }
+
+    const option =
+    select.options[
+        select.selectedIndex
+    ];
+
+    if(!option){
+        return 0;
+    }
+
+    const price =
+    parseFloat(
+        option.getAttribute("data-price")
+    );
+
+    return isNaN(price) ? 0 : price;
+
+}
+
+
+/* =========================================================
+   CALCULATE COFFEE
+========================================================= */
+
+function calculateCoffeePrice(){
+
+    const coffee =
+    getPrice("coffeeType");
+
+    const size =
+    getPrice("coffeeSize");
+
+    const milk =
+    getPrice("coffeeMilk");
+
+    const sweetness =
+    getPrice("coffeeSweetness");
+
+    const topping =
+    getPrice("coffeeTopping");
+
+
+    const total =
+    coffee +
+    size +
+    milk +
+    sweetness +
+    topping;
+
+
+    document.getElementById(
+        "billCoffee"
+    ).textContent =
+    "₹" + coffee;
+
+
+    document.getElementById(
+        "billSize"
+    ).textContent =
+    "₹" + size;
+
+
+    document.getElementById(
+        "billMilk"
+    ).textContent =
+    "₹" + milk;
+
+
+    document.getElementById(
+        "billSweetness"
+    ).textContent =
+    "₹" + sweetness;
+
+
+    document.getElementById(
+        "billTopping"
+    ).textContent =
+    "₹" + topping;
+
+
+    document.getElementById(
+        "billTotal"
+    ).textContent =
+    "₹" + total;
+
+
+    document.getElementById(
+        "coffeeTotal"
+    ).textContent =
+    "₹" + total;
+
+
+    document.getElementById(
+        "qrAmount"
+    ).textContent =
+    "₹" + total;
+
+}
+
+
+/* =========================================================
+   PRICE EVENTS
+========================================================= */
+
+[
+    "coffeeType",
+    "coffeeSize",
+    "coffeeMilk",
+    "coffeeSweetness",
+    "coffeeTopping"
+].forEach(function(id){
+
+    const element =
+    document.getElementById(id);
+
+    if(element){
+
+        element.addEventListener(
+            "change",
+            calculateCoffeePrice
+        );
+
+    }
+
+});
+
+
+/* =========================================================
+   PAYMENT METHOD
+========================================================= */
+
+const paymentMethod =
+document.getElementById(
+    "paymentMethod"
+);
+
+const qrBox =
+document.getElementById(
+    "qrBox"
+);
+
+const paymentStatus =
+document.getElementById(
+    "paymentStatus"
+);
+
+
+if(paymentMethod){
+
+    paymentMethod.addEventListener(
+        "change",
+        function(){
+
+            if(this.value === "UPI"){
+
+                qrBox.classList.add("show");
+
+                paymentStatus.classList.add(
+                    "show"
+                );
+
+                calculateCoffeePrice();
+
+            }else{
+
+                qrBox.classList.remove("show");
+
+                paymentStatus.classList.remove(
+                    "show"
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   GOOGLE SHEET
+========================================================= */
+
+function sendToGoogleSheet(){
+
+    const name =
+    document.querySelector(
+        'input[name="name"]'
+    ).value.trim();
+
+    const phone =
+    document.querySelector(
+        'input[name="phone"]'
+    ).value.trim();
+
+    const coffee =
+    document.getElementById(
+        "coffeeType"
+    ).value;
+
+    const size =
+    document.getElementById(
+        "coffeeSize"
+    ).value;
+
+    const milk =
+    document.getElementById(
+        "coffeeMilk"
+    ).value;
+
+    const sweetness =
+    document.getElementById(
+        "coffeeSweetness"
+    ).value;
+
+    const topping =
+    document.getElementById(
+        "coffeeTopping"
+    ).value;
+
+    const payment =
+    document.getElementById(
+        "paymentMethod"
+    ).value;
+
+    const total =
+    document.getElementById(
+        "billTotal"
+    ).textContent.replace("₹","");
+
+
+    const data = {
+
+        date:
+        new Date().toLocaleString("en-IN"),
+
+        name: name,
+
+        phone: phone,
+
+        coffee: coffee,
+
+        size: size,
+
+        milk: milk,
+
+        sweetness: sweetness,
+
+        topping: topping,
+
+        payment: payment,
+
+        total: total,
+
+        paymentStatus:
+        payment === "UPI"
+        ? "Pending"
+        : "Pending",
+
+        orderType:
+        "Build Your Coffee"
+
+    };
+
+
+    fetch(
+        GOOGLE_SCRIPT_URL,
+        {
+            method:"POST",
+            mode:"no-cors",
+            headers:{
+                "Content-Type":
+                "application/json"
+            },
+            body:JSON.stringify(data)
+        }
+    )
+    .then(function(){
+
+        console.log(
+            "Google Sheet request sent."
+        );
+
+    })
+    .catch(function(error){
+
+        console.log(
+            "Google Sheet error:",
+            error
+        );
+
+    });
+
+}
+
+
+/* =========================================================
+   FORM SUBMIT
+========================================================= */
+
+const buildForm =
+document.getElementById(
+    "buildCoffeeForm"
+);
+
+
+if(buildForm){
+
+    buildForm.addEventListener(
+        "submit",
+        function(event){
+
+            event.preventDefault();
+
+
+            calculateCoffeePrice();
+
+
+            const total =
+            document.getElementById(
+                "billTotal"
+            ).textContent;
+
+
+            if(total === "₹0"){
+
+                alert(
+                    "Please select coffee and size first."
+                );
+
+                return;
+
+            }
+
+
+            const payment =
+            paymentMethod.value;
+
+
+            if(!payment){
+
+                alert(
+                    "Please select payment method."
+                );
+
+                return;
+
+            }
+
+
+            if(payment === "UPI"){
+
+                const ok =
+                confirm(
+                    "Your total amount is " +
+                    total +
+                    ".\n\n" +
+                    "Please scan the UPI QR and complete payment.\n\n" +
+                    "Continue with order?"
+                );
+
+                if(!ok){
+
+                    return;
+
+                }
+
+            }
+
+
+            /* GOOGLE SHEET */
+
+            sendToGoogleSheet();
+
+
+            /* PHP + CSV */
+
+            setTimeout(function(){
+
+                buildForm.submit();
+
+            },700);
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   INITIAL
+========================================================= */
+
+calculateCoffeePrice();
+
+updateReservationCount();
 
 });
 
