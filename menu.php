@@ -816,7 +816,9 @@ grid-column:1/-1;
 }
 
 
-/* QR */
+/* =========================================================
+   QR PAYMENT - JPG
+========================================================= */
 
 .qr-box{
 display:none;
@@ -824,7 +826,7 @@ grid-column:1/-1;
 text-align:center;
 background:#fffaf4;
 color:#38271f;
-padding:25px;
+padding:30px;
 border-radius:18px;
 margin-top:5px;
 }
@@ -834,22 +836,38 @@ display:block;
 }
 
 .qr-box img{
-width:180px;
-height:180px;
+width:200px;
+height:200px;
 object-fit:contain;
-margin:12px auto;
+display:block;
+margin:15px auto;
 border-radius:10px;
+border:5px solid white;
+box-shadow:0 5px 20px rgba(0,0,0,.15);
 }
 
 .qr-box h3{
 font-family:"Cormorant Garamond",serif;
-font-size:28px;
+font-size:30px;
 }
 
 .qr-box p{
 font-size:13px;
 color:#756359;
-margin:5px 0;
+margin:7px 0;
+}
+
+.qr-amount-label{
+margin-top:12px !important;
+font-weight:600;
+}
+
+#qrAmount{
+display:block;
+font-size:34px;
+color:#a66c43;
+font-weight:bold;
+margin-top:5px;
 }
 
 
@@ -1043,6 +1061,11 @@ padding:40px 20px;
 
 .build-title h2{
 font-size:40px;
+}
+
+.qr-box img{
+width:180px;
+height:180px;
 }
 
 }
@@ -1635,24 +1658,24 @@ Scan this QR Code to pay your bill
 </p>
 
 <img
-src="images/upi-qr.png"
+src="images/upi-qr.jpg"
 alt="VELOURE UPI QR Code"
-onerror="this.style.display='none';"
+id="upiQrImage"
 >
 
-<p>
+<p class="qr-amount-label">
 Amount to Pay
 </p>
 
 <strong
 id="qrAmount"
-style="
-font-size:32px;
-color:#a66c43;
-"
 >
 ₹0
 </strong>
+
+<p>
+Please scan the QR and pay the amount shown above.
+</p>
 
 </div>
 
@@ -1931,6 +1954,8 @@ function(){
 if(this.value === "UPI"){
 
 qrBox.classList.add("show");
+
+calculateCoffeePrice();
 
 }else{
 
