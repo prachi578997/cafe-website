@@ -1,11 +1,61 @@
+```php
 <?php
 
 /* =========================================================
-   VELOURE MENU + BUILD YOUR COFFEE
+   VELOURE MENU + BUILD YOUR COFFEE + QR + EXCEL CSV
 ========================================================= */
 
 $orderSuccess = false;
 $orderError = "";
+
+
+/* =========================================================
+   PRICE ARRAYS
+========================================================= */
+
+$coffeePrices = [
+    "Classic Coffee" => 120,
+    "Espresso" => 100,
+    "Cappuccino" => 150,
+    "Mocha" => 170,
+    "Cold Coffee" => 150,
+    "Iced Coffee" => 160,
+    "Frappé" => 190,
+    "Signature Coffee" => 220
+];
+
+$sizePrices = [
+    "Small" => 0,
+    "Medium" => 30,
+    "Large" => 50
+];
+
+$milkPrices = [
+    "Regular Milk" => 0,
+    "Almond Milk" => 30,
+    "Oat Milk" => 25,
+    "Soy Milk" => 20
+];
+
+$sweetnessPrices = [
+    "Normal" => 0,
+    "Less Sugar" => 0,
+    "No Sugar" => 0,
+    "Extra Sweet" => 10
+];
+
+$toppingPrices = [
+    "No Topping" => 0,
+    "Whipped Cream" => 20,
+    "Chocolate" => 25,
+    "Caramel" => 20,
+    "Hazelnut" => 30
+];
+
+
+/* =========================================================
+   ORDER SAVE
+========================================================= */
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
@@ -18,44 +68,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $topping = trim($_POST["topping"] ?? "");
     $payment = trim($_POST["payment"] ?? "");
 
-    $coffeePrices = [
-        "Classic Coffee" => 120,
-        "Espresso" => 100,
-        "Cappuccino" => 150,
-        "Mocha" => 170,
-        "Cold Coffee" => 150,
-        "Iced Coffee" => 160,
-        "Frappé" => 190,
-        "Signature Coffee" => 220
-    ];
+    /*
+       Payment is kept as Pending because a static QR
+       cannot automatically verify successful UPI payment.
+    */
+    $paymentStatus = "Pending";
 
-    $sizePrices = [
-        "Small" => 0,
-        "Medium" => 30,
-        "Large" => 50
-    ];
 
-    $milkPrices = [
-        "Regular Milk" => 0,
-        "Almond Milk" => 30,
-        "Oat Milk" => 25,
-        "Soy Milk" => 20
-    ];
-
-    $sweetnessPrices = [
-        "Normal" => 0,
-        "Less Sugar" => 0,
-        "No Sugar" => 0,
-        "Extra Sweet" => 10
-    ];
-
-    $toppingPrices = [
-        "No Topping" => 0,
-        "Whipped Cream" => 20,
-        "Chocolate" => 25,
-        "Caramel" => 20,
-        "Hazelnut" => 30
-    ];
+    /* VALIDATION */
 
     if (
         $name === "" ||
@@ -73,6 +93,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     } else {
 
+        /* CALCULATE TOTAL */
+
         $total =
             ($coffeePrices[$coffee] ?? 0) +
             ($sizePrices[$size] ?? 0) +
@@ -80,11 +102,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             ($sweetnessPrices[$sweetness] ?? 0) +
             ($toppingPrices[$topping] ?? 0);
 
+
         if ($total <= 0) {
 
             $orderError = "Please select a valid coffee.";
 
         } else {
+
+            /* =================================================
+               EXCEL COMPATIBLE CSV FILE
+            ================================================= */
 
             $file = __DIR__ . "/order.csv";
 
@@ -92,9 +119,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 !file_exists($file) ||
                 filesize($file) === 0;
 
+
             $handle = fopen($file, "a");
 
+
             if ($handle) {
+
+                /* CSV HEADER */
 
                 if ($newFile) {
 
@@ -107,10 +138,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         "Milk",
                         "Sweetness",
                         "Topping",
-                        "Payment",
-                        "Total"
+                        "Payment Method",
+                        "Total",
+                        "Payment Status"
                     ]);
+
                 }
+
+
+                /* ORDER DATA */
 
                 fputcsv($handle, [
                     date("Y-m-d H:i:s"),
@@ -122,8 +158,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $sweetness,
                     $topping,
                     $payment,
-                    $total
+                    $total,
+                    $paymentStatus
                 ]);
+
 
                 fclose($handle);
 
@@ -132,9 +170,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             } else {
 
                 $orderError =
-                    "Order could not be saved. Check folder permission.";
+                    "Order could not be saved. Please check folder permission.";
+
             }
+
         }
+
     }
 }
 
@@ -404,7 +445,10 @@ $descriptions = [
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0"
+>
 
 <title>VELOURE | Menu</title>
 
@@ -432,7 +476,9 @@ color:#38271f;
 }
 
 
-/* NAVBAR */
+/* =========================================================
+   NAVBAR
+========================================================= */
 
 .navbar{
 position:sticky;
@@ -486,7 +532,9 @@ font-size:12px;
 }
 
 
-/* HERO */
+/* =========================================================
+   HERO
+========================================================= */
 
 .hero{
 padding:120px 7% 80px;
@@ -531,7 +579,9 @@ line-height:1.8;
 }
 
 
-/* MENU */
+/* =========================================================
+   MENU
+========================================================= */
 
 .menu-section{
 padding:80px 6%;
@@ -559,7 +609,9 @@ color:#756359;
 }
 
 
-/* FILTER */
+/* =========================================================
+   FILTER
+========================================================= */
 
 .filters{
 display:flex;
@@ -586,7 +638,9 @@ color:white;
 }
 
 
-/* CATEGORY */
+/* =========================================================
+   CATEGORY
+========================================================= */
 
 .menu-category{
 max-width:1250px;
@@ -612,7 +666,9 @@ background:#dfd0c3;
 }
 
 
-/* CARDS */
+/* =========================================================
+   CARDS
+========================================================= */
 
 .menu-grid{
 display:grid;
@@ -631,9 +687,6 @@ transition:.3s;
 .menu-card:hover{
 transform:translateY(-6px);
 }
-
-
-/* IMAGE */
 
 .food-image{
 height:220px;
@@ -656,9 +709,6 @@ transition:.4s;
 transform:scale(1.05);
 }
 
-
-/* IMAGE PRICE */
-
 .image-price{
 position:absolute;
 right:12px;
@@ -676,9 +726,6 @@ z-index:5;
 .food-image:hover .image-price{
 background:#a66c43;
 }
-
-
-/* CLICK LABEL */
 
 .image-reserve-label{
 position:absolute;
@@ -702,7 +749,9 @@ transform:translateY(0);
 }
 
 
-/* CONTENT */
+/* =========================================================
+   CONTENT
+========================================================= */
 
 .menu-content{
 padding:18px;
@@ -749,7 +798,9 @@ background:#a66c43;
 }
 
 
-/* BUILD COFFEE */
+/* =========================================================
+   BUILD COFFEE
+========================================================= */
 
 .build-coffee{
 max-width:1250px;
@@ -817,7 +868,7 @@ grid-column:1/-1;
 
 
 /* =========================================================
-   QR PAYMENT - JPG
+   QR PAYMENT
 ========================================================= */
 
 .qr-box{
@@ -836,8 +887,8 @@ display:block;
 }
 
 .qr-box img{
-width:200px;
-height:200px;
+width:210px;
+height:210px;
 object-fit:contain;
 display:block;
 margin:15px auto;
@@ -871,34 +922,30 @@ margin-top:5px;
 }
 
 
-/* BILL */
+/* =========================================================
+   PAYMENT STATUS
+========================================================= */
 
-.price-box{
+.payment-status{
+display:none;
 grid-column:1/-1;
+background:#fff3cd;
+color:#735c00;
+padding:15px;
+border-radius:12px;
 text-align:center;
-padding:25px;
-background:rgba(255,255,255,.08);
-border-radius:15px;
+font-size:13px;
+font-weight:600;
 }
 
-.price-box span{
+.payment-status.show{
 display:block;
-color:#cdb8a5;
-font-size:11px;
-letter-spacing:3px;
-margin-bottom:5px;
-}
-
-#coffeeTotal{
-display:block;
-color:#d6a36f;
-font-family:"Cormorant Garamond",serif;
-font-size:44px;
-font-weight:bold;
 }
 
 
-/* BILL DETAILS */
+/* =========================================================
+   BILL
+========================================================= */
 
 .bill-details{
 grid-column:1/-1;
@@ -938,7 +985,38 @@ padding-top:12px;
 }
 
 
-/* BUTTON */
+/* =========================================================
+   PRICE
+========================================================= */
+
+.price-box{
+grid-column:1/-1;
+text-align:center;
+padding:25px;
+background:rgba(255,255,255,.08);
+border-radius:15px;
+}
+
+.price-box span{
+display:block;
+color:#cdb8a5;
+font-size:11px;
+letter-spacing:3px;
+margin-bottom:5px;
+}
+
+#coffeeTotal{
+display:block;
+color:#d6a36f;
+font-family:"Cormorant Garamond",serif;
+font-size:44px;
+font-weight:bold;
+}
+
+
+/* =========================================================
+   BUTTON
+========================================================= */
 
 .build-btn{
 grid-column:1/-1;
@@ -956,8 +1034,15 @@ cursor:pointer;
 background:#d09a70;
 }
 
+.build-btn:disabled{
+opacity:.6;
+cursor:not-allowed;
+}
 
-/* SUCCESS ERROR */
+
+/* =========================================================
+   SUCCESS / ERROR
+========================================================= */
 
 .success{
 max-width:700px;
@@ -982,7 +1067,9 @@ font-weight:bold;
 }
 
 
-/* FOOTER */
+/* =========================================================
+   FOOTER
+========================================================= */
 
 footer{
 background:#241713;
@@ -1003,7 +1090,9 @@ opacity:.6;
 }
 
 
-/* RESPONSIVE */
+/* =========================================================
+   RESPONSIVE
+========================================================= */
 
 @media(max-width:1100px){
 
@@ -1031,7 +1120,8 @@ grid-template-columns:1fr;
 .build-btn,
 .payment-box,
 .qr-box,
-.bill-details{
+.bill-details,
+.payment-status{
 grid-column:auto;
 }
 
@@ -1077,7 +1167,9 @@ height:180px;
 <body>
 
 
-<!-- NAVBAR -->
+<!-- =========================================================
+   NAVBAR
+========================================================= -->
 
 <nav class="navbar">
 
@@ -1108,7 +1200,9 @@ Reserve Table
 </nav>
 
 
-<!-- HERO -->
+<!-- =========================================================
+   HERO
+========================================================= -->
 
 <section class="hero">
 
@@ -1132,7 +1226,9 @@ for unforgettable moments.
 </section>
 
 
-<!-- MENU -->
+<!-- =========================================================
+   MENU
+========================================================= -->
 
 <section class="menu-section">
 
@@ -1166,6 +1262,7 @@ type="button"
 All
 </button>
 
+
 <?php foreach ($menu as $category => $items): ?>
 
 <?php
@@ -1186,7 +1283,9 @@ class="filter-btn"
 data-filter="<?php echo $filter; ?>"
 type="button"
 >
+
 <?php echo htmlspecialchars($category); ?>
+
 </button>
 
 <?php endforeach; ?>
@@ -1194,7 +1293,9 @@ type="button"
 </div>
 
 
-<!-- MENU CATEGORIES -->
+<!-- =========================================================
+   MENU CATEGORIES
+========================================================= -->
 
 <?php foreach ($menu as $category => $items): ?>
 
@@ -1233,13 +1334,10 @@ data-category="<?php echo $categoryClass; ?>"
 
 <div class="menu-card">
 
-
-<!-- IMAGE CLICK = RESERVATION -->
-
 <a
-href="reservation.php#booking"
+href="#build-coffee"
 class="food-image"
-title="Click to Reserve Table"
+title="Order this item"
 >
 
 <img
@@ -1248,22 +1346,16 @@ alt="<?php echo htmlspecialchars($item[0]); ?>"
 onerror="this.src='images/default-food.jpg';"
 >
 
-<!-- PRICE ON IMAGE -->
-
 <span class="image-price">
 ₹<?php echo number_format($item[1]); ?>
 </span>
 
-<!-- RESERVATION LABEL -->
-
 <span class="image-reserve-label">
-Click to Reserve
+Click to Order
 </span>
 
 </a>
 
-
-<!-- MENU CONTENT -->
 
 <div class="menu-content">
 
@@ -1293,10 +1385,10 @@ $descriptions[$item[0]]
 </span>
 
 <a
-href="reservation.php#booking"
+href="#build-coffee"
 class="order-btn"
 >
-Reserve
+Order
 </a>
 
 </div>
@@ -1314,7 +1406,9 @@ Reserve
 <?php endforeach; ?>
 
 
-<!-- BUILD YOUR COFFEE -->
+<!-- =========================================================
+   BUILD YOUR COFFEE
+========================================================= -->
 
 <div
 class="build-coffee"
@@ -1347,8 +1441,13 @@ exactly the way you like it.
 
 <br>
 
-Your coffee order has been saved
-in order.csv.
+Your order has been saved in
+<strong>order.csv</strong>.
+
+<br><br>
+
+You can open <strong>order.csv</strong>
+with Microsoft Excel.
 
 </div>
 
@@ -1359,7 +1458,8 @@ in order.csv.
 
 <div class="error">
 
-❌ <?php echo htmlspecialchars($orderError); ?>
+❌
+<?php echo htmlspecialchars($orderError); ?>
 
 </div>
 
@@ -1642,7 +1742,9 @@ Card
 </div>
 
 
-<!-- QR PAYMENT -->
+<!-- =========================================================
+   UPI QR
+========================================================= -->
 
 <div
 class="qr-box"
@@ -1661,15 +1763,14 @@ Scan this QR Code to pay your bill
 src="images/upi-qr.jpg"
 alt="VELOURE UPI QR Code"
 id="upiQrImage"
+onerror="this.style.display='none';"
 >
 
 <p class="qr-amount-label">
 Amount to Pay
 </p>
 
-<strong
-id="qrAmount"
->
+<strong id="qrAmount">
 ₹0
 </strong>
 
@@ -1680,7 +1781,26 @@ Please scan the QR and pay the amount shown above.
 </div>
 
 
-<!-- BILL DETAILS -->
+<!-- PAYMENT STATUS -->
+
+<div
+class="payment-status"
+id="paymentStatus"
+>
+
+⚠️ UPI Payment Status:
+<strong>Pending</strong>
+
+<br>
+
+Please complete payment using the QR code.
+
+</div>
+
+
+<!-- =========================================================
+   BILL
+========================================================= -->
 
 <div class="bill-details">
 
@@ -1689,39 +1809,76 @@ Your Bill
 </h3>
 
 <div class="bill-row">
+
 <span>Coffee</span>
-<strong id="billCoffee">₹0</strong>
+
+<strong id="billCoffee">
+₹0
+</strong>
+
 </div>
 
+
 <div class="bill-row">
+
 <span>Size</span>
-<strong id="billSize">₹0</strong>
+
+<strong id="billSize">
+₹0
+</strong>
+
 </div>
 
+
 <div class="bill-row">
+
 <span>Milk</span>
-<strong id="billMilk">₹0</strong>
+
+<strong id="billMilk">
+₹0
+</strong>
+
 </div>
 
+
 <div class="bill-row">
+
 <span>Sweetness</span>
-<strong id="billSweetness">₹0</strong>
+
+<strong id="billSweetness">
+₹0
+</strong>
+
 </div>
 
+
 <div class="bill-row">
+
 <span>Topping</span>
-<strong id="billTopping">₹0</strong>
+
+<strong id="billTopping">
+₹0
+</strong>
+
 </div>
+
 
 <div class="bill-total">
-<span>Total Bill</span>
-<strong id="billTotal">₹0</strong>
-</div>
+
+<span>
+Total Bill
+</span>
+
+<strong id="billTotal">
+₹0
+</strong>
 
 </div>
 
+</div>
 
-<!-- PRICE -->
+
+<!-- TOTAL PRICE -->
 
 <div class="price-box">
 
@@ -1736,13 +1893,15 @@ YOUR COFFEE PRICE
 </div>
 
 
-<!-- BUTTON -->
+<!-- SUBMIT -->
 
 <button
 type="submit"
 class="build-btn"
 >
+
 Create My Coffee
+
 </button>
 
 </form>
@@ -1752,7 +1911,9 @@ Create My Coffee
 </section>
 
 
-<!-- FOOTER -->
+<!-- =========================================================
+   FOOTER
+========================================================= -->
 
 <footer>
 
@@ -1780,159 +1941,195 @@ document.querySelectorAll(".filter-btn");
 const categories =
 document.querySelectorAll(".menu-category");
 
+
 filterButtons.forEach(function(button){
 
-button.addEventListener("click",function(){
+    button.addEventListener(
+        "click",
+        function(){
 
-const filter =
-this.getAttribute("data-filter");
+            const filter =
+                this.getAttribute(
+                    "data-filter"
+                );
 
-filterButtons.forEach(function(btn){
-btn.classList.remove("active");
-});
 
-this.classList.add("active");
+            filterButtons.forEach(
+                function(btn){
 
-categories.forEach(function(category){
+                    btn.classList.remove(
+                        "active"
+                    );
 
-const categoryName =
-category.getAttribute("data-category");
+                }
+            );
 
-if(
-filter === "all" ||
-categoryName === filter
-){
 
-category.style.display = "block";
+            this.classList.add(
+                "active"
+            );
 
-}else{
 
-category.style.display = "none";
+            categories.forEach(
+                function(category){
 
-}
+                    const categoryName =
+                        category.getAttribute(
+                            "data-category"
+                        );
 
-});
 
-});
+                    if(
+                        filter === "all" ||
+                        categoryName === filter
+                    ){
+
+                        category.style.display =
+                            "block";
+
+                    } else {
+
+                        category.style.display =
+                            "none";
+
+                    }
+
+                }
+            );
+
+        }
+    );
 
 });
 
 
 /* =========================================================
-   PRICE CALCULATOR
+   GET PRICE
 ========================================================= */
 
 function getPrice(id){
 
-const select =
-document.getElementById(id);
-
-if(!select){
-return 0;
-}
-
-const option =
-select.options[select.selectedIndex];
-
-if(!option){
-return 0;
-}
-
-return Number(
-option.getAttribute("data-price")
-) || 0;
-
-}
+    const select =
+        document.getElementById(id);
 
 
-function calculateCoffeePrice(){
-
-const coffee =
-getPrice("coffeeType");
-
-const size =
-getPrice("coffeeSize");
-
-const milk =
-getPrice("coffeeMilk");
-
-const sweetness =
-getPrice("coffeeSweetness");
-
-const topping =
-getPrice("coffeeTopping");
-
-const total =
-coffee +
-size +
-milk +
-sweetness +
-topping;
+    if(!select){
+        return 0;
+    }
 
 
-/* MAIN PRICE */
-
-document.getElementById(
-"coffeeTotal"
-).innerHTML =
-"₹" + total;
+    const option =
+        select.options[
+            select.selectedIndex
+        ];
 
 
-/* BILL */
-
-document.getElementById(
-"billCoffee"
-).innerHTML =
-"₹" + coffee;
-
-document.getElementById(
-"billSize"
-).innerHTML =
-"₹" + size;
-
-document.getElementById(
-"billMilk"
-).innerHTML =
-"₹" + milk;
-
-document.getElementById(
-"billSweetness"
-).innerHTML =
-"₹" + sweetness;
-
-document.getElementById(
-"billTopping"
-).innerHTML =
-"₹" + topping;
-
-document.getElementById(
-"billTotal"
-).innerHTML =
-"₹" + total;
+    if(!option){
+        return 0;
+    }
 
 
-/* QR AMOUNT */
-
-document.getElementById(
-"qrAmount"
-).innerHTML =
-"₹" + total;
+    return Number(
+        option.getAttribute(
+            "data-price"
+        )
+    ) || 0;
 
 }
 
 
 /* =========================================================
-   PRICE CHANGE
+   CALCULATE TOTAL
+========================================================= */
+
+function calculateCoffeePrice(){
+
+    const coffee =
+        getPrice("coffeeType");
+
+    const size =
+        getPrice("coffeeSize");
+
+    const milk =
+        getPrice("coffeeMilk");
+
+    const sweetness =
+        getPrice("coffeeSweetness");
+
+    const topping =
+        getPrice("coffeeTopping");
+
+
+    const total =
+        coffee +
+        size +
+        milk +
+        sweetness +
+        topping;
+
+
+    document.getElementById(
+        "coffeeTotal"
+    ).innerHTML =
+        "₹" + total;
+
+
+    document.getElementById(
+        "billCoffee"
+    ).innerHTML =
+        "₹" + coffee;
+
+
+    document.getElementById(
+        "billSize"
+    ).innerHTML =
+        "₹" + size;
+
+
+    document.getElementById(
+        "billMilk"
+    ).innerHTML =
+        "₹" + milk;
+
+
+    document.getElementById(
+        "billSweetness"
+    ).innerHTML =
+        "₹" + sweetness;
+
+
+    document.getElementById(
+        "billTopping"
+    ).innerHTML =
+        "₹" + topping;
+
+
+    document.getElementById(
+        "billTotal"
+    ).innerHTML =
+        "₹" + total;
+
+
+    document.getElementById(
+        "qrAmount"
+    ).innerHTML =
+        "₹" + total;
+
+}
+
+
+/* =========================================================
+   PRICE CHANGE EVENTS
 ========================================================= */
 
 document.querySelectorAll(
-"#coffeeType, #coffeeSize, #coffeeMilk, #coffeeSweetness, #coffeeTopping"
+    "#coffeeType, #coffeeSize, #coffeeMilk, #coffeeSweetness, #coffeeTopping"
 ).forEach(function(select){
 
-select.addEventListener(
-"change",
-calculateCoffeePrice
-);
+    select.addEventListener(
+        "change",
+        calculateCoffeePrice
+    );
 
 });
 
@@ -1942,31 +2139,58 @@ calculateCoffeePrice
 ========================================================= */
 
 const paymentMethod =
-document.getElementById("paymentMethod");
+    document.getElementById(
+        "paymentMethod"
+    );
+
 
 const qrBox =
-document.getElementById("qrBox");
+    document.getElementById(
+        "qrBox"
+    );
+
+
+const paymentStatus =
+    document.getElementById(
+        "paymentStatus"
+    );
+
 
 paymentMethod.addEventListener(
-"change",
-function(){
+    "change",
+    function(){
 
-if(this.value === "UPI"){
+        if(this.value === "UPI"){
 
-qrBox.classList.add("show");
+            qrBox.classList.add(
+                "show"
+            );
 
-calculateCoffeePrice();
+            paymentStatus.classList.add(
+                "show"
+            );
 
-}else{
+            calculateCoffeePrice();
 
-qrBox.classList.remove("show");
+        } else {
 
-}
+            qrBox.classList.remove(
+                "show"
+            );
 
-});
+            paymentStatus.classList.remove(
+                "show"
+            );
+
+        }
+
+    }
+);
 
 
-/* INITIAL PRICE */
+/* =========================================================
+   INITIAL PRICE
+========================================================= */
 
 calculateCoffeePrice();
 
@@ -1975,3 +2199,4 @@ calculateCoffeePrice();
 </body>
 
 </html>
+```
