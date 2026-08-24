@@ -1,8 +1,8 @@
 <?php
 
 /* =========================================================
-   VELOURE MENU + BUILD YOUR COFFEE + QR + EXCEL CSV
-   MENU ITEM -> RESERVATION
+   VELOURE MENU + BUILD YOUR COFFEE + QR + CSV
+   MULTIPLE MENU ITEM RESERVATION
 ========================================================= */
 
 $orderSuccess = false;
@@ -54,7 +54,7 @@ $toppingPrices = [
 
 
 /* =========================================================
-   BUILD YOUR COFFEE ORDER SAVE
+   BUILD YOUR COFFEE ORDER
 ========================================================= */
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -69,9 +69,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $payment = trim($_POST["payment"] ?? "");
 
     $paymentStatus = "Pending";
-
-
-    /* VALIDATION */
 
     if (
         $name === "" ||
@@ -89,8 +86,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     } else {
 
-        /* CALCULATE TOTAL */
-
         $total =
             ($coffeePrices[$coffee] ?? 0) +
             ($sizePrices[$size] ?? 0) +
@@ -98,16 +93,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             ($sweetnessPrices[$sweetness] ?? 0) +
             ($toppingPrices[$topping] ?? 0);
 
-
         if ($total <= 0) {
 
             $orderError = "Please select a valid coffee.";
 
         } else {
-
-            /* =================================================
-               SAVE ORDER CSV
-            ================================================= */
 
             $file = __DIR__ . "/order.csv";
 
@@ -134,9 +124,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         "Total",
                         "Payment Status"
                     ]);
-
                 }
-
 
                 fputcsv($handle, [
                     date("Y-m-d H:i:s"),
@@ -162,9 +150,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     "Order could not be saved. Please check folder permission.";
 
             }
-
         }
-
     }
 }
 
@@ -427,7 +413,6 @@ $descriptions = [
 ?>
 
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
@@ -465,9 +450,7 @@ color:#38271f;
 }
 
 
-/* =========================================================
-   NAVBAR
-========================================================= */
+/* NAVBAR */
 
 .navbar{
 position:sticky;
@@ -521,9 +504,7 @@ font-size:12px;
 }
 
 
-/* =========================================================
-   HERO
-========================================================= */
+/* HERO */
 
 .hero{
 padding:120px 7% 80px;
@@ -568,9 +549,7 @@ line-height:1.8;
 }
 
 
-/* =========================================================
-   MENU
-========================================================= */
+/* MENU */
 
 .menu-section{
 padding:80px 6%;
@@ -598,9 +577,7 @@ color:#756359;
 }
 
 
-/* =========================================================
-   FILTER
-========================================================= */
+/* FILTER */
 
 .filters{
 display:flex;
@@ -627,9 +604,7 @@ color:white;
 }
 
 
-/* =========================================================
-   CATEGORY
-========================================================= */
+/* CATEGORY */
 
 .menu-category{
 max-width:1250px;
@@ -655,9 +630,7 @@ background:#dfd0c3;
 }
 
 
-/* =========================================================
-   CARDS
-========================================================= */
+/* CARDS */
 
 .menu-grid{
 display:grid;
@@ -678,9 +651,7 @@ transform:translateY(-6px);
 }
 
 
-/* =========================================================
-   FOOD IMAGE
-========================================================= */
+/* IMAGE */
 
 .food-image{
 height:220px;
@@ -704,7 +675,7 @@ transform:scale(1.05);
 }
 
 
-/* PRICE ON IMAGE */
+/* IMAGE PRICE */
 
 .image-price{
 position:absolute;
@@ -725,7 +696,7 @@ background:#a66c43;
 }
 
 
-/* RESERVATION ON IMAGE */
+/* IMAGE RESERVATION */
 
 .image-reserve-label{
 position:absolute;
@@ -749,9 +720,7 @@ transform:translateY(0);
 }
 
 
-/* =========================================================
-   CONTENT
-========================================================= */
+/* CONTENT */
 
 .menu-content{
 padding:18px;
@@ -771,7 +740,7 @@ min-height:58px;
 }
 
 
-/* PRICE + RESERVATION */
+/* PRICE ROW */
 
 .price-row{
 display:flex;
@@ -791,7 +760,8 @@ font-weight:bold;
 /* RESERVATION BUTTON */
 
 .reservation-item-btn{
-text-decoration:none;
+border:none;
+cursor:pointer;
 background:#4b3024;
 color:white;
 padding:10px 16px;
@@ -808,9 +778,45 @@ transform:translateY(-2px);
 }
 
 
-/* =========================================================
-   BUILD COFFEE
-========================================================= */
+/* RESERVATION COUNT */
+
+.reservation-count-box{
+position:fixed;
+right:25px;
+bottom:25px;
+z-index:9998;
+}
+
+.reservation-count-btn{
+display:flex;
+align-items:center;
+gap:8px;
+background:#4b3024;
+color:white;
+text-decoration:none;
+padding:13px 20px;
+border-radius:30px;
+font-size:13px;
+font-weight:700;
+box-shadow:0 8px 25px rgba(0,0,0,.25);
+}
+
+.reservation-count-btn:hover{
+background:#a66c43;
+}
+
+#reservationCount{
+background:#c18a61;
+min-width:25px;
+height:25px;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+
+/* BUILD COFFEE */
 
 .build-coffee{
 max-width:1250px;
@@ -877,9 +883,7 @@ grid-column:1/-1;
 }
 
 
-/* =========================================================
-   QR PAYMENT
-========================================================= */
+/* QR */
 
 .qr-box{
 display:none;
@@ -932,9 +936,7 @@ margin-top:5px;
 }
 
 
-/* =========================================================
-   PAYMENT STATUS
-========================================================= */
+/* PAYMENT STATUS */
 
 .payment-status{
 display:none;
@@ -953,9 +955,7 @@ display:block;
 }
 
 
-/* =========================================================
-   BILL
-========================================================= */
+/* BILL */
 
 .bill-details{
 grid-column:1/-1;
@@ -995,9 +995,7 @@ padding-top:12px;
 }
 
 
-/* =========================================================
-   PRICE
-========================================================= */
+/* PRICE */
 
 .price-box{
 grid-column:1/-1;
@@ -1024,9 +1022,7 @@ font-weight:bold;
 }
 
 
-/* =========================================================
-   BUTTON
-========================================================= */
+/* BUTTON */
 
 .build-btn{
 grid-column:1/-1;
@@ -1044,15 +1040,8 @@ cursor:pointer;
 background:#d09a70;
 }
 
-.build-btn:disabled{
-opacity:.6;
-cursor:not-allowed;
-}
 
-
-/* =========================================================
-   SUCCESS / ERROR
-========================================================= */
+/* SUCCESS ERROR */
 
 .success{
 max-width:700px;
@@ -1077,9 +1066,7 @@ font-weight:bold;
 }
 
 
-/* =========================================================
-   FOOTER
-========================================================= */
+/* FOOTER */
 
 footer{
 background:#241713;
@@ -1100,9 +1087,7 @@ opacity:.6;
 }
 
 
-/* =========================================================
-   RESPONSIVE
-========================================================= */
+/* RESPONSIVE */
 
 @media(max-width:1100px){
 
@@ -1177,6 +1162,11 @@ padding:9px 13px;
 font-size:10px;
 }
 
+.reservation-count-box{
+right:15px;
+bottom:15px;
+}
+
 }
 
 </style>
@@ -1210,7 +1200,7 @@ VELOU<span>RE</span>
 </div>
 
 <a
-href="reservation.php#booking"
+href="reservation.php"
 class="reserve-btn"
 >
 Reserve Table
@@ -1281,7 +1271,6 @@ type="button"
 All
 </button>
 
-
 <?php foreach ($menu as $category => $items): ?>
 
 <?php
@@ -1299,7 +1288,7 @@ $category
 
 <button
 class="filter-btn"
-data-filter="<?php echo $filter; ?>"
+data-filter="<?php echo htmlspecialchars($filter); ?>"
 type="button"
 >
 
@@ -1333,7 +1322,7 @@ $category
 
 <div
 class="menu-category"
-data-category="<?php echo $categoryClass; ?>"
+data-category="<?php echo htmlspecialchars($categoryClass); ?>"
 >
 
 <div class="category-title">
@@ -1358,31 +1347,23 @@ $itemName  = $item[0];
 $itemPrice = $item[1];
 $itemImage = $item[2];
 
-
-/* =====================================================
-   RESERVATION LINK
-===================================================== */
-
-$reservationLink =
-"reservation.php?item=" .
-urlencode($itemName) .
-"&price=" .
-urlencode($itemPrice) .
-"#booking";
-
 ?>
 
-<div class="menu-card">
+<div
+class="menu-card"
+data-item-name="<?php echo htmlspecialchars($itemName, ENT_QUOTES); ?>"
+data-item-price="<?php echo (float)$itemPrice; ?>"
+>
 
 
-<!-- =================================================
-     IMAGE
-================================================= -->
+<!-- IMAGE -->
 
 <a
-href="<?php echo htmlspecialchars($reservationLink); ?>"
-class="food-image"
-title="Reserve <?php echo htmlspecialchars($itemName); ?>"
+href="#"
+class="food-image reservation-image-link"
+data-name="<?php echo htmlspecialchars($itemName, ENT_QUOTES); ?>"
+data-price="<?php echo (float)$itemPrice; ?>"
+title="Add <?php echo htmlspecialchars($itemName, ENT_QUOTES); ?> to reservation"
 >
 
 <img
@@ -1391,59 +1372,33 @@ alt="<?php echo htmlspecialchars($itemName); ?>"
 onerror="this.src='images/default-food.jpg';"
 >
 
-
-<!-- PRICE -->
-
 <span class="image-price">
-
 ₹<?php echo number_format($itemPrice); ?>
-
 </span>
 
-
-<!-- RESERVATION -->
-
 <span class="image-reserve-label">
-
-Reservation
-
++ Reservation
 </span>
 
 </a>
 
 
-<!-- =================================================
-     CONTENT
-================================================= -->
+<!-- CONTENT -->
 
 <div class="menu-content">
 
-
-<!-- ITEM NAME -->
-
 <h4>
-
-<?php
-echo htmlspecialchars($itemName);
-?>
-
+<?php echo htmlspecialchars($itemName); ?>
 </h4>
-
-
-<!-- DESCRIPTION -->
 
 <p>
 
 <?php
 
 echo htmlspecialchars(
-
 $descriptions[$itemName]
-
 ??
-
 "A delicious creation specially prepared by VELOURE."
-
 );
 
 ?>
@@ -1451,29 +1406,23 @@ $descriptions[$itemName]
 </p>
 
 
-<!-- =================================================
-     PRICE + RESERVATION BUTTON
-================================================= -->
+<!-- PRICE + RESERVATION -->
 
 <div class="price-row">
 
-
 <span class="price">
-
 ₹<?php echo number_format($itemPrice); ?>
-
 </span>
 
 
-<a
-href="<?php echo htmlspecialchars($reservationLink); ?>"
-class="reservation-item-btn"
+<button
+type="button"
+class="reservation-item-btn add-reservation-btn"
+data-name="<?php echo htmlspecialchars($itemName, ENT_QUOTES); ?>"
+data-price="<?php echo (float)$itemPrice; ?>"
 >
-
-Reservation
-
-</a>
-
++ Reservation
+</button>
 
 </div>
 
@@ -1482,7 +1431,6 @@ Reservation
 </div>
 
 <?php endforeach; ?>
-
 
 </div>
 
@@ -1827,9 +1775,7 @@ Card
 </div>
 
 
-<!-- =========================================================
-   UPI QR
-========================================================= -->
+<!-- QR -->
 
 <div
 class="qr-box"
@@ -1883,9 +1829,7 @@ Please complete payment using the QR code.
 </div>
 
 
-<!-- =========================================================
-   BILL
-========================================================= -->
+<!-- BILL -->
 
 <div class="bill-details">
 
@@ -1894,76 +1838,39 @@ Your Bill
 </h3>
 
 <div class="bill-row">
-
 <span>Coffee</span>
-
-<strong id="billCoffee">
-₹0
-</strong>
-
+<strong id="billCoffee">₹0</strong>
 </div>
 
-
 <div class="bill-row">
-
 <span>Size</span>
-
-<strong id="billSize">
-₹0
-</strong>
-
+<strong id="billSize">₹0</strong>
 </div>
 
-
 <div class="bill-row">
-
 <span>Milk</span>
-
-<strong id="billMilk">
-₹0
-</strong>
-
+<strong id="billMilk">₹0</strong>
 </div>
 
-
 <div class="bill-row">
-
 <span>Sweetness</span>
-
-<strong id="billSweetness">
-₹0
-</strong>
-
+<strong id="billSweetness">₹0</strong>
 </div>
-
 
 <div class="bill-row">
-
 <span>Topping</span>
-
-<strong id="billTopping">
-₹0
-</strong>
-
+<strong id="billTopping">₹0</strong>
 </div>
-
 
 <div class="bill-total">
-
-<span>
-Total Bill
-</span>
-
-<strong id="billTotal">
-₹0
-</strong>
-
+<span>Total Bill</span>
+<strong id="billTotal">₹0</strong>
 </div>
 
 </div>
 
 
-<!-- TOTAL PRICE -->
+<!-- TOTAL -->
 
 <div class="price-box">
 
@@ -1978,15 +1885,11 @@ YOUR COFFEE PRICE
 </div>
 
 
-<!-- SUBMIT -->
-
 <button
 type="submit"
 class="build-btn"
 >
-
 Create My Coffee
-
 </button>
 
 </form>
@@ -1997,8 +1900,28 @@ Create My Coffee
 
 
 <!-- =========================================================
-   FOOTER
+   FLOATING RESERVATION
 ========================================================= -->
+
+<div class="reservation-count-box">
+
+<a
+href="reservation.php"
+class="reservation-count-btn"
+>
+
+Reservation
+
+<span id="reservationCount">
+0
+</span>
+
+</a>
+
+</div>
+
+
+<!-- FOOTER -->
 
 <footer>
 
@@ -2034,34 +1957,24 @@ filterButtons.forEach(function(button){
         function(){
 
             const filter =
-                this.getAttribute(
-                    "data-filter"
-                );
+                this.getAttribute("data-filter");
 
 
             filterButtons.forEach(
                 function(btn){
-
-                    btn.classList.remove(
-                        "active"
-                    );
-
+                    btn.classList.remove("active");
                 }
             );
 
 
-            this.classList.add(
-                "active"
-            );
+            this.classList.add("active");
 
 
             categories.forEach(
                 function(category){
 
                     const categoryName =
-                        category.getAttribute(
-                            "data-category"
-                        );
+                        category.getAttribute("data-category");
 
 
                     if(
@@ -2115,16 +2028,14 @@ function getPrice(id){
 
 
     return Number(
-        option.getAttribute(
-            "data-price"
-        )
+        option.getAttribute("data-price")
     ) || 0;
 
 }
 
 
 /* =========================================================
-   CALCULATE TOTAL
+   CALCULATE COFFEE PRICE
 ========================================================= */
 
 function calculateCoffeePrice(){
@@ -2153,58 +2064,35 @@ function calculateCoffeePrice(){
         topping;
 
 
-    document.getElementById(
-        "coffeeTotal"
-    ).innerHTML =
-        "₹" + total;
+    document.getElementById("coffeeTotal")
+        .innerHTML = "₹" + total;
 
+    document.getElementById("billCoffee")
+        .innerHTML = "₹" + coffee;
 
-    document.getElementById(
-        "billCoffee"
-    ).innerHTML =
-        "₹" + coffee;
+    document.getElementById("billSize")
+        .innerHTML = "₹" + size;
 
+    document.getElementById("billMilk")
+        .innerHTML = "₹" + milk;
 
-    document.getElementById(
-        "billSize"
-    ).innerHTML =
-        "₹" + size;
+    document.getElementById("billSweetness")
+        .innerHTML = "₹" + sweetness;
 
+    document.getElementById("billTopping")
+        .innerHTML = "₹" + topping;
 
-    document.getElementById(
-        "billMilk"
-    ).innerHTML =
-        "₹" + milk;
+    document.getElementById("billTotal")
+        .innerHTML = "₹" + total;
 
-
-    document.getElementById(
-        "billSweetness"
-    ).innerHTML =
-        "₹" + sweetness;
-
-
-    document.getElementById(
-        "billTopping"
-    ).innerHTML =
-        "₹" + topping;
-
-
-    document.getElementById(
-        "billTotal"
-    ).innerHTML =
-        "₹" + total;
-
-
-    document.getElementById(
-        "qrAmount"
-    ).innerHTML =
-        "₹" + total;
+    document.getElementById("qrAmount")
+        .innerHTML = "₹" + total;
 
 }
 
 
 /* =========================================================
-   PRICE CHANGE EVENTS
+   PRICE EVENTS
 ========================================================= */
 
 document.querySelectorAll(
@@ -2220,25 +2108,17 @@ document.querySelectorAll(
 
 
 /* =========================================================
-   UPI QR SHOW / HIDE
+   UPI QR
 ========================================================= */
 
 const paymentMethod =
-    document.getElementById(
-        "paymentMethod"
-    );
-
+document.getElementById("paymentMethod");
 
 const qrBox =
-    document.getElementById(
-        "qrBox"
-    );
-
+document.getElementById("qrBox");
 
 const paymentStatus =
-    document.getElementById(
-        "paymentStatus"
-    );
+document.getElementById("paymentStatus");
 
 
 paymentMethod.addEventListener(
@@ -2247,25 +2127,17 @@ paymentMethod.addEventListener(
 
         if(this.value === "UPI"){
 
-            qrBox.classList.add(
-                "show"
-            );
+            qrBox.classList.add("show");
 
-            paymentStatus.classList.add(
-                "show"
-            );
+            paymentStatus.classList.add("show");
 
             calculateCoffeePrice();
 
         } else {
 
-            qrBox.classList.remove(
-                "show"
-            );
+            qrBox.classList.remove("show");
 
-            paymentStatus.classList.remove(
-                "show"
-            );
+            paymentStatus.classList.remove("show");
 
         }
 
@@ -2274,13 +2146,329 @@ paymentMethod.addEventListener(
 
 
 /* =========================================================
-   INITIAL PRICE
+   MULTIPLE RESERVATION SYSTEM
+========================================================= */
+
+let selectedReservations = [];
+
+
+try {
+
+    selectedReservations =
+        JSON.parse(
+            localStorage.getItem(
+                "veloureReservations"
+            )
+        ) || [];
+
+} catch(error) {
+
+    selectedReservations = [];
+
+}
+
+
+/* =========================================================
+   SAVE RESERVATIONS
+========================================================= */
+
+function saveReservations(){
+
+    localStorage.setItem(
+        "veloureReservations",
+        JSON.stringify(
+            selectedReservations
+        )
+    );
+
+}
+
+
+/* =========================================================
+   ADD RESERVATION ITEM
+========================================================= */
+
+function addReservationItem(
+    name,
+    price
+){
+
+    name =
+        String(name || "").trim();
+
+    price =
+        Number(price) || 0;
+
+
+    if(
+        name === "" ||
+        price <= 0
+    ){
+
+        alert(
+            "Invalid menu item."
+        );
+
+        return;
+
+    }
+
+
+    const existing =
+        selectedReservations.find(
+            function(item){
+
+                return item.name === name;
+
+            }
+        );
+
+
+    if(existing){
+
+        existing.quantity =
+            Number(
+                existing.quantity || 1
+            ) + 1;
+
+    } else {
+
+        selectedReservations.push({
+
+            name: name,
+
+            price: price,
+
+            quantity: 1
+
+        });
+
+    }
+
+
+    saveReservations();
+
+    updateReservationCount();
+
+    showReservationMessage(
+        name + " added to reservation"
+    );
+
+}
+
+
+/* =========================================================
+   UPDATE COUNT
+========================================================= */
+
+function updateReservationCount(){
+
+    const count =
+        selectedReservations.reduce(
+            function(total,item){
+
+                return total +
+                    Number(
+                        item.quantity || 1
+                    );
+
+            },
+            0
+        );
+
+
+    const countElement =
+        document.getElementById(
+            "reservationCount"
+        );
+
+
+    if(countElement){
+
+        countElement.innerHTML =
+            count;
+
+    }
+
+}
+
+
+/* =========================================================
+   MESSAGE
+========================================================= */
+
+function showReservationMessage(
+    message
+){
+
+    let box =
+        document.getElementById(
+            "reservationMessage"
+        );
+
+
+    if(!box){
+
+        box =
+            document.createElement("div");
+
+
+        box.id =
+            "reservationMessage";
+
+
+        box.style.position =
+            "fixed";
+
+        box.style.top =
+            "90px";
+
+        box.style.right =
+            "25px";
+
+        box.style.zIndex =
+            "99999";
+
+        box.style.background =
+            "#4b3024";
+
+        box.style.color =
+            "#ffffff";
+
+        box.style.padding =
+            "14px 22px";
+
+        box.style.borderRadius =
+            "30px";
+
+        box.style.fontSize =
+            "13px";
+
+        box.style.fontWeight =
+            "600";
+
+        box.style.boxShadow =
+            "0 8px 25px rgba(0,0,0,.25)";
+
+
+        document.body.appendChild(
+            box
+        );
+
+    }
+
+
+    box.innerHTML =
+        "✓ " + message;
+
+
+    box.style.display =
+        "block";
+
+
+    clearTimeout(
+        window.reservationMessageTimer
+    );
+
+
+    window.reservationMessageTimer =
+        setTimeout(
+            function(){
+
+                box.style.display =
+                    "none";
+
+            },
+            2500
+        );
+
+}
+
+
+/* =========================================================
+   RESERVATION BUTTON CLICK
+========================================================= */
+
+document.querySelectorAll(
+    ".add-reservation-btn"
+).forEach(
+    function(button){
+
+        button.addEventListener(
+            "click",
+            function(){
+
+                const name =
+                    this.getAttribute(
+                        "data-name"
+                    );
+
+                const price =
+                    this.getAttribute(
+                        "data-price"
+                    );
+
+
+                addReservationItem(
+                    name,
+                    price
+                );
+
+            }
+        );
+
+    }
+);
+
+
+/* =========================================================
+   IMAGE CLICK
+========================================================= */
+
+document.querySelectorAll(
+    ".reservation-image-link"
+).forEach(
+    function(image){
+
+        image.addEventListener(
+            "click",
+            function(event){
+
+                event.preventDefault();
+
+
+                const name =
+                    this.getAttribute(
+                        "data-name"
+                    );
+
+                const price =
+                    this.getAttribute(
+                        "data-price"
+                    );
+
+
+                addReservationItem(
+                    name,
+                    price
+                );
+
+            }
+        );
+
+    }
+);
+
+
+/* =========================================================
+   INITIAL
 ========================================================= */
 
 calculateCoffeePrice();
 
+updateReservationCount();
+
 </script>
 
 </body>
-
 </html>
