@@ -2,36 +2,38 @@
 
 // ======================================================
 // VELOURE CAFE - SAVE RESERVATION
+// Excel Compatible CSV Storage
 // ======================================================
 
 date_default_timezone_set("Asia/Kolkata");
 
-// ------------------------------------------------------
-// Only POST request allowed
-// ------------------------------------------------------
+
+// ======================================================
+// ONLY POST REQUEST
+// ======================================================
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     die("Invalid request.");
 }
 
 
-// ------------------------------------------------------
-// Get form data
-// ------------------------------------------------------
+// ======================================================
+// GET FORM DATA
+// ======================================================
 
-$name = trim($_POST["name"] ?? "");
-$phone = trim($_POST["phone"] ?? "");
-$email = trim($_POST["email"] ?? "");
-$date = trim($_POST["date"] ?? "");
-$time = trim($_POST["time"] ?? "");
-$guests = trim($_POST["guests"] ?? "");
+$name     = trim($_POST["name"] ?? "");
+$phone    = trim($_POST["phone"] ?? "");
+$email    = trim($_POST["email"] ?? "");
+$date     = trim($_POST["date"] ?? "");
+$time     = trim($_POST["time"] ?? "");
+$guests   = trim($_POST["guests"] ?? "");
 $occasion = trim($_POST["occasion"] ?? "");
-$message = trim($_POST["message"] ?? "");
+$message  = trim($_POST["message"] ?? "");
 
 
-// ------------------------------------------------------
-// Validation
-// ------------------------------------------------------
+// ======================================================
+// VALIDATION
+// ======================================================
 
 if (
     $name === "" ||
@@ -44,19 +46,30 @@ if (
 }
 
 
+// ======================================================
+// PHONE VALIDATION
+// ======================================================
+
 if (!preg_match("/^[0-9]{10}$/", $phone)) {
     die("Please enter a valid 10 digit mobile number.");
 }
 
 
-if (!filter_var($email, FILTER_VALIDATE_EMAIL) && $email !== "") {
+// ======================================================
+// EMAIL VALIDATION
+// ======================================================
+
+if (
+    $email !== "" &&
+    !filter_var($email, FILTER_VALIDATE_EMAIL)
+) {
     die("Please enter a valid email address.");
 }
 
 
-// ------------------------------------------------------
-// Guests validation
-// ------------------------------------------------------
+// ======================================================
+// GUEST VALIDATION
+// ======================================================
 
 $guestsNumber = intval($guests);
 
@@ -65,9 +78,9 @@ if ($guestsNumber < 1 || $guestsNumber > 10) {
 }
 
 
-// ------------------------------------------------------
-// Date validation
-// ------------------------------------------------------
+// ======================================================
+// DATE VALIDATION
+// ======================================================
 
 $today = date("Y-m-d");
 
@@ -76,41 +89,100 @@ if ($date < $today) {
 }
 
 
-// ------------------------------------------------------
-// CSV FILE PATH
-// ------------------------------------------------------
+// ======================================================
+// PAYMENT DETAILS
+// ======================================================
 
-// reservation.csv will be created in the same folder
-// as save_reservation.php
+$paymentMethod = trim(
+    $_POST["payment_method"] ?? "Not Selected"
+);
 
-$file = __DIR__ . "/reservation.csv";
-
-
-// ------------------------------------------------------
-// Create CSV file if it does not exist
-// ------------------------------------------------------
-
-$isNewFile = !file_exists($file) || filesize($file) === 0;
+$paymentStatus = trim(
+    $_POST["payment_status"] ?? "Pending"
+);
 
 
-// ------------------------------------------------------
-// Open CSV file
-// ------------------------------------------------------
+// ======================================================
+// RESERVATION STATUS
+// ======================================================
+
+$reservationStatus = "Confirmed";
+
+
+// ======================================================
+// RESERVATION ID
+// ======================================================
+
+$reservationID =
+    "VR-" .
+    date("YmdHis") .
+    "-" .
+    rand(100, 999);
+
+
+// ======================================================
+// STORAGE FOLDER
+// ======================================================
+
+$storageFolder = __DIR__ . DIRECTORY_SEPARATOR . "storage";
+
+
+// ======================================================
+// CREATE STORAGE FOLDER IF NOT EXISTS
+// ======================================================
+
+if (!is_dir($storageFolder)) {
+
+    if (!mkdir($storageFolder, 0755, true)) {
+
+        die(
+            "Unable to create storage folder. Please create a folder named 'storage' inside your project."
+        );
+    }
+}
+
+
+// ======================================================
+// CSV FILE
+// ======================================================
+
+$file =
+    $storageFolder .
+    DIRECTORY_SEPARATOR .
+    "reservation.csv";
+
+
+// ======================================================
+// CHECK WHETHER CSV IS NEW
+// ======================================================
+
+$isNewFile =
+    !file_exists($file) ||
+    filesize($file) === 0;
+
+
+// ======================================================
+// OPEN CSV
+// ======================================================
 
 $handle = fopen($file, "a");
 
 
+// ======================================================
+// CHECK FILE OPEN
+// ======================================================
+
 if ($handle === false) {
 
     die(
-        "Unable to save reservation. Please check folder permission."
+        "Unable to save reservation. The storage folder is not writable."
     );
 }
 
 
-// ------------------------------------------------------
-// Lock file before writing
-// ------------------------------------------------------
+// ======================================================
+// LOCK FILE
+// ======================================================
 
 if (!flock($handle, LOCK_EX)) {
 
@@ -122,15 +194,16 @@ if (!flock($handle, LOCK_EX)) {
 }
 
 
-// ------------------------------------------------------
+// ======================================================
 // CSV HEADER
-// ------------------------------------------------------
+// ======================================================
 
 if ($isNewFile) {
 
-    fputcsv($handle, [
+    $headerSuccess = fputcsv($handle, [
+
         "Reservation ID",
-        "Date & Time",
+        "Saved Date & Time",
         "Customer Name",
         "Mobile Number",
         "Email",
@@ -139,27 +212,30 @@ if ($isNewFile) {
         "Guests",
         "Occasion",
         "Special Request",
-        "Status"
+        "Payment Method",
+        "Payment Status",
+        "Reservation Status"
+
     ]);
+
+
+    if ($headerSuccess === false) {
+
+        flock($handle, LOCK_UN);
+        fclose($handle);
+
+        die(
+            "Unable to create reservation Excel file."
+        );
+    }
 }
 
 
-// ------------------------------------------------------
-// Reservation ID
-// ------------------------------------------------------
+// ======================================================
+// SAVE RESERVATION
+// ======================================================
 
-$reservationID =
-    "VR-" .
-    date("YmdHis") .
-    "-" .
-    rand(100, 999);
-
-
-// ------------------------------------------------------
-// Save reservation
-// ------------------------------------------------------
-
-fputcsv($handle, [
+$success = fputcsv($handle, [
 
     $reservationID,
 
@@ -181,23 +257,39 @@ fputcsv($handle, [
 
     $message,
 
-    "Confirmed"
+    $paymentMethod,
+
+    $paymentStatus,
+
+    $reservationStatus
 
 ]);
 
 
-// ------------------------------------------------------
-// Unlock + Close
-// ------------------------------------------------------
+// ======================================================
+// UNLOCK + CLOSE
+// ======================================================
 
 flock($handle, LOCK_UN);
 
 fclose($handle);
 
 
-// ------------------------------------------------------
+// ======================================================
+// CHECK SAVE
+// ======================================================
+
+if ($success === false) {
+
+    die(
+        "Reservation could not be saved. Please try again."
+    );
+}
+
+
+// ======================================================
 // SUCCESS PAGE
-// ------------------------------------------------------
+// ======================================================
 
 ?>
 
@@ -210,8 +302,8 @@ fclose($handle);
 <meta charset="UTF-8">
 
 <meta
-name="viewport"
-content="width=device-width, initial-scale=1.0"
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
 >
 
 <title>
@@ -219,8 +311,8 @@ Reservation Confirmed | VELOURE Café
 </title>
 
 <link
-href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap"
-rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
 >
 
 <style>
@@ -248,7 +340,6 @@ body{
     color:#35251d;
 
     font-family:"DM Sans",sans-serif;
-
 }
 
 .success-box{
@@ -413,17 +504,22 @@ body{
 
     font-size:13px;
 
+    transition:.3s;
+
 }
 
 .home-btn:hover{
 
     background:#a47b4c;
 
+    transform:translateY(-2px);
+
 }
 
 </style>
 
 </head>
+
 
 <body>
 
@@ -442,11 +538,17 @@ body{
 
 
     <p>
-        Thank you, <?php echo htmlspecialchars($name); ?>.
-        Your table has been successfully reserved at
-        VELOURE Café.
+
+        Thank you,
+        <?php echo htmlspecialchars($name); ?>.
+
+        Your table has been successfully reserved
+        at VELOURE Café.
+
     </p>
 
+
+    <!-- RESERVATION ID -->
 
     <div class="booking-id">
 
@@ -455,13 +557,49 @@ body{
         </small>
 
         <strong>
-            <?php echo htmlspecialchars($reservationID); ?>
+
+            <?php
+            echo htmlspecialchars($reservationID);
+            ?>
+
         </strong>
 
     </div>
 
 
+    <!-- RESERVATION DETAILS -->
+
     <div class="details">
+
+
+        <div class="detail-row">
+
+            <span>
+                Customer Name
+            </span>
+
+            <strong>
+                <?php
+                echo htmlspecialchars($name);
+                ?>
+            </strong>
+
+        </div>
+
+
+        <div class="detail-row">
+
+            <span>
+                Mobile Number
+            </span>
+
+            <strong>
+                <?php
+                echo htmlspecialchars($phone);
+                ?>
+            </strong>
+
+        </div>
 
 
         <div class="detail-row">
@@ -471,7 +609,9 @@ body{
             </span>
 
             <strong>
-                <?php echo htmlspecialchars($date); ?>
+                <?php
+                echo htmlspecialchars($date);
+                ?>
             </strong>
 
         </div>
@@ -484,7 +624,9 @@ body{
             </span>
 
             <strong>
-                <?php echo htmlspecialchars($time); ?>
+                <?php
+                echo htmlspecialchars($time);
+                ?>
             </strong>
 
         </div>
@@ -497,7 +639,9 @@ body{
             </span>
 
             <strong>
-                <?php echo htmlspecialchars($guestsNumber); ?>
+                <?php
+                echo htmlspecialchars($guestsNumber);
+                ?>
             </strong>
 
         </div>
@@ -512,7 +656,9 @@ body{
             </span>
 
             <strong>
-                <?php echo htmlspecialchars($occasion); ?>
+                <?php
+                echo htmlspecialchars($occasion);
+                ?>
             </strong>
 
         </div>
@@ -520,11 +666,59 @@ body{
         <?php endif; ?>
 
 
+        <div class="detail-row">
+
+            <span>
+                Payment Method
+            </span>
+
+            <strong>
+                <?php
+                echo htmlspecialchars($paymentMethod);
+                ?>
+            </strong>
+
+        </div>
+
+
+        <div class="detail-row">
+
+            <span>
+                Payment Status
+            </span>
+
+            <strong>
+                <?php
+                echo htmlspecialchars($paymentStatus);
+                ?>
+            </strong>
+
+        </div>
+
+
+        <div class="detail-row">
+
+            <span>
+                Reservation Status
+            </span>
+
+            <strong>
+                <?php
+                echo htmlspecialchars($reservationStatus);
+                ?>
+            </strong>
+
+        </div>
+
+
     </div>
 
 
     <p>
-        Your reservation information has been saved successfully.
+
+        Your reservation information has been
+        saved successfully.
+
     </p>
 
 
