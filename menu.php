@@ -4,11 +4,6 @@
    VELOURE MENU + BUILD YOUR COFFEE
 ========================================================= */
 
-
-/* =========================================================
-   BUILD YOUR COFFEE ORDER SAVE
-========================================================= */
-
 $orderSuccess = false;
 $orderError = "";
 
@@ -62,7 +57,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         "Hazelnut" => 30
     ];
 
-
     if (
         $name === "" ||
         $phone === "" ||
@@ -85,7 +79,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             ($milkPrices[$milk] ?? 0) +
             ($sweetnessPrices[$sweetness] ?? 0) +
             ($toppingPrices[$topping] ?? 0);
-
 
         if ($total <= 0) {
 
@@ -115,7 +108,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         "Payment",
                         "Total"
                     ]);
-
                 }
 
                 fputcsv($handle, [
@@ -137,7 +129,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             } else {
 
-                $orderError = "Order could not be saved. Check folder permission.";
+                $orderError =
+                    "Order could not be saved. Check folder permission.";
 
             }
         }
@@ -413,835 +406,589 @@ $descriptions = [
 <meta charset="UTF-8">
 
 <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
+name="viewport"
+content="width=device-width, initial-scale=1.0"
 >
 
-<title>
-VELOURE | Menu
-</title>
-
+<title>VELOURE | Menu</title>
 
 <link
 href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap"
 rel="stylesheet"
 >
 
-
 <style>
 
-/* =========================================================
-   RESET
-========================================================= */
-
-* {
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
 }
 
-html {
-    scroll-behavior:smooth;
+html{
+scroll-behavior:smooth;
 }
 
-body {
-
-    font-family:"DM Sans",sans-serif;
-
-    background:#f7f1e9;
-
-    color:#38271f;
-
+body{
+font-family:"DM Sans",sans-serif;
+background:#f7f1e9;
+color:#38271f;
 }
 
 
-/* =========================================================
-   NAVBAR
-========================================================= */
+/* NAVBAR */
 
-.navbar {
-
-    position:sticky;
-
-    top:0;
-
-    z-index:999;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:space-between;
-
-    padding:18px 5%;
-
-    background:#fffaf4;
-
-    box-shadow:
-    0 5px 20px rgba(0,0,0,.08);
-
+.navbar{
+position:sticky;
+top:0;
+z-index:999;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:18px 5%;
+background:#fffaf4;
+box-shadow:0 5px 20px rgba(0,0,0,.08);
 }
 
-.logo {
-
-    font-family:
-    "Cormorant Garamond",
-    serif;
-
-    font-size:34px;
-
-    font-weight:700;
-
-    letter-spacing:4px;
-
-    color:#4b3024;
-
+.logo{
+font-family:"Cormorant Garamond",serif;
+font-size:34px;
+font-weight:700;
+letter-spacing:4px;
+color:#4b3024;
 }
 
-.logo span {
-    color:#a66c43;
+.logo span{
+color:#a66c43;
 }
 
-
-.nav-links {
-
-    display:flex;
-
-    gap:18px;
-
-    align-items:center;
-
-    flex-wrap:wrap;
-
+.nav-links{
+display:flex;
+gap:18px;
+align-items:center;
+flex-wrap:wrap;
 }
 
-.nav-links a {
-
-    text-decoration:none;
-
-    color:#392820;
-
-    font-size:13px;
-
-    font-weight:600;
-
+.nav-links a{
+text-decoration:none;
+color:#392820;
+font-size:13px;
+font-weight:600;
 }
 
-.nav-links a:hover {
+.nav-links a:hover{
+color:#a66c43;
+}
 
-    color:#a66c43;
-
+.reserve-btn{
+text-decoration:none;
+background:#4b3024;
+color:white;
+padding:12px 20px;
+border-radius:30px;
+font-size:12px;
 }
 
 
-.reserve-btn {
+/* HERO */
 
-    text-decoration:none;
+.hero{
+padding:120px 7% 80px;
+text-align:center;
+background:
+radial-gradient(
+circle at 20% 30%,
+rgba(166,108,67,.18),
+transparent 30%
+),
+radial-gradient(
+circle at 80% 70%,
+rgba(80,50,35,.12),
+transparent 30%
+);
+}
 
-    background:#4b3024;
+.eyebrow{
+color:#a66c43;
+letter-spacing:5px;
+font-size:12px;
+text-transform:uppercase;
+}
 
-    color:white;
+.hero h1{
+font-family:"Cormorant Garamond",serif;
+font-size:80px;
+line-height:.9;
+margin:20px 0;
+}
 
-    padding:12px 20px;
+.hero h1 span{
+color:#a66c43;
+font-style:italic;
+}
 
-    border-radius:30px;
-
-    font-size:12px;
-
+.hero p{
+max-width:650px;
+margin:auto;
+color:#756359;
+line-height:1.8;
 }
 
 
-/* =========================================================
-   HERO
-========================================================= */
+/* MENU */
 
-.hero {
-
-    padding:120px 7% 80px;
-
-    text-align:center;
-
-    background:
-    radial-gradient(
-        circle at 20% 30%,
-        rgba(166,108,67,.18),
-        transparent 30%
-    ),
-    radial-gradient(
-        circle at 80% 70%,
-        rgba(80,50,35,.12),
-        transparent 30%
-    );
-
+.menu-section{
+padding:80px 6%;
+background:#fffaf4;
 }
 
-.eyebrow {
-
-    color:#a66c43;
-
-    letter-spacing:5px;
-
-    font-size:12px;
-
-    text-transform:uppercase;
-
+.section-heading{
+text-align:center;
+margin-bottom:40px;
 }
 
-.hero h1 {
-
-    font-family:
-    "Cormorant Garamond",
-    serif;
-
-    font-size:80px;
-
-    line-height:.9;
-
-    margin:20px 0;
-
+.section-heading small{
+color:#a66c43;
+letter-spacing:4px;
 }
 
-.hero h1 span {
-
-    color:#a66c43;
-
-    font-style:italic;
-
+.section-heading h2{
+font-family:"Cormorant Garamond",serif;
+font-size:52px;
+margin:10px 0;
 }
 
-.hero p {
-
-    max-width:650px;
-
-    margin:auto;
-
-    color:#756359;
-
-    line-height:1.8;
-
+.section-heading p{
+color:#756359;
 }
 
 
-/* =========================================================
-   MENU
-========================================================= */
+/* FILTER */
 
-.menu-section {
-
-    padding:80px 6%;
-
-    background:#fffaf4;
-
+.filters{
+display:flex;
+justify-content:center;
+flex-wrap:wrap;
+gap:10px;
+margin-bottom:60px;
 }
 
-.section-heading {
-
-    text-align:center;
-
-    margin-bottom:40px;
-
-}
-
-.section-heading small {
-
-    color:#a66c43;
-
-    letter-spacing:4px;
-
-}
-
-.section-heading h2 {
-
-    font-family:
-    "Cormorant Garamond",
-    serif;
-
-    font-size:52px;
-
-    margin:10px 0;
-
-}
-
-.section-heading p {
-
-    color:#756359;
-
-}
-
-
-/* =========================================================
-   FILTER
-========================================================= */
-
-.filters {
-
-    display:flex;
-
-    justify-content:center;
-
-    flex-wrap:wrap;
-
-    gap:10px;
-
-    margin-bottom:60px;
-
-}
-
-.filter-btn {
-
-    border:1px solid #d8c7b7;
-
-    background:transparent;
-
-    padding:10px 18px;
-
-    border-radius:30px;
-
-    cursor:pointer;
-
-    color:#4b3024;
-
-    font-weight:600;
-
+.filter-btn{
+border:1px solid #d8c7b7;
+background:transparent;
+padding:10px 18px;
+border-radius:30px;
+cursor:pointer;
+color:#4b3024;
+font-weight:600;
 }
 
 .filter-btn.active,
-.filter-btn:hover {
-
-    background:#4b3024;
-
-    color:white;
-
+.filter-btn:hover{
+background:#4b3024;
+color:white;
 }
 
 
-/* =========================================================
-   CATEGORY
-========================================================= */
+/* CATEGORY */
 
-.menu-category {
-
-    max-width:1250px;
-
-    margin:0 auto 70px;
-
+.menu-category{
+max-width:1250px;
+margin:0 auto 70px;
 }
 
-.category-title {
-
-    display:flex;
-
-    align-items:center;
-
-    gap:15px;
-
-    margin-bottom:25px;
-
+.category-title{
+display:flex;
+align-items:center;
+gap:15px;
+margin-bottom:25px;
 }
 
-.category-title h3 {
-
-    font-family:
-    "Cormorant Garamond",
-    serif;
-
-    font-size:38px;
-
+.category-title h3{
+font-family:"Cormorant Garamond",serif;
+font-size:38px;
 }
 
-.category-line {
-
-    flex:1;
-
-    height:1px;
-
-    background:#dfd0c3;
-
+.category-line{
+flex:1;
+height:1px;
+background:#dfd0c3;
 }
 
 
-/* =========================================================
-   CARDS
-========================================================= */
+/* CARDS */
 
-.menu-grid {
-
-    display:grid;
-
-    grid-template-columns:
-    repeat(4,1fr);
-
-    gap:22px;
-
+.menu-grid{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:22px;
 }
 
-.menu-card {
-
-    background:white;
-
-    border-radius:18px;
-
-    overflow:hidden;
-
-    box-shadow:
-    0 8px 25px rgba(0,0,0,.07);
-
-    transition:.3s;
-
+.menu-card{
+background:white;
+border-radius:18px;
+overflow:hidden;
+box-shadow:0 8px 25px rgba(0,0,0,.07);
+transition:.3s;
 }
 
-.menu-card:hover {
-
-    transform:translateY(-6px);
-
+.menu-card:hover{
+transform:translateY(-6px);
 }
 
-.food-image {
-
-    height:220px;
-
-    overflow:hidden;
-
+.food-image{
+height:220px;
+overflow:hidden;
+cursor:pointer;
 }
 
-.food-image img {
-
-    width:100%;
-
-    height:100%;
-
-    object-fit:cover;
-
-    display:block;
-
+.food-image img{
+width:100%;
+height:100%;
+object-fit:cover;
+display:block;
+transition:.4s;
 }
 
-.menu-content {
-
-    padding:18px;
-
+.food-image:hover img{
+transform:scale(1.05);
 }
 
-.menu-content h4 {
-
-    font-family:
-    "Cormorant Garamond",
-    serif;
-
-    font-size:24px;
-
-    margin-bottom:8px;
-
+.menu-content{
+padding:18px;
 }
 
-.menu-content p {
-
-    color:#8a776a;
-
-    font-size:12px;
-
-    line-height:1.6;
-
-    min-height:58px;
-
+.menu-content h4{
+font-family:"Cormorant Garamond",serif;
+font-size:24px;
+margin-bottom:8px;
 }
 
-.price-row {
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    margin-top:15px;
-
+.menu-content p{
+color:#8a776a;
+font-size:12px;
+line-height:1.6;
+min-height:58px;
 }
 
-.price {
-
-    color:#a66c43;
-
-    font-size:18px;
-
-    font-weight:bold;
-
+.price-row{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-top:15px;
 }
 
-.order-btn {
+.price{
+color:#a66c43;
+font-size:18px;
+font-weight:bold;
+}
 
-    text-decoration:none;
-
-    background:#4b3024;
-
-    color:white;
-
-    padding:9px 15px;
-
-    border-radius:20px;
-
-    font-size:11px;
-
+.order-btn{
+text-decoration:none;
+background:#4b3024;
+color:white;
+padding:9px 15px;
+border-radius:20px;
+font-size:11px;
 }
 
 
-/* =========================================================
-   BUILD YOUR COFFEE
-========================================================= */
+/* BUILD COFFEE */
 
-.build-coffee {
-
-    max-width:1250px;
-
-    margin:20px auto 70px;
-
-    padding:55px 45px;
-
-    background:
-    linear-gradient(
-        135deg,
-        #4b3024,
-        #241713
-    );
-
-    border-radius:28px;
-
-    color:white;
-
+.build-coffee{
+max-width:1250px;
+margin:20px auto 70px;
+padding:55px 45px;
+background:linear-gradient(
+135deg,
+#4b3024,
+#241713
+);
+border-radius:28px;
+color:white;
 }
 
-.build-title {
-
-    text-align:center;
-
-    margin-bottom:35px;
-
+.build-title{
+text-align:center;
+margin-bottom:35px;
 }
 
-.build-title small {
-
-    color:#d09a70;
-
-    letter-spacing:4px;
-
-    font-size:11px;
-
+.build-title small{
+color:#d09a70;
+letter-spacing:4px;
+font-size:11px;
 }
 
-.build-title h2 {
-
-    font-family:
-    "Cormorant Garamond",
-    serif;
-
-    font-size:52px;
-
-    margin:8px 0;
-
+.build-title h2{
+font-family:"Cormorant Garamond",serif;
+font-size:52px;
+margin:8px 0;
 }
 
-.build-title p {
-
-    color:rgba(255,255,255,.7);
-
+.build-title p{
+color:rgba(255,255,255,.7);
 }
 
-
-.build-form {
-
-    display:grid;
-
-    grid-template-columns:
-    repeat(2,1fr);
-
-    gap:20px;
-
+.build-form{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:20px;
 }
 
-
-.build-group label {
-
-    display:block;
-
-    margin-bottom:8px;
-
-    color:#eadcc9;
-
-    font-size:13px;
-
-    font-weight:600;
-
+.build-group label{
+display:block;
+margin-bottom:8px;
+color:#eadcc9;
+font-size:13px;
+font-weight:600;
 }
 
 .build-group select,
-.build-group input {
+.build-group input{
+width:100%;
+padding:14px;
+border:none;
+outline:none;
+border-radius:10px;
+background:#fffaf4;
+color:#38271f;
+font-family:inherit;
+}
 
-    width:100%;
-
-    padding:14px;
-
-    border:none;
-
-    outline:none;
-
-    border-radius:10px;
-
-    background:#fffaf4;
-
-    color:#38271f;
-
-    font-family:inherit;
-
+.payment-box{
+grid-column:1/-1;
 }
 
 
-.payment-box {
+/* QR PAYMENT */
 
-    grid-column:1/-1;
+.qr-box{
+display:none;
+grid-column:1/-1;
+text-align:center;
+background:#fffaf4;
+color:#38271f;
+padding:25px;
+border-radius:18px;
+margin-top:5px;
+}
 
+.qr-box.show{
+display:block;
+}
+
+.qr-box img{
+width:180px;
+height:180px;
+object-fit:contain;
+margin:12px auto;
+border-radius:10px;
+}
+
+.qr-box h3{
+font-family:"Cormorant Garamond",serif;
+font-size:28px;
+}
+
+.qr-box p{
+font-size:13px;
+color:#756359;
+margin:5px 0;
 }
 
 
-.price-box {
+/* BILL */
 
-    grid-column:1/-1;
-
-    text-align:center;
-
-    padding:20px;
-
-    background:
-    rgba(255,255,255,.08);
-
-    border-radius:15px;
-
+.price-box{
+grid-column:1/-1;
+text-align:center;
+padding:25px;
+background:rgba(255,255,255,.08);
+border-radius:15px;
 }
 
-.price-box span {
-
-    display:block;
-
-    color:#cdb8a5;
-
-    font-size:11px;
-
-    letter-spacing:3px;
-
+.price-box span{
+display:block;
+color:#cdb8a5;
+font-size:11px;
+letter-spacing:3px;
+margin-bottom:5px;
 }
 
-#coffeeTotal {
-
-    display:block;
-
-    color:#d6a36f;
-
-    font-family:
-    "Cormorant Garamond",
-    serif;
-
-    font-size:40px;
-
-    font-weight:bold;
-
+#coffeeTotal{
+display:block;
+color:#d6a36f;
+font-family:"Cormorant Garamond",serif;
+font-size:44px;
+font-weight:bold;
 }
 
 
-.build-btn {
+/* BILL DETAILS */
 
-    grid-column:1/-1;
-
-    border:none;
-
-    padding:15px;
-
-    border-radius:30px;
-
-    background:#c18a61;
-
-    color:white;
-
-    font-size:14px;
-
-    font-weight:bold;
-
-    cursor:pointer;
-
+.bill-details{
+grid-column:1/-1;
+background:rgba(255,255,255,.06);
+border:1px solid rgba(255,255,255,.12);
+border-radius:15px;
+padding:20px;
 }
 
-.build-btn:hover {
-
-    background:#d09a70;
-
+.bill-details h3{
+font-family:"Cormorant Garamond",serif;
+font-size:28px;
+margin-bottom:12px;
+text-align:center;
 }
 
-
-/* =========================================================
-   SUCCESS
-========================================================= */
-
-.success {
-
-    max-width:700px;
-
-    margin:30px auto;
-
-    padding:25px;
-
-    text-align:center;
-
-    background:#e8f6e8;
-
-    color:#245c2a;
-
-    border-radius:15px;
-
-    font-weight:bold;
-
+.bill-row{
+display:flex;
+justify-content:space-between;
+padding:7px 0;
+color:#eadcc9;
+font-size:13px;
+border-bottom:1px solid rgba(255,255,255,.08);
 }
 
-.error {
+.bill-row:last-child{
+border-bottom:none;
+}
 
-    max-width:700px;
-
-    margin:30px auto;
-
-    padding:25px;
-
-    text-align:center;
-
-    background:#ffe9e9;
-
-    color:#9b2226;
-
-    border-radius:15px;
-
-    font-weight:bold;
-
+.bill-total{
+display:flex;
+justify-content:space-between;
+font-size:18px;
+font-weight:bold;
+color:#d6a36f;
+padding-top:12px;
 }
 
 
-/* =========================================================
-   FOOTER
-========================================================= */
+/* BUTTON */
 
-footer {
-
-    background:#241713;
-
-    color:white;
-
-    text-align:center;
-
-    padding:40px 20px;
-
+.build-btn{
+grid-column:1/-1;
+border:none;
+padding:15px;
+border-radius:30px;
+background:#c18a61;
+color:white;
+font-size:14px;
+font-weight:bold;
+cursor:pointer;
 }
 
-.footer-logo {
-
-    font-family:
-    "Cormorant Garamond",
-    serif;
-
-    font-size:35px;
-
-    letter-spacing:5px;
-
-}
-
-footer p {
-
-    margin-top:8px;
-
-    opacity:.6;
-
+.build-btn:hover{
+background:#d09a70;
 }
 
 
-/* =========================================================
-   RESPONSIVE
-========================================================= */
+/* SUCCESS ERROR */
 
-@media(max-width:1100px) {
+.success{
+max-width:700px;
+margin:30px auto;
+padding:25px;
+text-align:center;
+background:#e8f6e8;
+color:#245c2a;
+border-radius:15px;
+font-weight:bold;
+}
 
-    .menu-grid {
-
-        grid-template-columns:
-        repeat(3,1fr);
-
-    }
-
+.error{
+max-width:700px;
+margin:30px auto;
+padding:25px;
+text-align:center;
+background:#ffe9e9;
+color:#9b2226;
+border-radius:15px;
+font-weight:bold;
 }
 
 
-@media(max-width:800px) {
+/* FOOTER */
 
-    .nav-links {
+footer{
+background:#241713;
+color:white;
+text-align:center;
+padding:40px 20px;
+}
 
-        display:none;
+.footer-logo{
+font-family:"Cormorant Garamond",serif;
+font-size:35px;
+letter-spacing:5px;
+}
 
-    }
-
-    .menu-grid {
-
-        grid-template-columns:
-        repeat(2,1fr);
-
-    }
-
-    .build-form {
-
-        grid-template-columns:1fr;
-
-    }
-
-    .price-box,
-    .build-btn,
-    .payment-box {
-
-        grid-column:auto;
-
-    }
-
-    .hero h1 {
-
-        font-size:60px;
-
-    }
-
+footer p{
+margin-top:8px;
+opacity:.6;
 }
 
 
-@media(max-width:550px) {
+/* RESPONSIVE */
 
-    .menu-grid {
+@media(max-width:1100px){
 
-        grid-template-columns:1fr;
+.menu-grid{
+grid-template-columns:repeat(3,1fr);
+}
 
-    }
+}
 
-    .hero h1 {
+@media(max-width:800px){
 
-        font-size:48px;
+.nav-links{
+display:none;
+}
 
-    }
+.menu-grid{
+grid-template-columns:repeat(2,1fr);
+}
 
-    .section-heading h2 {
+.build-form{
+grid-template-columns:1fr;
+}
 
-        font-size:40px;
+.price-box,
+.build-btn,
+.payment-box,
+.qr-box,
+.bill-details{
+grid-column:auto;
+}
 
-    }
+.hero h1{
+font-size:60px;
+}
 
-    .build-coffee {
+}
 
-        padding:40px 20px;
+@media(max-width:550px){
 
-    }
+.menu-grid{
+grid-template-columns:1fr;
+}
 
-    .build-title h2 {
+.hero h1{
+font-size:48px;
+}
 
-        font-size:40px;
+.section-heading h2{
+font-size:40px;
+}
 
-    }
+.build-coffee{
+padding:40px 20px;
+}
+
+.build-title h2{
+font-size:40px;
+}
 
 }
 
@@ -1253,725 +1000,814 @@ footer p {
 <body>
 
 
-<!-- =========================================================
-     NAVBAR
-========================================================= -->
+<!-- NAVBAR -->
 
 <nav class="navbar">
 
-    <div class="logo">
-        VELOU<span>RE</span>
-    </div>
+<div class="logo">
+VELOU<span>RE</span>
+</div>
 
+<div class="nav-links">
 
-    <div class="nav-links">
+<a href="index.php">Home</a>
+<a href="about.php">About</a>
+<a href="menu.php">Menu</a>
+<a href="offers.php">Offers</a>
+<a href="gallery.php">Gallery</a>
+<a href="services.php">Services</a>
+<a href="reservation.php">Reservation</a>
+<a href="reviews.php">Reviews</a>
 
-        <a href="index.php">
-            Home
-        </a>
+</div>
 
-        <a href="about.php">
-            About
-        </a>
-
-        <a href="menu.php">
-            Menu
-        </a>
-
-        <a href="offers.php">
-            Offers
-        </a>
-
-        <a href="gallery.php">
-            Gallery
-        </a>
-
-        <a href="services.php">
-            Services
-        </a>
-
-        <a href="reservation.php">
-            Reservation
-        </a>
-
-        <a href="reviews.php">
-            Reviews
-        </a>
-
-    </div>
-
-
-    <a
-        href="reservation.php#booking"
-        class="reserve-btn"
-    >
-        Reserve Table
-    </a>
+<a
+href="reservation.php#booking"
+class="reserve-btn"
+>
+Reserve Table
+</a>
 
 </nav>
 
 
-<!-- =========================================================
-     HERO
-========================================================= -->
+<!-- HERO -->
 
 <section class="hero">
 
-    <div class="eyebrow">
-        Curated With Passion
-    </div>
+<div class="eyebrow">
+Curated With Passion
+</div>
 
-    <h1>
-        The VELOURE
-        <br>
-        <span>Menu</span>
-    </h1>
+<h1>
+The VELOURE
+<br>
+<span>Menu</span>
+</h1>
 
-    <p>
-        Discover handcrafted coffee,
-        refreshing drinks, delicious café favourites
-        and signature creations made especially
-        for unforgettable moments.
-    </p>
+<p>
+Discover handcrafted coffee,
+refreshing drinks, delicious café favourites
+and signature creations made especially
+for unforgettable moments.
+</p>
 
 </section>
 
 
-<!-- =========================================================
-     MENU SECTION
-========================================================= -->
+<!-- MENU -->
 
 <section class="menu-section">
 
+<div class="section-heading">
 
-    <div class="section-heading">
+<small>
+EXPLORE OUR SELECTION
+</small>
 
-        <small>
-            EXPLORE OUR SELECTION
-        </small>
+<h2>
+Crafted For Every Craving
+</h2>
 
-        <h2>
-            Crafted For Every Craving
-        </h2>
+<p>
+From your first morning coffee
+to an indulgent evening dessert.
+</p>
 
-        <p>
-            From your first morning coffee
-            to an indulgent evening dessert.
-        </p>
+</div>
 
-    </div>
 
+<!-- FILTER -->
 
-    <!-- FILTERS -->
+<div class="filters">
 
-    <div class="filters">
+<button
+class="filter-btn active"
+data-filter="all"
+type="button"
+>
+All
+</button>
 
-        <button
-            class="filter-btn active"
-            data-filter="all"
-            type="button"
-        >
-            All
-        </button>
 
+<?php foreach ($menu as $category => $items): ?>
 
-        <?php foreach ($menu as $category => $items): ?>
+<?php
 
-            <?php
+$filter =
+strtolower(
+preg_replace(
+'/[^a-z0-9]+/',
+'-',
+$category
+)
+);
 
-            $filter =
-                strtolower(
-                    preg_replace(
-                        '/[^a-z0-9]+/',
-                        '-',
-                        $category
-                    )
-                );
+?>
 
-            ?>
+<button
+class="filter-btn"
+data-filter="<?php echo $filter; ?>"
+type="button"
+>
+<?php echo htmlspecialchars($category); ?>
+</button>
 
-            <button
-                class="filter-btn"
-                data-filter="<?php echo $filter; ?>"
-                type="button"
-            >
-                <?php echo htmlspecialchars($category); ?>
-            </button>
+<?php endforeach; ?>
 
-        <?php endforeach; ?>
+</div>
 
-    </div>
 
+<!-- MENU CATEGORIES -->
 
-    <!-- MENU -->
+<?php foreach ($menu as $category => $items): ?>
 
-    <?php foreach ($menu as $category => $items): ?>
+<?php
 
-        <?php
+$categoryClass =
+strtolower(
+preg_replace(
+'/[^a-z0-9]+/',
+'-',
+$category
+)
+);
 
-        $categoryClass =
-            strtolower(
-                preg_replace(
-                    '/[^a-z0-9]+/',
-                    '-',
-                    $category
-                )
-            );
+?>
 
-        ?>
+<div
+class="menu-category"
+data-category="<?php echo $categoryClass; ?>"
+>
 
-        <div
-            class="menu-category"
-            data-category="<?php echo $categoryClass; ?>"
-        >
+<div class="category-title">
 
-            <div class="category-title">
+<h3>
+<?php echo htmlspecialchars($category); ?>
+</h3>
 
-                <h3>
-                    <?php echo htmlspecialchars($category); ?>
-                </h3>
+<div class="category-line"></div>
 
-                <div class="category-line"></div>
+</div>
 
-            </div>
 
+<div class="menu-grid">
 
-            <div class="menu-grid">
+<?php foreach ($items as $item): ?>
 
+<div class="menu-card">
 
-                <?php foreach ($items as $item): ?>
+<!-- IMAGE CLICK RESERVATION -->
 
-                    <div class="menu-card">
+<a
+href="reservation.php#booking"
+class="food-image"
+title="Reserve a Table"
+>
 
-                        <div class="food-image">
+<img
+src="images/<?php echo htmlspecialchars($item[2]); ?>"
+alt="<?php echo htmlspecialchars($item[0]); ?>"
+onerror="this.src='images/default-food.jpg';"
+>
 
-                            <img
-                                src="images/<?php echo htmlspecialchars($item[2]); ?>"
-                                alt="<?php echo htmlspecialchars($item[0]); ?>"
-                                onerror="this.src='images/default-food.jpg';"
-                            >
+</a>
 
-                        </div>
 
+<div class="menu-content">
 
-                        <div class="menu-content">
+<h4>
+<?php echo htmlspecialchars($item[0]); ?>
+</h4>
 
-                            <h4>
-                                <?php echo htmlspecialchars($item[0]); ?>
-                            </h4>
 
+<p>
 
-                            <p>
+<?php
 
-                                <?php
+echo htmlspecialchars(
+$descriptions[$item[0]]
+??
+"A delicious creation specially prepared by VELOURE."
+);
 
-                                echo htmlspecialchars(
-                                    $descriptions[$item[0]]
-                                    ??
-                                    "A delicious creation specially prepared by VELOURE."
-                                );
+?>
 
-                                ?>
+</p>
 
-                            </p>
 
+<div class="price-row">
 
-                            <div class="price-row">
+<span class="price">
 
-                                <span class="price">
+₹<?php
+echo number_format($item[1]);
+?>
 
-                                    ₹<?php
-                                    echo number_format($item[1]);
-                                    ?>
+</span>
 
-                                </span>
 
+<a
+href="reservation.php#booking"
+class="order-btn"
+>
+Reserve
+</a>
 
-                                <a
-                                    href="reservation.php#booking"
-                                    class="order-btn"
-                                >
-                                    Reserve
-                                </a>
+</div>
 
-                            </div>
+</div>
 
-                        </div>
+</div>
 
-                    </div>
+<?php endforeach; ?>
 
-                <?php endforeach; ?>
+</div>
 
+</div>
 
-            </div>
+<?php endforeach; ?>
 
-        </div>
 
-    <?php endforeach; ?>
+<!-- BUILD YOUR COFFEE -->
 
+<div
+class="build-coffee"
+id="build-coffee"
+>
 
-    <!-- =====================================================
-         BUILD YOUR COFFEE
-    ====================================================== -->
+<div class="build-title">
 
-    <div
-        class="build-coffee"
-        id="build-coffee"
-    >
+<small>
+YOUR COFFEE · YOUR WAY
+</small>
 
+<h2>
+Build Your Coffee
+</h2>
 
-        <div class="build-title">
+<p>
+Create your perfect coffee
+exactly the way you like it.
+</p>
 
-            <small>
-                YOUR COFFEE · YOUR WAY
-            </small>
+</div>
 
-            <h2>
-                Build Your Coffee
-            </h2>
 
-            <p>
-                Create your perfect coffee
-                exactly the way you like it.
-            </p>
+<?php if ($orderSuccess): ?>
 
-        </div>
+<div class="success">
 
+✅ Order placed successfully!
 
-        <?php if ($orderSuccess): ?>
+<br>
 
-            <div class="success">
+Your coffee order has been saved
+in order.csv.
 
-                ✅ Order placed successfully!
+</div>
 
-                <br>
+<?php endif; ?>
 
-                Your coffee order has been saved
-                in order.csv.
 
-            </div>
+<?php if ($orderError !== ""): ?>
 
-        <?php endif; ?>
+<div class="error">
 
+❌ <?php echo htmlspecialchars($orderError); ?>
 
-        <?php if ($orderError !== ""): ?>
+</div>
 
-            <div class="error">
+<?php endif; ?>
 
-                ❌ <?php echo htmlspecialchars($orderError); ?>
 
-            </div>
+<form
+class="build-form"
+method="POST"
+action="menu.php#build-coffee"
+>
 
-        <?php endif; ?>
 
+<!-- COFFEE -->
 
-        <form
-            class="build-form"
-            method="POST"
-            action="menu.php#build-coffee"
-        >
+<div class="build-group">
 
+<label>
+Coffee Type *
+</label>
 
-            <!-- COFFEE -->
+<select
+name="coffee"
+id="coffeeType"
+required
+>
 
-            <div class="build-group">
+<option
+value=""
+data-price="0"
+>
+Select Coffee
+</option>
 
-                <label>
-                    Coffee Type *
-                </label>
+<option
+value="Classic Coffee"
+data-price="120"
+>
+Classic Coffee — ₹120
+</option>
 
-                <select
-                    name="coffee"
-                    id="coffeeType"
-                    required
-                >
+<option
+value="Espresso"
+data-price="100"
+>
+Espresso — ₹100
+</option>
 
-                    <option
-                        value=""
-                        data-price="0"
-                    >
-                        Select Coffee
-                    </option>
+<option
+value="Cappuccino"
+data-price="150"
+>
+Cappuccino — ₹150
+</option>
 
-                    <option
-                        value="Classic Coffee"
-                        data-price="120"
-                    >
-                        Classic Coffee — ₹120
-                    </option>
+<option
+value="Mocha"
+data-price="170"
+>
+Mocha — ₹170
+</option>
 
-                    <option
-                        value="Espresso"
-                        data-price="100"
-                    >
-                        Espresso — ₹100
-                    </option>
+<option
+value="Cold Coffee"
+data-price="150"
+>
+Cold Coffee — ₹150
+</option>
 
-                    <option
-                        value="Cappuccino"
-                        data-price="150"
-                    >
-                        Cappuccino — ₹150
-                    </option>
+<option
+value="Iced Coffee"
+data-price="160"
+>
+Iced Coffee — ₹160
+</option>
 
-                    <option
-                        value="Mocha"
-                        data-price="170"
-                    >
-                        Mocha — ₹170
-                    </option>
+<option
+value="Frappé"
+data-price="190"
+>
+Frappé — ₹190
+</option>
 
-                    <option
-                        value="Cold Coffee"
-                        data-price="150"
-                    >
-                        Cold Coffee — ₹150
-                    </option>
+<option
+value="Signature Coffee"
+data-price="220"
+>
+Signature Coffee — ₹220
+</option>
 
-                    <option
-                        value="Iced Coffee"
-                        data-price="160"
-                    >
-                        Iced Coffee — ₹160
-                    </option>
+</select>
 
-                    <option
-                        value="Frappé"
-                        data-price="190"
-                    >
-                        Frappé — ₹190
-                    </option>
+</div>
 
-                    <option
-                        value="Signature Coffee"
-                        data-price="220"
-                    >
-                        Signature Coffee — ₹220
-                    </option>
 
-                </select>
+<!-- SIZE -->
 
-            </div>
+<div class="build-group">
 
+<label>
+Size *
+</label>
 
-            <!-- SIZE -->
+<select
+name="size"
+id="coffeeSize"
+required
+>
 
-            <div class="build-group">
+<option
+value=""
+data-price="0"
+>
+Select Size
+</option>
 
-                <label>
-                    Size *
-                </label>
+<option
+value="Small"
+data-price="0"
+>
+Small — +₹0
+</option>
 
-                <select
-                    name="size"
-                    id="coffeeSize"
-                    required
-                >
+<option
+value="Medium"
+data-price="30"
+>
+Medium — +₹30
+</option>
 
-                    <option
-                        value=""
-                        data-price="0"
-                    >
-                        Select Size
-                    </option>
+<option
+value="Large"
+data-price="50"
+>
+Large — +₹50
+</option>
 
-                    <option
-                        value="Small"
-                        data-price="0"
-                    >
-                        Small — +₹0
-                    </option>
+</select>
 
-                    <option
-                        value="Medium"
-                        data-price="30"
-                    >
-                        Medium — +₹30
-                    </option>
+</div>
 
-                    <option
-                        value="Large"
-                        data-price="50"
-                    >
-                        Large — +₹50
-                    </option>
 
-                </select>
+<!-- MILK -->
 
-            </div>
+<div class="build-group">
 
+<label>
+Milk
+</label>
 
-            <!-- MILK -->
+<select
+name="milk"
+id="coffeeMilk"
+>
 
-            <div class="build-group">
+<option
+value="Regular Milk"
+data-price="0"
+>
+Regular Milk — +₹0
+</option>
 
-                <label>
-                    Milk
-                </label>
+<option
+value="Almond Milk"
+data-price="30"
+>
+Almond Milk — +₹30
+</option>
 
-                <select
-                    name="milk"
-                    id="coffeeMilk"
-                >
+<option
+value="Oat Milk"
+data-price="25"
+>
+Oat Milk — +₹25
+</option>
 
-                    <option
-                        value="Regular Milk"
-                        data-price="0"
-                    >
-                        Regular Milk — +₹0
-                    </option>
+<option
+value="Soy Milk"
+data-price="20"
+>
+Soy Milk — +₹20
+</option>
 
-                    <option
-                        value="Almond Milk"
-                        data-price="30"
-                    >
-                        Almond Milk — +₹30
-                    </option>
+</select>
 
-                    <option
-                        value="Oat Milk"
-                        data-price="25"
-                    >
-                        Oat Milk — +₹25
-                    </option>
+</div>
 
-                    <option
-                        value="Soy Milk"
-                        data-price="20"
-                    >
-                        Soy Milk — +₹20
-                    </option>
 
-                </select>
+<!-- SWEETNESS -->
 
-            </div>
+<div class="build-group">
 
+<label>
+Sweetness
+</label>
 
-            <!-- SWEETNESS -->
+<select
+name="sweetness"
+id="coffeeSweetness"
+>
 
-            <div class="build-group">
+<option
+value="Normal"
+data-price="0"
+>
+Normal — +₹0
+</option>
 
-                <label>
-                    Sweetness
-                </label>
+<option
+value="Less Sugar"
+data-price="0"
+>
+Less Sugar — +₹0
+</option>
 
-                <select
-                    name="sweetness"
-                    id="coffeeSweetness"
-                >
+<option
+value="No Sugar"
+data-price="0"
+>
+No Sugar — +₹0
+</option>
 
-                    <option
-                        value="Normal"
-                        data-price="0"
-                    >
-                        Normal — +₹0
-                    </option>
+<option
+value="Extra Sweet"
+data-price="10"
+>
+Extra Sweet — +₹10
+</option>
 
-                    <option
-                        value="Less Sugar"
-                        data-price="0"
-                    >
-                        Less Sugar — +₹0
-                    </option>
+</select>
 
-                    <option
-                        value="No Sugar"
-                        data-price="0"
-                    >
-                        No Sugar — +₹0
-                    </option>
+</div>
 
-                    <option
-                        value="Extra Sweet"
-                        data-price="10"
-                    >
-                        Extra Sweet — +₹10
-                    </option>
 
-                </select>
+<!-- TOPPING -->
 
-            </div>
+<div class="build-group">
 
+<label>
+Toppings
+</label>
 
-            <!-- TOPPING -->
+<select
+name="topping"
+id="coffeeTopping"
+>
 
-            <div class="build-group">
+<option
+value="No Topping"
+data-price="0"
+>
+No Topping — +₹0
+</option>
 
-                <label>
-                    Toppings
-                </label>
+<option
+value="Whipped Cream"
+data-price="20"
+>
+Whipped Cream — +₹20
+</option>
 
-                <select
-                    name="topping"
-                    id="coffeeTopping"
-                >
+<option
+value="Chocolate"
+data-price="25"
+>
+Chocolate — +₹25
+</option>
 
-                    <option
-                        value="No Topping"
-                        data-price="0"
-                    >
-                        No Topping — +₹0
-                    </option>
+<option
+value="Caramel"
+data-price="20"
+>
+Caramel — +₹20
+</option>
 
-                    <option
-                        value="Whipped Cream"
-                        data-price="20"
-                    >
-                        Whipped Cream — +₹20
-                    </option>
+<option
+value="Hazelnut"
+data-price="30"
+>
+Hazelnut — +₹30
+</option>
 
-                    <option
-                        value="Chocolate"
-                        data-price="25"
-                    >
-                        Chocolate — +₹25
-                    </option>
+</select>
 
-                    <option
-                        value="Caramel"
-                        data-price="20"
-                    >
-                        Caramel — +₹20
-                    </option>
+</div>
 
-                    <option
-                        value="Hazelnut"
-                        data-price="30"
-                    >
-                        Hazelnut — +₹30
-                    </option>
 
-                </select>
+<!-- NAME -->
 
-            </div>
+<div class="build-group">
 
+<label>
+Your Name *
+</label>
 
-            <!-- NAME -->
+<input
+type="text"
+name="name"
+placeholder="Enter your name"
+required
+>
 
-            <div class="build-group">
+</div>
 
-                <label>
-                    Your Name *
-                </label>
 
-                <input
-                    type="text"
-                    name="name"
-                    placeholder="Enter your name"
-                    required
-                >
+<!-- PHONE -->
 
-            </div>
+<div class="build-group">
 
+<label>
+Mobile Number *
+</label>
 
-            <!-- PHONE -->
+<input
+type="tel"
+name="phone"
+placeholder="10 digit mobile number"
+maxlength="10"
+pattern="[0-9]{10}"
+required
+>
 
-            <div class="build-group">
+</div>
 
-                <label>
-                    Mobile Number *
-                </label>
 
-                <input
-                    type="tel"
-                    name="phone"
-                    placeholder="10 digit mobile number"
-                    maxlength="10"
-                    pattern="[0-9]{10}"
-                    required
-                >
+<!-- PAYMENT -->
 
-            </div>
+<div class="build-group payment-box">
 
+<label>
+Payment Method *
+</label>
 
-            <!-- PAYMENT -->
+<select
+name="payment"
+id="paymentMethod"
+required
+>
 
-            <div class="build-group payment-box">
+<option value="">
+Select Payment Method
+</option>
 
-                <label>
-                    Payment Method *
-                </label>
+<option value="Cash">
+Cash
+</option>
 
-                <select
-                    name="payment"
-                    required
-                >
+<option value="UPI">
+UPI
+</option>
 
-                    <option value="">
-                        Select Payment Method
-                    </option>
+<option value="Card">
+Card
+</option>
 
-                    <option value="Cash">
-                        💵 Cash
-                    </option>
+</select>
 
-                    <option value="UPI">
-                        📱 UPI
-                    </option>
+</div>
 
-                    <option value="Card">
-                        💳 Card
-                    </option>
 
-                </select>
+<!-- QR -->
 
-            </div>
+<div
+class="qr-box"
+id="qrBox"
+>
 
+<h3>
+UPI Payment
+</h3>
 
-            <!-- PRICE -->
+<p>
+Scan this QR Code to pay your bill
+</p>
 
-            <div class="price-box">
+<img
+src="images/upi-qr.png"
+alt="VELOURE UPI QR Code"
+onerror="this.style.display='none';"
+>
 
-                <span>
-                    YOUR COFFEE PRICE
-                </span>
+<p>
+Amount to Pay
+</p>
 
-                <strong id="coffeeTotal">
-                    ₹0
-                </strong>
+<strong
+id="qrAmount"
+style="
+font-size:32px;
+color:#a66c43;
+"
+>
+₹0
+</strong>
 
-            </div>
+</div>
 
 
-            <!-- BUTTON -->
+<!-- BILL DETAILS -->
 
-            <button
-                type="submit"
-                class="build-btn"
-            >
-                ☕ Create My Coffee
-            </button>
+<div class="bill-details">
 
+<h3>
+Your Bill
+</h3>
 
-        </form>
+<div class="bill-row">
 
-    </div>
+<span>
+Coffee
+</span>
 
+<strong id="billCoffee">
+₹0
+</strong>
+
+</div>
+
+
+<div class="bill-row">
+
+<span>
+Size
+</span>
+
+<strong id="billSize">
+₹0
+</strong>
+
+</div>
+
+
+<div class="bill-row">
+
+<span>
+Milk
+</span>
+
+<strong id="billMilk">
+₹0
+</strong>
+
+</div>
+
+
+<div class="bill-row">
+
+<span>
+Sweetness
+</span>
+
+<strong id="billSweetness">
+₹0
+</strong>
+
+</div>
+
+
+<div class="bill-row">
+
+<span>
+Topping
+</span>
+
+<strong id="billTopping">
+₹0
+</strong>
+
+</div>
+
+
+<div class="bill-total">
+
+<span>
+Total Bill
+</span>
+
+<strong id="billTotal">
+₹0
+</strong>
+
+</div>
+
+</div>
+
+
+<!-- PRICE -->
+
+<div class="price-box">
+
+<span>
+YOUR COFFEE PRICE
+</span>
+
+<strong id="coffeeTotal">
+₹0
+</strong>
+
+</div>
+
+
+<!-- BUTTON -->
+
+<button
+type="submit"
+class="build-btn"
+>
+Create My Coffee
+</button>
+
+
+</form>
+
+</div>
 
 </section>
 
 
-<!-- =========================================================
-     FOOTER
-========================================================= -->
+<!-- FOOTER -->
 
 <footer>
 
-    <div class="footer-logo">
-        VELOURE
-    </div>
+<div class="footer-logo">
+VELOURE
+</div>
 
-    <p>
-        © 2026 VELOURE Artisan Café.
-        All Rights Reserved.
-    </p>
+<p>
+© 2026 VELOURE Artisan Café.
+All Rights Reserved.
+</p>
 
 </footer>
 
-
-<!-- =========================================================
-     JAVASCRIPT
-========================================================= -->
 
 <script>
 
@@ -1981,136 +1817,209 @@ footer p {
 ========================================================= */
 
 const filterButtons =
-    document.querySelectorAll(".filter-btn");
+document.querySelectorAll(".filter-btn");
 
 const categories =
-    document.querySelectorAll(".menu-category");
+document.querySelectorAll(".menu-category");
 
 
-filterButtons.forEach(function(button) {
+filterButtons.forEach(function(button){
 
-    button.addEventListener("click", function() {
+button.addEventListener("click",function(){
 
-        const filter =
-            this.getAttribute("data-filter");
+const filter =
+this.getAttribute("data-filter");
 
+filterButtons.forEach(function(btn){
 
-        filterButtons.forEach(function(btn) {
+btn.classList.remove("active");
 
-            btn.classList.remove("active");
+});
 
-        });
-
-
-        this.classList.add("active");
+this.classList.add("active");
 
 
-        categories.forEach(function(category) {
+categories.forEach(function(category){
 
-            const categoryName =
-                category.getAttribute("data-category");
+const categoryName =
+category.getAttribute("data-category");
 
+if(
+filter === "all" ||
+categoryName === filter
+){
 
-            if (
-                filter === "all" ||
-                categoryName === filter
-            ) {
+category.style.display = "block";
 
-                category.style.display = "block";
+}else{
 
-            } else {
+category.style.display = "none";
 
-                category.style.display = "none";
+}
 
-            }
+});
 
-        });
-
-    });
+});
 
 });
 
 
 /* =========================================================
-   COFFEE PRICE CALCULATOR
+   PRICE CALCULATOR + BILL
 ========================================================= */
 
-function calculateCoffeePrice() {
+function getPrice(id){
 
-    let total = 0;
+const select =
+document.getElementById(id);
 
+if(!select){
 
-    const ids = [
+return 0;
 
-        "coffeeType",
+}
 
-        "coffeeSize",
+const option =
+select.options[select.selectedIndex];
 
-        "coffeeMilk",
+if(!option){
 
-        "coffeeSweetness",
+return 0;
 
-        "coffeeTopping"
+}
 
-    ];
+return Number(
+option.getAttribute("data-price")
+) || 0;
 
-
-    ids.forEach(function(id) {
-
-        const select =
-            document.getElementById(id);
-
-
-        if (select) {
-
-            const option =
-                select.options[
-                    select.selectedIndex
-                ];
+}
 
 
-            if (option) {
+function calculateCoffeePrice(){
 
-                total +=
-                    Number(
-                        option.getAttribute(
-                            "data-price"
-                        )
-                    ) || 0;
+const coffee =
+getPrice("coffeeType");
 
-            }
+const size =
+getPrice("coffeeSize");
 
-        }
+const milk =
+getPrice("coffeeMilk");
 
-    });
+const sweetness =
+getPrice("coffeeSweetness");
+
+const topping =
+getPrice("coffeeTopping");
 
 
-    document.getElementById(
-        "coffeeTotal"
-    ).innerHTML =
-        "₹" + total;
+const total =
+coffee +
+size +
+milk +
+sweetness +
+topping;
+
+
+/* MAIN PRICE */
+
+document.getElementById(
+"coffeeTotal"
+).innerHTML =
+"₹" + total;
+
+
+/* BILL DETAILS */
+
+document.getElementById(
+"billCoffee"
+).innerHTML =
+"₹" + coffee;
+
+document.getElementById(
+"billSize"
+).innerHTML =
+"₹" + size;
+
+document.getElementById(
+"billMilk"
+).innerHTML =
+"₹" + milk;
+
+document.getElementById(
+"billSweetness"
+).innerHTML =
+"₹" + sweetness;
+
+document.getElementById(
+"billTopping"
+).innerHTML =
+"₹" + topping;
+
+document.getElementById(
+"billTotal"
+).innerHTML =
+"₹" + total;
+
+
+/* QR AMOUNT */
+
+document.getElementById(
+"qrAmount"
+).innerHTML =
+"₹" + total;
 
 }
 
 
 /* =========================================================
-   PRICE UPDATE
+   PRICE CHANGE
 ========================================================= */
 
 document.querySelectorAll(
-    "#coffeeType, #coffeeSize, #coffeeMilk, #coffeeSweetness, #coffeeTopping"
-).forEach(function(select) {
+"#coffeeType, #coffeeSize, #coffeeMilk, #coffeeSweetness, #coffeeTopping"
+).forEach(function(select){
 
-    select.addEventListener(
-        "change",
-        calculateCoffeePrice
-    );
+select.addEventListener(
+"change",
+calculateCoffeePrice
+);
 
 });
 
 
-calculateCoffeePrice();
+/* =========================================================
+   UPI QR SHOW / HIDE
+========================================================= */
 
+const paymentMethod =
+document.getElementById("paymentMethod");
+
+const qrBox =
+document.getElementById("qrBox");
+
+
+paymentMethod.addEventListener(
+"change",
+function(){
+
+if(this.value === "UPI"){
+
+qrBox.classList.add("show");
+
+}else{
+
+qrBox.classList.remove("show");
+
+}
+
+}
+);
+
+
+/* INITIAL PRICE */
+
+calculateCoffeePrice();
 
 </script>
 
