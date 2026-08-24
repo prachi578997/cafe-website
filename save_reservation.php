@@ -2,24 +2,23 @@
 
 // ======================================================
 // VELOURE CAFE - SAVE RESERVATION
-// Excel Compatible CSV Storage
+// Temporary Excel-Compatible CSV Storage
 // ======================================================
 
 date_default_timezone_set("Asia/Kolkata");
 
-
-// ======================================================
+// ------------------------------------------------------
 // ONLY POST REQUEST
-// ======================================================
+// ------------------------------------------------------
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     die("Invalid request.");
 }
 
 
-// ======================================================
+// ------------------------------------------------------
 // GET FORM DATA
-// ======================================================
+// ------------------------------------------------------
 
 $name     = trim($_POST["name"] ?? "");
 $phone    = trim($_POST["phone"] ?? "");
@@ -31,9 +30,9 @@ $occasion = trim($_POST["occasion"] ?? "");
 $message  = trim($_POST["message"] ?? "");
 
 
-// ======================================================
-// VALIDATION
-// ======================================================
+// ------------------------------------------------------
+// REQUIRED FIELD VALIDATION
+// ------------------------------------------------------
 
 if (
     $name === "" ||
@@ -46,18 +45,18 @@ if (
 }
 
 
-// ======================================================
+// ------------------------------------------------------
 // PHONE VALIDATION
-// ======================================================
+// ------------------------------------------------------
 
 if (!preg_match("/^[0-9]{10}$/", $phone)) {
     die("Please enter a valid 10 digit mobile number.");
 }
 
 
-// ======================================================
+// ------------------------------------------------------
 // EMAIL VALIDATION
-// ======================================================
+// ------------------------------------------------------
 
 if (
     $email !== "" &&
@@ -67,9 +66,9 @@ if (
 }
 
 
-// ======================================================
+// ------------------------------------------------------
 // GUEST VALIDATION
-// ======================================================
+// ------------------------------------------------------
 
 $guestsNumber = intval($guests);
 
@@ -78,9 +77,9 @@ if ($guestsNumber < 1 || $guestsNumber > 10) {
 }
 
 
-// ======================================================
+// ------------------------------------------------------
 // DATE VALIDATION
-// ======================================================
+// ------------------------------------------------------
 
 $today = date("Y-m-d");
 
@@ -90,99 +89,72 @@ if ($date < $today) {
 
 
 // ======================================================
-// PAYMENT DETAILS
+// TEMPORARY CSV STORAGE
 // ======================================================
+//
+// Data CSV format मध्ये save होईल.
+// CSV file Excel मध्ये open करता येईल.
+//
+// /tmp folder temporary आहे.
+// Server restart/redeploy झाल्यावर data delete होऊ शकतो.
+//
 
-$paymentMethod = trim(
-    $_POST["payment_method"] ?? "Not Selected"
-);
-
-$paymentStatus = trim(
-    $_POST["payment_status"] ?? "Pending"
-);
-
-
-// ======================================================
-// RESERVATION STATUS
-// ======================================================
-
-$reservationStatus = "Confirmed";
+$dataFolder = "/tmp/veloure_data";
 
 
-// ======================================================
-// RESERVATION ID
-// ======================================================
+// ------------------------------------------------------
+// CREATE TEMPORARY FOLDER
+// ------------------------------------------------------
 
-$reservationID =
-    "VR-" .
-    date("YmdHis") .
-    "-" .
-    rand(100, 999);
+if (!is_dir($dataFolder)) {
 
-
-// ======================================================
-// STORAGE FOLDER
-// ======================================================
-
-$storageFolder = __DIR__ . DIRECTORY_SEPARATOR . "storage";
-
-
-// ======================================================
-// CREATE STORAGE FOLDER IF NOT EXISTS
-// ======================================================
-
-if (!is_dir($storageFolder)) {
-
-    if (!mkdir($storageFolder, 0755, true)) {
+    if (!mkdir($dataFolder, 0777, true)) {
 
         die(
-            "Unable to create storage folder. Please create a folder named 'storage' inside your project."
+            "Unable to create temporary storage folder."
         );
     }
 }
 
 
-// ======================================================
-// CSV FILE
-// ======================================================
+// ------------------------------------------------------
+// CSV FILE PATH
+// ------------------------------------------------------
 
-$file =
-    $storageFolder .
-    DIRECTORY_SEPARATOR .
-    "reservation.csv";
+$file = $dataFolder . "/reservation.csv";
 
 
-// ======================================================
-// CHECK WHETHER CSV IS NEW
-// ======================================================
+// ------------------------------------------------------
+// CHECK NEW FILE
+// ------------------------------------------------------
 
 $isNewFile =
     !file_exists($file) ||
     filesize($file) === 0;
 
 
-// ======================================================
-// OPEN CSV
-// ======================================================
+// ------------------------------------------------------
+// OPEN CSV FILE
+// ------------------------------------------------------
 
 $handle = fopen($file, "a");
 
 
-// ======================================================
+// ------------------------------------------------------
 // CHECK FILE OPEN
-// ======================================================
+// ------------------------------------------------------
 
 if ($handle === false) {
 
     die(
-        "Unable to save reservation. The storage folder is not writable."
+        "Unable to save reservation. Please try again."
     );
 }
 
 
-// ======================================================
+// ------------------------------------------------------
 // LOCK FILE
-// ======================================================
+// ------------------------------------------------------
 
 if (!flock($handle, LOCK_EX)) {
 
@@ -200,7 +172,7 @@ if (!flock($handle, LOCK_EX)) {
 
 if ($isNewFile) {
 
-    $headerSuccess = fputcsv($handle, [
+    fputcsv($handle, [
 
         "Reservation ID",
         "Saved Date & Time",
@@ -217,67 +189,94 @@ if ($isNewFile) {
         "Reservation Status"
 
     ]);
-
-
-    if ($headerSuccess === false) {
-
-        flock($handle, LOCK_UN);
-        fclose($handle);
-
-        die(
-            "Unable to create reservation Excel file."
-        );
-    }
 }
 
 
 // ======================================================
-// SAVE RESERVATION
+// RESERVATION ID
 // ======================================================
 
-$success = fputcsv($handle, [
-
-    $reservationID,
-
-    date("Y-m-d H:i:s"),
-
-    $name,
-
-    $phone,
-
-    $email,
-
-    $date,
-
-    $time,
-
-    $guestsNumber,
-
-    $occasion,
-
-    $message,
-
-    $paymentMethod,
-
-    $paymentStatus,
-
-    $reservationStatus
-
-]);
+$reservationID =
+    "VR-" .
+    date("YmdHis") .
+    "-" .
+    rand(100, 999);
 
 
 // ======================================================
+// PAYMENT DETAILS
+// ======================================================
+
+$paymentMethod =
+    trim(
+        $_POST["payment_method"] ??
+        "Not Selected"
+    );
+
+$paymentStatus =
+    trim(
+        $_POST["payment_status"] ??
+        "Pending"
+    );
+
+
+// ======================================================
+// RESERVATION STATUS
+// ======================================================
+
+$reservationStatus = "Confirmed";
+
+
+// ======================================================
+// SAVE DATA
+// ======================================================
+
+$success = fputcsv(
+    $handle,
+    [
+
+        $reservationID,
+
+        date("Y-m-d H:i:s"),
+
+        $name,
+
+        $phone,
+
+        $email,
+
+        $date,
+
+        $time,
+
+        $guestsNumber,
+
+        $occasion,
+
+        $message,
+
+        $paymentMethod,
+
+        $paymentStatus,
+
+        $reservationStatus
+
+    ]
+);
+
+
+// ------------------------------------------------------
 // UNLOCK + CLOSE
-// ======================================================
+// ------------------------------------------------------
 
 flock($handle, LOCK_UN);
 
 fclose($handle);
 
 
-// ======================================================
+// ------------------------------------------------------
 // CHECK SAVE
-// ======================================================
+// ------------------------------------------------------
 
 if ($success === false) {
 
@@ -310,10 +309,12 @@ if ($success === false) {
 Reservation Confirmed | VELOURE Café
 </title>
 
+
 <link
     href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet"
 >
+
 
 <style>
 
@@ -322,6 +323,7 @@ Reservation Confirmed | VELOURE Café
     padding:0;
     box-sizing:border-box;
 }
+
 
 body{
 
@@ -340,7 +342,9 @@ body{
     color:#35251d;
 
     font-family:"DM Sans",sans-serif;
+
 }
+
 
 .success-box{
 
@@ -361,6 +365,7 @@ body{
         rgba(53,37,29,.15);
 
 }
+
 
 .success-icon{
 
@@ -386,6 +391,7 @@ body{
 
 }
 
+
 .success-box h1{
 
     font-family:"Cormorant Garamond",serif;
@@ -396,11 +402,13 @@ body{
 
 }
 
+
 .success-box h1 span{
 
     color:#a47b4c;
 
 }
+
 
 .success-box p{
 
@@ -411,6 +419,7 @@ body{
     font-size:14px;
 
 }
+
 
 .booking-id{
 
@@ -423,6 +432,7 @@ body{
     border-radius:12px;
 
 }
+
 
 .booking-id small{
 
@@ -438,6 +448,7 @@ body{
 
 }
 
+
 .booking-id strong{
 
     font-size:20px;
@@ -445,6 +456,7 @@ body{
     color:#a47b4c;
 
 }
+
 
 .details{
 
@@ -455,6 +467,7 @@ body{
     border-top:1px solid #eadfd3;
 
 }
+
 
 .detail-row{
 
@@ -472,17 +485,20 @@ body{
 
 }
 
+
 .detail-row span{
 
     color:#806f61;
 
 }
 
+
 .detail-row strong{
 
     text-align:right;
 
 }
+
 
 .home-btn{
 
@@ -508,11 +524,51 @@ body{
 
 }
 
+
 .home-btn:hover{
 
     background:#a47b4c;
 
     transform:translateY(-2px);
+
+}
+
+
+@media(max-width:600px){
+
+    .success-box{
+
+        padding:40px 22px;
+
+    }
+
+    .success-box h1{
+
+        font-size:40px;
+
+    }
+
+    .detail-row{
+
+        flex-direction:column;
+
+        gap:5px;
+
+    }
+
+    .detail-row strong{
+
+        text-align:left;
+
+    }
+
+    .home-btn{
+
+        display:block;
+
+        margin:15px 0 0 !important;
+
+    }
 
 }
 
@@ -600,6 +656,25 @@ body{
             </strong>
 
         </div>
+
+
+        <?php if ($email !== ""): ?>
+
+        <div class="detail-row">
+
+            <span>
+                Email
+            </span>
+
+            <strong>
+                <?php
+                echo htmlspecialchars($email);
+                ?>
+            </strong>
+
+        </div>
+
+        <?php endif; ?>
 
 
         <div class="detail-row">
@@ -733,7 +808,6 @@ body{
     <a
         href="index.php"
         class="home-btn"
-        style="margin-left:8px;"
     >
         Home
     </a>
