@@ -2,7 +2,8 @@
 
 // ======================================================
 // VELOURE CAFE - RESERVATION SYSTEM
-// MENU ITEM + PRICE + GOOGLE SHEET + UPI QR
+// MENU + SERVICES + GALLERY
+// GOOGLE SHEET + UPI QR
 // ======================================================
 
 date_default_timezone_set("Asia/Kolkata");
@@ -29,18 +30,21 @@ $reservation_fee = 100;
 
 
 // ======================================================
-// SELECTED MENU ITEMS
+// SELECTED ITEMS
 // ======================================================
 
 $selected_items = [];
 
-$menu_items_total = 0;
+$menu_total = 0;
+$service_total = 0;
+$gallery_total = 0;
 
+$items_total = 0;
 $grand_total = $reservation_fee;
 
 
 // ======================================================
-// GOOGLE SHEET WEB APP URL
+// GOOGLE SHEET URL
 // ======================================================
 
 $googleSheetURL =
@@ -54,29 +58,22 @@ $googleSheetURL =
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     // ==================================================
-    // BASIC FORM DATA
+    // BASIC DETAILS
     // ==================================================
 
-    $name =
-        trim($_POST["name"] ?? "");
+    $name = trim($_POST["name"] ?? "");
 
-    $phone =
-        trim($_POST["phone"] ?? "");
+    $phone = trim($_POST["phone"] ?? "");
 
-    $email =
-        trim($_POST["email"] ?? "");
+    $email = trim($_POST["email"] ?? "");
 
-    $date =
-        trim($_POST["date"] ?? "");
+    $date = trim($_POST["date"] ?? "");
 
-    $time =
-        trim($_POST["time"] ?? "");
+    $time = trim($_POST["time"] ?? "");
 
-    $guests =
-        trim($_POST["guests"] ?? "");
+    $guests = trim($_POST["guests"] ?? "");
 
-    $occasion =
-        trim($_POST["occasion"] ?? "");
+    $occasion = trim($_POST["occasion"] ?? "");
 
     $special_request =
         trim($_POST["special_request"] ?? "");
@@ -84,12 +81,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $payment_method =
         trim($_POST["payment_method"] ?? "");
 
-    $payment_status =
-        "Pending";
+    $payment_status = "Pending";
 
 
     // ==================================================
-    // GET SELECTED MENU ITEMS
+    // GET SELECTED ITEMS
     // ==================================================
 
     $reservation_items_json =
@@ -115,6 +111,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             $quantity =
                 (int)($item["quantity"] ?? 1);
+
+            $itemType =
+                strtolower(
+                    trim(
+                        $item["type"] ?? "menu"
+                    )
+                );
+
+
+            // ------------------------------------------
+            // ALLOWED TYPES
+            // ------------------------------------------
+
+            if (
+                !in_array(
+                    $itemType,
+                    [
+                        "menu",
+                        "service",
+                        "gallery"
+                    ],
+                    true
+                )
+            ) {
+
+                $itemType = "menu";
+
+            }
 
 
             // ------------------------------------------
@@ -142,14 +166,39 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     "quantity" =>
                         $quantity,
 
+                    "type" =>
+                        $itemType,
+
                     "total" =>
                         $itemTotal
 
                 ];
 
 
-                $menu_items_total +=
-                    $itemTotal;
+                // --------------------------------------
+                // TYPE TOTAL
+                // --------------------------------------
+
+                if ($itemType === "menu") {
+
+                    $menu_total +=
+                        $itemTotal;
+
+                }
+
+                elseif ($itemType === "service") {
+
+                    $service_total +=
+                        $itemTotal;
+
+                }
+
+                elseif ($itemType === "gallery") {
+
+                    $gallery_total +=
+                        $itemTotal;
+
+                }
 
             }
 
@@ -159,12 +208,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
     // ==================================================
+    // ITEMS TOTAL
+    // ==================================================
+
+    $items_total =
+        $menu_total +
+        $service_total +
+        $gallery_total;
+
+
+    // ==================================================
     // GRAND TOTAL
     // ==================================================
 
     $grand_total =
-        $reservation_fee +
-        $menu_items_total;
+        $items_total +
+        $reservation_fee;
 
 
     // ==================================================
@@ -232,7 +291,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     else {
 
-
         // ==================================================
         // RESERVATION ID
         // ==================================================
@@ -244,7 +302,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
         // ==================================================
-        // RESERVATION STATUS
+        // STATUS
         // ==================================================
 
         $reservation_status =
@@ -252,7 +310,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
         // ==================================================
-        // CREATED DATE
+        // CREATED AT
         // ==================================================
 
         $created_at =
@@ -260,11 +318,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
         // ==================================================
-        // SELECTED ITEMS FOR GOOGLE SHEET
+        // ITEMS TEXT FOR GOOGLE SHEET
         // ==================================================
 
         $selected_items_text = "";
-
 
         if (!empty($selected_items)) {
 
@@ -273,7 +330,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             foreach ($selected_items as $item) {
 
+                $typeLabel = "Menu";
+
+
+                if ($item["type"] === "service") {
+
+                    $typeLabel = "Service";
+
+                }
+
+                elseif ($item["type"] === "gallery") {
+
+                    $typeLabel = "Gallery";
+
+                }
+
+
                 $itemParts[] =
+                    $typeLabel .
+                    " - " .
                     $item["name"] .
                     " x " .
                     $item["quantity"] .
@@ -296,13 +371,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         else {
 
             $selected_items_text =
-                "No menu item selected";
+                "No item selected";
 
         }
 
 
         // ==================================================
-        // DATA FOR GOOGLE SHEET
+        // GOOGLE SHEET DATA
         // ==================================================
 
         $googleData = [
@@ -337,8 +412,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             "selected_items" =>
                 $selected_items_text,
 
-            "menu_items_total" =>
-                $menu_items_total,
+            "menu_total" =>
+                $menu_total,
+
+            "service_total" =>
+                $service_total,
+
+            "gallery_total" =>
+                $gallery_total,
+
+            "items_total" =>
+                $items_total,
 
             "reservation_fee" =>
                 $reservation_fee,
@@ -362,7 +446,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
         // ==================================================
-        // SEND TO GOOGLE SHEET
+        // SEND GOOGLE SHEET
         // ==================================================
 
         $ch =
@@ -434,7 +518,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
         // ==================================================
-        // CHECK GOOGLE RESPONSE
+        // GOOGLE RESPONSE
         // ==================================================
 
         if (
@@ -471,8 +555,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             else {
 
-                $success =
-                    true;
+                $success = true;
 
             }
 
@@ -501,10 +584,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <title>VELOURE | Reservation</title>
 
 
-<!-- ======================================================
-     GOOGLE FONTS
-====================================================== -->
-
 <link
     href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet"
@@ -512,10 +591,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
 <style>
-
-/* ======================================================
-   RESET
-====================================================== */
 
 * {
     margin: 0;
@@ -551,45 +626,31 @@ body {
 
 .navbar {
 
-    position:
-        sticky;
+    position: sticky;
+    top: 0;
+    z-index: 999;
 
-    top:
-        0;
+    height: 78px;
 
-    z-index:
-        999;
-
-    height:
-        78px;
-
-    background:
-        #fffaf4;
+    background: #fffaf4;
 
     border-bottom:
         1px solid #dfd2c2;
 
-    display:
-        flex;
+    display: flex;
 
-    align-items:
-        center;
+    align-items: center;
 
-    justify-content:
-        space-between;
+    justify-content: space-between;
 
-    padding:
-        0 6%;
+    padding: 0 6%;
 
 }
 
 .logo {
 
-    text-decoration:
-        none;
-
-    color:
-        #35251d;
+    text-decoration: none;
+    color: #35251d;
 
 }
 
@@ -599,101 +660,75 @@ body {
         "Cormorant Garamond",
         serif;
 
-    font-size:
-        34px;
+    font-size: 34px;
 
-    line-height:
-        28px;
+    line-height: 28px;
 
-    letter-spacing:
-        5px;
+    letter-spacing: 5px;
 
 }
 
 .logo span {
 
-    display:
-        block;
+    display: block;
 
-    text-align:
-        center;
+    text-align: center;
 
-    font-size:
-        8px;
+    font-size: 8px;
 
-    letter-spacing:
-        4px;
+    letter-spacing: 4px;
 
-    color:
-        #a47b4c;
+    color: #a47b4c;
 
-    margin-top:
-        4px;
+    margin-top: 4px;
 
 }
 
 .nav-links {
 
-    display:
-        flex;
-
-    gap:
-        18px;
+    display: flex;
+    gap: 18px;
 
 }
 
 .nav-links a {
 
-    text-decoration:
-        none;
+    text-decoration: none;
 
-    color:
-        #35251d;
+    color: #35251d;
 
-    font-size:
-        13px;
+    font-size: 13px;
 
-    font-weight:
-        600;
+    font-weight: 600;
 
 }
 
 .nav-links a:hover {
 
-    color:
-        #a47b4c;
+    color: #a47b4c;
 
 }
 
 .back-btn {
 
-    text-decoration:
-        none;
+    text-decoration: none;
 
-    color:
-        #35251d;
+    color: #35251d;
 
-    border:
-        1px solid #bfa88e;
+    border: 1px solid #bfa88e;
 
-    padding:
-        10px 18px;
+    padding: 10px 18px;
 
-    border-radius:
-        25px;
+    border-radius: 25px;
 
-    font-size:
-        13px;
+    font-size: 13px;
 
 }
 
 .back-btn:hover {
 
-    background:
-        #35251d;
-
-    color:
-        white;
+    background: #35251d;
+    color: white;
 
 }
 
@@ -704,14 +739,11 @@ body {
 
 .container {
 
-    width:
-        94%;
+    width: 94%;
 
-    max-width:
-        1150px;
+    max-width: 1150px;
 
-    margin:
-        50px auto 80px;
+    margin: 50px auto 80px;
 
 }
 
@@ -722,23 +754,20 @@ body {
 
 .card {
 
-    display:
-        grid;
+    display: grid;
 
     grid-template-columns:
         38% 62%;
 
-    background:
-        white;
+    background: white;
 
-    border-radius:
-        25px;
+    border-radius: 25px;
 
-    overflow:
-        hidden;
+    overflow: hidden;
 
     box-shadow:
-        0 20px 60px rgba(53,37,29,.15);
+        0 20px 60px
+        rgba(53,37,29,.15);
 
 }
 
@@ -756,24 +785,19 @@ body {
             #241713
         );
 
-    color:
-        white;
+    color: white;
 
-    padding:
-        55px 40px;
+    padding: 55px 40px;
 
 }
 
 .left small {
 
-    color:
-        #d4b27f;
+    color: #d4b27f;
 
-    letter-spacing:
-        4px;
+    letter-spacing: 4px;
 
-    font-size:
-        11px;
+    font-size: 11px;
 
 }
 
@@ -783,43 +807,33 @@ body {
         "Cormorant Garamond",
         serif;
 
-    font-size:
-        52px;
+    font-size: 52px;
 
-    line-height:
-        1;
+    line-height: 1;
 
-    margin:
-        22px 0;
+    margin: 22px 0;
 
 }
 
 .left p {
 
-    color:
-        #ddd0c5;
+    color: #ddd0c5;
 
-    line-height:
-        1.8;
+    line-height: 1.8;
 
-    font-size:
-        14px;
+    font-size: 14px;
 
 }
 
 .info {
 
-    margin-top:
-        35px;
+    margin-top: 35px;
 
-    line-height:
-        2.6;
+    line-height: 2.6;
 
-    color:
-        #eee3da;
+    color: #eee3da;
 
-    font-size:
-        14px;
+    font-size: 14px;
 
 }
 
@@ -830,17 +844,15 @@ body {
 
 .fee-info {
 
-    margin-top:
-        30px;
+    margin-top: 30px;
 
-    padding:
-        18px;
+    padding: 18px;
 
     border:
-        1px solid rgba(255,255,255,.15);
+        1px solid
+        rgba(255,255,255,.15);
 
-    border-radius:
-        14px;
+    border-radius: 14px;
 
     background:
         rgba(255,255,255,.06);
@@ -849,20 +861,15 @@ body {
 
 .fee-info span {
 
-    display:
-        block;
+    display: block;
 
-    color:
-        #d4b27f;
+    color: #d4b27f;
 
-    font-size:
-        11px;
+    font-size: 11px;
 
-    letter-spacing:
-        2px;
+    letter-spacing: 2px;
 
-    margin-bottom:
-        5px;
+    margin-bottom: 5px;
 
 }
 
@@ -872,11 +879,9 @@ body {
         "Cormorant Garamond",
         serif;
 
-    font-size:
-        32px;
+    font-size: 32px;
 
-    color:
-        #fff;
+    color: white;
 
 }
 
@@ -887,8 +892,7 @@ body {
 
 .right {
 
-    padding:
-        48px;
+    padding: 48px;
 
 }
 
@@ -898,24 +902,19 @@ body {
         "Cormorant Garamond",
         serif;
 
-    font-size:
-        48px;
+    font-size: 48px;
 
-    margin-bottom:
-        5px;
+    margin-bottom: 5px;
 
 }
 
 .subtitle {
 
-    color:
-        #806f61;
+    color: #806f61;
 
-    margin-bottom:
-        28px;
+    margin-bottom: 28px;
 
-    font-size:
-        14px;
+    font-size: 14px;
 
 }
 
@@ -926,26 +925,19 @@ body {
 
 .error {
 
-    background:
-        #ffe0e0;
+    background: #ffe0e0;
 
-    color:
-        #a52d2d;
+    color: #a52d2d;
 
-    padding:
-        14px;
+    padding: 14px;
 
-    border-radius:
-        10px;
+    border-radius: 10px;
 
-    margin-bottom:
-        20px;
+    margin-bottom: 20px;
 
-    font-size:
-        14px;
+    font-size: 14px;
 
-    font-weight:
-        600;
+    font-weight: 600;
 
 }
 
@@ -956,37 +948,30 @@ body {
 
 .row {
 
-    display:
-        grid;
+    display: grid;
 
     grid-template-columns:
         1fr 1fr;
 
-    gap:
-        16px;
+    gap: 16px;
 
 }
 
 .group {
 
-    margin-bottom:
-        18px;
+    margin-bottom: 18px;
 
 }
 
 label {
 
-    display:
-        block;
+    display: block;
 
-    font-weight:
-        600;
+    font-weight: 600;
 
-    font-size:
-        13px;
+    font-size: 13px;
 
-    margin-bottom:
-        7px;
+    margin-bottom: 7px;
 
 }
 
@@ -994,32 +979,24 @@ input,
 select,
 textarea {
 
-    width:
-        100%;
+    width: 100%;
 
-    padding:
-        14px;
+    padding: 14px;
 
     border:
         1px solid #d9cbbb;
 
-    border-radius:
-        10px;
+    border-radius: 10px;
 
-    background:
-        #fffdf9;
+    background: #fffdf9;
 
-    color:
-        #35251d;
+    color: #35251d;
 
-    font-family:
-        inherit;
+    font-family: inherit;
 
-    font-size:
-        14px;
+    font-size: 14px;
 
-    outline:
-        none;
+    outline: none;
 
 }
 
@@ -1027,8 +1004,7 @@ input:focus,
 select:focus,
 textarea:focus {
 
-    border-color:
-        #a47b4c;
+    border-color: #a47b4c;
 
     box-shadow:
         0 0 0 3px
@@ -1038,35 +1014,29 @@ textarea:focus {
 
 textarea {
 
-    min-height:
-        95px;
+    min-height: 95px;
 
-    resize:
-        vertical;
+    resize: vertical;
 
 }
 
 
 /* ======================================================
-   SELECTED MENU ITEMS
+   SELECTED ITEMS
 ====================================================== */
 
 .selected-items-box {
 
-    background:
-        #f6f1e8;
+    background: #f6f1e8;
 
     border:
         1px solid #d9cbbb;
 
-    padding:
-        20px;
+    padding: 20px;
 
-    border-radius:
-        15px;
+    border-radius: 15px;
 
-    margin-bottom:
-        20px;
+    margin-bottom: 20px;
 
 }
 
@@ -1076,124 +1046,114 @@ textarea {
         "Cormorant Garamond",
         serif;
 
-    font-size:
-        28px;
+    font-size: 28px;
 
-    margin-bottom:
-        15px;
+    margin-bottom: 15px;
 
 }
 
 .selected-item {
 
-    display:
-        flex;
+    display: flex;
 
     justify-content:
         space-between;
 
-    align-items:
-        center;
+    align-items: center;
 
-    gap:
-        15px;
+    gap: 15px;
 
-    padding:
-        12px 0;
+    padding: 12px 0;
 
     border-bottom:
         1px solid #dfd2c2;
 
-    font-size:
-        13px;
+    font-size: 13px;
 
 }
 
 .selected-item-name {
 
-    font-weight:
-        600;
+    font-weight: 600;
+
+}
+
+.item-type {
+
+    color: #a47b4c;
+
+    font-size: 11px;
+
+    font-weight: 700;
+
+    letter-spacing: 1px;
+
+    text-transform: uppercase;
 
 }
 
 .selected-item-price {
 
-    color:
-        #a47b4c;
+    color: #a47b4c;
 
-    font-weight:
-        700;
+    font-weight: 700;
 
-    text-align:
-        right;
+    text-align: right;
 
 }
 
 .no-items {
 
-    color:
-        #806f61;
+    color: #806f61;
 
-    font-size:
-        13px;
+    font-size: 13px;
 
-    padding:
-        10px 0;
+    padding: 10px 0;
 
 }
 
 .items-total {
 
-    display:
-        flex;
+    display: flex;
 
     justify-content:
         space-between;
 
-    padding-top:
-        12px;
+    padding-top: 12px;
 
-    font-size:
-        14px;
+    font-size: 14px;
 
 }
 
 .items-total strong {
 
-    color:
-        #a47b4c;
+    color: #a47b4c;
 
 }
 
 .grand-total {
 
-    display:
-        flex;
+    display: flex;
 
     justify-content:
         space-between;
 
-    margin-top:
-        15px;
+    margin-top: 15px;
 
-    padding-top:
-        15px;
+    padding-top: 15px;
 
     border-top:
         2px solid #d2c2b1;
 
-    font-size:
-        20px;
+    font-size: 20px;
 
-    font-weight:
-        700;
+    font-weight: 700;
 
 }
 
 .grand-total strong {
 
-    color:
-        #35251d;
+    color: #35251d;
 
 }
 
@@ -1204,17 +1164,13 @@ textarea {
 
 .payment {
 
-    background:
-        #f6f1e8;
+    background: #f6f1e8;
 
-    padding:
-        18px;
+    padding: 18px;
 
-    border-radius:
-        12px;
+    border-radius: 12px;
 
-    margin-bottom:
-        20px;
+    margin-bottom: 20px;
 
 }
 
@@ -1224,35 +1180,29 @@ textarea {
         "Cormorant Garamond",
         serif;
 
-    font-size:
-        24px;
+    font-size: 24px;
 
-    margin-bottom:
-        15px;
+    margin-bottom: 15px;
 
 }
 
 .payment-row {
 
-    display:
-        flex;
+    display: flex;
 
-    gap:
-        10px;
+    gap: 10px;
 
 }
 
 .payment-option {
 
-    flex:
-        1;
+    flex: 1;
 
 }
 
 .payment-row input {
 
-    display:
-        none;
+    display: none;
 
 }
 
@@ -1261,77 +1211,61 @@ textarea {
     border:
         1px solid #d2c2b1;
 
-    padding:
-        13px 8px;
+    padding: 13px 8px;
 
-    text-align:
-        center;
+    text-align: center;
 
-    border-radius:
-        10px;
+    border-radius: 10px;
 
-    cursor:
-        pointer;
+    cursor: pointer;
 
-    background:
-        white;
+    background: white;
 
 }
 
 .payment-row label:hover {
 
-    border-color:
-        #a47b4c;
+    border-color: #a47b4c;
 
 }
 
 .payment-row input:checked + label {
 
-    background:
-        #35251d;
+    background: #35251d;
 
-    color:
-        white;
+    color: white;
 
-    border-color:
-        #35251d;
+    border-color: #35251d;
 
 }
 
 
 /* ======================================================
-   UPI QR
+   QR
 ====================================================== */
 
 .qr-payment {
 
-    display:
-        none;
+    display: none;
 
-    background:
-        #fffaf4;
+    background: #fffaf4;
 
     border:
         1px solid #d9cbbb;
 
-    padding:
-        25px;
+    padding: 25px;
 
-    border-radius:
-        15px;
+    border-radius: 15px;
 
-    margin-bottom:
-        20px;
+    margin-bottom: 20px;
 
-    text-align:
-        center;
+    text-align: center;
 
 }
 
 .qr-payment.show {
 
-    display:
-        block;
+    display: block;
 
 }
 
@@ -1341,87 +1275,65 @@ textarea {
         "Cormorant Garamond",
         serif;
 
-    font-size:
-        28px;
+    font-size: 28px;
 
-    margin-bottom:
-        8px;
+    margin-bottom: 8px;
 
 }
 
 .qr-payment p {
 
-    color:
-        #806f61;
+    color: #806f61;
 
-    font-size:
-        13px;
+    font-size: 13px;
 
-    margin-bottom:
-        12px;
+    margin-bottom: 12px;
 
 }
 
 .upi-qr {
 
-    width:
-        200px;
+    width: 200px;
+    height: 200px;
 
-    height:
-        200px;
+    object-fit: contain;
 
-    object-fit:
-        contain;
+    display: block;
 
-    display:
-        block;
+    margin: 15px auto;
 
-    margin:
-        15px auto;
-
-    border-radius:
-        10px;
+    border-radius: 10px;
 
     border:
         1px solid #dfd2c2;
 
-    background:
-        white;
+    background: white;
 
-    padding:
-        8px;
+    padding: 8px;
 
 }
 
 .qr-amount {
 
-    background:
-        #f6f1e8;
+    background: #f6f1e8;
 
-    padding:
-        12px;
+    padding: 12px;
 
-    border-radius:
-        10px;
+    border-radius: 10px;
 
-    margin:
-        10px 0;
+    margin: 10px 0;
 
 }
 
 .qr-amount span {
 
-    display:
-        block;
+    display: block;
 
-    color:
-        #806f61;
+    color: #806f61;
 
-    font-size:
-        12px;
+    font-size: 12px;
 
-    margin-bottom:
-        5px;
+    margin-bottom: 5px;
 
 }
 
@@ -1431,61 +1343,48 @@ textarea {
         "Cormorant Garamond",
         serif;
 
-    font-size:
-        32px;
+    font-size: 32px;
 
-    color:
-        #a47b4c;
+    color: #a47b4c;
 
 }
 
 .qr-note {
 
-    font-size:
-        11px !important;
+    font-size: 11px !important;
 
 }
 
 
 /* ======================================================
-   BUTTON
+   SUBMIT
 ====================================================== */
 
 .submit-btn {
 
-    width:
-        100%;
+    width: 100%;
 
-    border:
-        none;
+    border: none;
 
-    background:
-        #35251d;
+    background: #35251d;
 
-    color:
-        white;
+    color: white;
 
-    padding:
-        16px;
+    padding: 16px;
 
-    border-radius:
-        12px;
+    border-radius: 12px;
 
-    font-size:
-        15px;
+    font-size: 15px;
 
-    font-weight:
-        700;
+    font-weight: 700;
 
-    cursor:
-        pointer;
+    cursor: pointer;
 
 }
 
 .submit-btn:hover {
 
-    background:
-        #a47b4c;
+    background: #a47b4c;
 
 }
 
@@ -1496,60 +1395,44 @@ textarea {
 
 .success {
 
-    max-width:
-        700px;
+    max-width: 800px;
 
-    margin:
-        60px auto;
+    margin: 60px auto;
 
-    background:
-        white;
+    background: white;
 
-    padding:
-        50px;
+    padding: 50px;
 
-    border-radius:
-        25px;
+    border-radius: 25px;
 
-    text-align:
-        center;
+    text-align: center;
 
     box-shadow:
-        0 20px 60px rgba(53,37,29,.15);
+        0 20px 60px
+        rgba(53,37,29,.15);
 
 }
 
 .success-icon {
 
-    width:
-        80px;
+    width: 80px;
+    height: 80px;
 
-    height:
-        80px;
+    background: #35251d;
 
-    background:
-        #35251d;
+    color: white;
 
-    color:
-        white;
+    border-radius: 50%;
 
-    border-radius:
-        50%;
+    display: flex;
 
-    display:
-        flex;
+    align-items: center;
 
-    align-items:
-        center;
+    justify-content: center;
 
-    justify-content:
-        center;
+    font-size: 40px;
 
-    font-size:
-        40px;
-
-    margin:
-        auto;
+    margin: auto;
 
 }
 
@@ -1559,78 +1442,60 @@ textarea {
         "Cormorant Garamond",
         serif;
 
-    font-size:
-        45px;
+    font-size: 45px;
 
-    margin:
-        20px 0 8px;
+    margin: 20px 0 8px;
 
 }
 
 .success > p {
 
-    color:
-        #806f61;
+    color: #806f61;
 
 }
 
 .details {
 
-    text-align:
-        left;
+    text-align: left;
 
-    background:
-        #f6f1e8;
+    background: #f6f1e8;
 
-    padding:
-        22px;
+    padding: 22px;
 
-    border-radius:
-        14px;
+    border-radius: 14px;
 
-    margin:
-        28px 0;
+    margin: 28px 0;
 
 }
 
 .details p {
 
-    margin:
-        11px 0;
+    margin: 11px 0;
 
-    font-size:
-        14px;
+    font-size: 14px;
 
     border-bottom:
         1px solid #dfd2c2;
 
-    padding-bottom:
-        8px;
+    padding-bottom: 8px;
 
 }
 
 .home-btn {
 
-    display:
-        inline-block;
+    display: inline-block;
 
-    background:
-        #35251d;
+    background: #35251d;
 
-    color:
-        white;
+    color: white;
 
-    text-decoration:
-        none;
+    text-decoration: none;
 
-    padding:
-        14px 28px;
+    padding: 14px 28px;
 
-    border-radius:
-        25px;
+    border-radius: 25px;
 
-    font-weight:
-        600;
+    font-weight: 600;
 
 }
 
@@ -1641,17 +1506,13 @@ textarea {
 
 footer {
 
-    background:
-        #241713;
+    background: #241713;
 
-    color:
-        white;
+    color: white;
 
-    text-align:
-        center;
+    text-align: center;
 
-    padding:
-        40px 20px;
+    padding: 40px 20px;
 
 }
 
@@ -1661,24 +1522,19 @@ footer {
         "Cormorant Garamond",
         serif;
 
-    font-size:
-        35px;
+    font-size: 35px;
 
-    letter-spacing:
-        5px;
+    letter-spacing: 5px;
 
 }
 
 footer p {
 
-    margin-top:
-        8px;
+    margin-top: 8px;
 
-    opacity:
-        .6;
+    opacity: .6;
 
-    font-size:
-        12px;
+    font-size: 12px;
 
 }
 
@@ -1690,18 +1546,15 @@ footer p {
 @media (max-width: 900px) {
 
     .nav-links {
-        display:
-            none;
+        display: none;
     }
 
     .card {
-        grid-template-columns:
-            1fr;
+        grid-template-columns: 1fr;
     }
 
     .row {
-        grid-template-columns:
-            1fr;
+        grid-template-columns: 1fr;
     }
 
 }
@@ -1709,69 +1562,49 @@ footer p {
 @media (max-width: 600px) {
 
     .navbar {
-        padding:
-            0 15px;
+        padding: 0 15px;
     }
 
     .logo h1 {
-        font-size:
-            27px;
+        font-size: 27px;
     }
 
     .container {
-        width:
-            96%;
-
-        margin-top:
-            25px;
+        width: 96%;
+        margin-top: 25px;
     }
 
     .left {
-        padding:
-            40px 25px;
+        padding: 40px 25px;
     }
 
     .left h2 {
-        font-size:
-            43px;
+        font-size: 43px;
     }
 
     .right {
-        padding:
-            30px 20px;
+        padding: 30px 20px;
     }
 
     .right h1 {
-        font-size:
-            40px;
+        font-size: 40px;
     }
 
     .payment-row {
-        flex-direction:
-            column;
+        flex-direction: column;
     }
 
     .success {
-        padding:
-            30px 20px;
+        padding: 30px 20px;
     }
 
     .success h1 {
-        font-size:
-            36px;
+        font-size: 36px;
     }
 
     .upi-qr {
-        width:
-            170px;
-
-        height:
-            170px;
-    }
-
-    .selected-item {
-        align-items:
-            flex-start;
+        width: 170px;
+        height: 170px;
     }
 
 }
@@ -1808,37 +1641,21 @@ footer p {
 
     <div class="nav-links">
 
-        <a href="index.php">
-            Home
-        </a>
+        <a href="index.php">Home</a>
 
-        <a href="about.php">
-            About
-        </a>
+        <a href="about.php">About</a>
 
-        <a href="menu.php">
-            Menu
-        </a>
+        <a href="menu.php">Menu</a>
 
-        <a href="offers.php">
-            Offers
-        </a>
+        <a href="offers.php">Offers</a>
 
-        <a href="gallery.php">
-            Gallery
-        </a>
+        <a href="gallery.php">Gallery</a>
 
-        <a href="services.php">
-            Services
-        </a>
+        <a href="services.php">Services</a>
 
-        <a href="reservation.php">
-            Reservation
-        </a>
+        <a href="reservation.php">Reservation</a>
 
-        <a href="reviews.php">
-            Reviews
-        </a>
+        <a href="reviews.php">Reviews</a>
 
     </div>
 
@@ -1864,7 +1681,7 @@ footer p {
 
 
 <!-- ======================================================
-     SUCCESS
+     SUCCESS PAGE
 ====================================================== -->
 
 <div class="success">
@@ -1873,9 +1690,11 @@ footer p {
         ✓
     </div>
 
+
     <h1>
         Reservation Confirmed!
     </h1>
+
 
     <p>
         Thank you for choosing VELOURE Café.
@@ -2003,11 +1822,9 @@ footer p {
             <?php
 
             echo htmlspecialchars(
-
                 $occasion !== ""
                 ? $occasion
                 : "Not specified"
-
             );
 
             ?>
@@ -2024,11 +1841,9 @@ footer p {
             </strong>
 
             <?php
-
             echo htmlspecialchars(
                 $special_request
             );
-
             ?>
 
         </p>
@@ -2036,23 +1851,50 @@ footer p {
         <?php endif; ?>
 
 
-        <!-- ==========================================
-             SELECTED MENU ITEMS
-        =========================================== -->
+        <!-- ==================================================
+             SELECTED ITEMS
+        =================================================== -->
 
         <?php if (!empty($selected_items)): ?>
+
 
         <p>
 
             <strong>
-                Selected Menu Items:
+                Selected Items:
             </strong>
 
             <br><br>
 
+
             <?php foreach (
                 $selected_items as $item
             ): ?>
+
+
+                <span
+                    style="
+                        color:#a47b4c;
+                        font-size:11px;
+                        font-weight:700;
+                        text-transform:uppercase;
+                    "
+                >
+
+                    <?php
+
+                    echo htmlspecialchars(
+                        ucfirst(
+                            $item["type"]
+                        )
+                    );
+
+                    ?>
+
+                </span>
+
+
+                -
 
                 <?php
 
@@ -2071,14 +1913,19 @@ footer p {
                 —
 
                 ₹<?php
+
                 echo number_format(
                     $item["total"]
                 );
+
                 ?>
 
-                <br>
+
+                <br><br>
+
 
             <?php endforeach; ?>
+
 
         </p>
 
@@ -2086,30 +1933,76 @@ footer p {
         <p>
 
             <strong>
-                Menu Items Total:
+                Menu Total:
             </strong>
 
             ₹<?php
-
             echo number_format(
-                $menu_items_total
+                $menu_total
             );
-
             ?>
 
         </p>
 
-        <?php else: ?>
 
         <p>
 
             <strong>
-                Selected Menu Items:
+                Services Total:
             </strong>
 
-            No menu item selected
+            ₹<?php
+            echo number_format(
+                $service_total
+            );
+            ?>
 
         </p>
+
+
+        <p>
+
+            <strong>
+                Gallery Total:
+            </strong>
+
+            ₹<?php
+            echo number_format(
+                $gallery_total
+            );
+            ?>
+
+        </p>
+
+
+        <p>
+
+            <strong>
+                Items Total:
+            </strong>
+
+            ₹<?php
+            echo number_format(
+                $items_total
+            );
+            ?>
+
+        </p>
+
+
+        <?php else: ?>
+
+
+        <p>
+
+            <strong>
+                Selected Items:
+            </strong>
+
+            No item selected.
+
+        </p>
+
 
         <?php endif; ?>
 
@@ -2218,6 +2111,7 @@ footer p {
             RESERVE YOUR EXPERIENCE
         </small>
 
+
         <h2>
 
             Your Table,<br>
@@ -2225,6 +2119,7 @@ footer p {
             Your Moment.
 
         </h2>
+
 
         <p>
 
@@ -2281,6 +2176,7 @@ footer p {
             Reserve a Table
         </h1>
 
+
         <p class="subtitle">
 
             Enter your details to confirm
@@ -2312,7 +2208,7 @@ footer p {
 
 
             <!-- ==================================================
-                 HIDDEN SELECTED ITEMS
+                 HIDDEN ITEMS
             =================================================== -->
 
             <input
@@ -2324,27 +2220,20 @@ footer p {
 
 
             <!-- ==================================================
-                 SELECTED MENU ITEMS
+                 SELECTED ITEMS BOX
             =================================================== -->
 
-            <div
-                class="selected-items-box"
-                id="selectedItemsBox"
-            >
+            <div class="selected-items-box">
 
                 <h3>
-                    Selected Menu Items
+                    Selected Items
                 </h3>
 
 
-                <div
-                    id="selectedItemsList"
-                >
+                <div id="selectedItemsList">
 
                     <p class="no-items">
-
-                        No menu item selected.
-
+                        No item selected.
                     </p>
 
                 </div>
@@ -2353,12 +2242,10 @@ footer p {
                 <div class="items-total">
 
                     <span>
-                        Menu Items Total
+                        Items Total
                     </span>
 
-                    <strong
-                        id="menuItemsTotal"
-                    >
+                    <strong id="itemsTotal">
                         ₹0
                     </strong>
 
@@ -2372,13 +2259,11 @@ footer p {
                     </span>
 
                     <strong>
-
                         ₹<?php
                         echo number_format(
                             $reservation_fee
                         );
                         ?>
-
                     </strong>
 
                 </div>
@@ -2390,9 +2275,7 @@ footer p {
                         Grand Total
                     </span>
 
-                    <strong
-                        id="grandTotal"
-                    >
+                    <strong id="grandTotal">
 
                         ₹<?php
                         echo number_format(
@@ -2576,9 +2459,7 @@ footer p {
                         ?>
 
                         <option
-                            value="<?php
-                            echo $i;
-                            ?>"
+                            value="<?php echo $i; ?>"
                             <?php
                             echo (
                                 $guests == $i
@@ -2588,9 +2469,7 @@ footer p {
                             ?>
                         >
 
-                            <?php
-                            echo $i;
-                            ?>
+                            <?php echo $i; ?>
 
                             <?php
                             echo (
@@ -2701,15 +2580,12 @@ footer p {
                             id="cash"
                             value="Cash"
                             <?php
-
                             echo (
                                 $payment_method === "Cash"
                             )
                             ? "checked"
                             : "";
-
                             ?>
-
                             required
                         >
 
@@ -2727,17 +2603,13 @@ footer p {
                             name="payment_method"
                             id="upi"
                             value="UPI"
-
                             <?php
-
                             echo (
                                 $payment_method === "UPI"
                             )
                             ? "checked"
                             : "";
-
                             ?>
-
                         >
 
                         <label for="upi">
@@ -2754,17 +2626,13 @@ footer p {
                             name="payment_method"
                             id="card"
                             value="Card"
-
                             <?php
-
                             echo (
                                 $payment_method === "Card"
                             )
                             ? "checked"
                             : "";
-
                             ?>
-
                         >
 
                         <label for="card">
@@ -2780,7 +2648,7 @@ footer p {
 
 
             <!-- ==================================================
-                 UPI QR
+                 UPI
             =================================================== -->
 
             <div
@@ -2793,8 +2661,7 @@ footer p {
                 </h3>
 
                 <p>
-                    Scan the QR code below to pay
-                    the reservation amount.
+                    Scan the QR code below to pay.
                 </p>
 
 
@@ -2876,10 +2743,8 @@ footer p {
     </div>
 
     <p>
-
         © 2026 VELOURE Artisan Café.
         All Rights Reserved.
-
     </p>
 
 </footer>
@@ -2897,10 +2762,6 @@ document.addEventListener(
     function () {
 
 
-        // ==================================================
-        // FORM
-        // ==================================================
-
         const form =
             document.getElementById(
                 "reservationForm"
@@ -2908,15 +2769,12 @@ document.addEventListener(
 
 
         if (!form) {
-
             return;
-
         }
 
 
-
         // ==================================================
-        // SELECTED ITEMS ELEMENTS
+        // ELEMENTS
         // ==================================================
 
         const reservationItemsInput =
@@ -2931,9 +2789,9 @@ document.addEventListener(
             );
 
 
-        const menuItemsTotalElement =
+        const itemsTotalElement =
             document.getElementById(
-                "menuItemsTotal"
+                "itemsTotal"
             );
 
 
@@ -2943,9 +2801,8 @@ document.addEventListener(
             );
 
 
-
         // ==================================================
-        // LOAD ITEMS FROM LOCAL STORAGE
+        // LOAD ITEMS
         // ==================================================
 
         let selectedReservations = [];
@@ -2960,77 +2817,55 @@ document.addEventListener(
                     )
                 ) || [];
 
-
         } catch (error) {
 
-            selectedReservations =
-                [];
+            selectedReservations = [];
 
         }
 
 
+        // ==================================================
+        // CLEAN ITEMS
+        // ==================================================
+
+        if (
+            !Array.isArray(
+                selectedReservations
+            )
+        ) {
+
+            selectedReservations = [];
+
+        }
+
 
         // ==================================================
-        // DISPLAY SELECTED ITEMS
+        // DISPLAY ITEMS
         // ==================================================
 
         function displaySelectedItems() {
 
 
-            if (!selectedItemsList) {
-
-                return;
-
-            }
-
-
-            // ----------------------------------------------
-            // NO ITEMS
-            // ----------------------------------------------
-
             if (
-                !Array.isArray(
-                    selectedReservations
-                ) ||
                 selectedReservations.length === 0
             ) {
 
-
                 selectedItemsList.innerHTML =
-
                     '<p class="no-items">' +
-                    'No menu item selected.' +
+                    'No item selected.' +
                     '</p>';
 
 
-                if (
-                    reservationItemsInput
-                ) {
-
-                    reservationItemsInput.value =
-                        "[]";
-
-                }
+                itemsTotalElement.textContent =
+                    "₹0";
 
 
-                if (
-                    menuItemsTotalElement
-                ) {
-
-                    menuItemsTotalElement.textContent =
-                        "₹0";
-
-                }
+                grandTotalElement.textContent =
+                    "₹<?php echo $reservation_fee; ?>";
 
 
-                if (
-                    grandTotalElement
-                ) {
-
-                    grandTotalElement.textContent =
-                        "₹<?php echo $reservation_fee; ?>";
-
-                }
+                reservationItemsInput.value =
+                    "[]";
 
 
                 return;
@@ -3038,17 +2873,11 @@ document.addEventListener(
             }
 
 
-
-            // ----------------------------------------------
-            // ITEMS EXIST
-            // ----------------------------------------------
-
-            let menuTotal = 0;
+            let total = 0;
 
 
             selectedItemsList.innerHTML =
                 "";
-
 
 
             selectedReservations.forEach(
@@ -3073,14 +2902,46 @@ document.addEventListener(
                         );
 
 
-                    const total =
+                    const type =
+                        String(
+                            item.type || "menu"
+                        );
+
+
+                    const itemTotal =
                         price *
                         quantity;
 
 
-                    menuTotal +=
-                        total;
+                    total +=
+                        itemTotal;
 
+
+                    // --------------------------------------
+                    // TYPE NAME
+                    // --------------------------------------
+
+                    let typeLabel =
+                        "Menu";
+
+
+                    if (
+                        type === "service"
+                    ) {
+
+                        typeLabel =
+                            "Service";
+
+                    }
+
+                    else if (
+                        type === "gallery"
+                    ) {
+
+                        typeLabel =
+                            "Gallery";
+
+                    }
 
 
                     // --------------------------------------
@@ -3097,9 +2958,8 @@ document.addEventListener(
                         "selected-item";
 
 
-
                     // --------------------------------------
-                    // ITEM NAME
+                    // NAME
                     // --------------------------------------
 
                     const nameDiv =
@@ -3112,15 +2972,17 @@ document.addEventListener(
                         "selected-item-name";
 
 
-                    nameDiv.textContent =
-                        name +
-                        " × " +
+                    nameDiv.innerHTML =
+                        '<span class="item-type">' +
+                        typeLabel +
+                        '</span><br>' +
+                        escapeHtml(name) +
+                        ' × ' +
                         quantity;
 
 
-
                     // --------------------------------------
-                    // ITEM PRICE
+                    // PRICE
                     // --------------------------------------
 
                     const priceDiv =
@@ -3135,8 +2997,9 @@ document.addEventListener(
 
                     priceDiv.textContent =
                         "₹" +
-                        total;
-
+                        itemTotal.toLocaleString(
+                            "en-IN"
+                        );
 
 
                     div.appendChild(
@@ -3153,85 +3016,81 @@ document.addEventListener(
                         div
                     );
 
-
                 }
             );
 
 
-
-            // ----------------------------------------------
-            // GRAND TOTAL
-            // ----------------------------------------------
+            // ==================================================
+            // TOTAL
+            // ==================================================
 
             const grandTotal =
-                menuTotal +
-                <?php
-                echo (float)$reservation_fee;
-                ?>;
+                total +
+                <?php echo (float)$reservation_fee; ?>;
 
 
-
-            // ----------------------------------------------
-            // SHOW MENU TOTAL
-            // ----------------------------------------------
-
-            if (
-                menuItemsTotalElement
-            ) {
-
-                menuItemsTotalElement.textContent =
-                    "₹" +
-                    menuTotal;
-
-            }
+            itemsTotalElement.textContent =
+                "₹" +
+                total.toLocaleString(
+                    "en-IN"
+                );
 
 
-
-            // ----------------------------------------------
-            // SHOW GRAND TOTAL
-            // ----------------------------------------------
-
-            if (
-                grandTotalElement
-            ) {
-
-                grandTotalElement.textContent =
-                    "₹" +
-                    grandTotal;
-
-            }
+            grandTotalElement.textContent =
+                "₹" +
+                grandTotal.toLocaleString(
+                    "en-IN"
+                );
 
 
-
-            // ----------------------------------------------
-            // HIDDEN INPUT
-            // ----------------------------------------------
-
-            if (
-                reservationItemsInput
-            ) {
-
-                reservationItemsInput.value =
-                    JSON.stringify(
-                        selectedReservations
-                    );
-
-            }
+            reservationItemsInput.value =
+                JSON.stringify(
+                    selectedReservations
+                );
 
         }
 
 
+        // ==================================================
+        // ESCAPE HTML
+        // ==================================================
+
+        function escapeHtml(value) {
+
+            return String(value)
+                .replace(
+                    /&/g,
+                    "&amp;"
+                )
+                .replace(
+                    /</g,
+                    "&lt;"
+                )
+                .replace(
+                    />/g,
+                    "&gt;"
+                )
+                .replace(
+                    /"/g,
+                    "&quot;"
+                )
+                .replace(
+                    /'/g,
+                    "&#039;"
+                );
+
+        }
+
 
         // ==================================================
-        // DISPLAY ITEMS
+        // DISPLAY
         // ==================================================
 
         displaySelectedItems();
 
 
-
         // ==================================================
-        // UPI QR
+        // PAYMENT
         // ==================================================
 
         const paymentOptions =
@@ -3247,28 +3106,24 @@ document.addEventListener(
 
 
         paymentOptions.forEach(
-            function (radio) {
-
+            function(radio) {
 
                 radio.addEventListener(
                     "change",
-                    function () {
+                    function() {
 
 
                         if (
                             this.value === "UPI"
                         ) {
 
-
                             qrPayment.classList.add(
                                 "show"
                             );
 
-
                         }
 
                         else {
-
 
                             qrPayment.classList.remove(
                                 "show"
@@ -3283,9 +3138,8 @@ document.addEventListener(
         );
 
 
-
         // ==================================================
-        // SHOW QR IF ALREADY SELECTED
+        // SHOW QR IF SELECTED
         // ==================================================
 
         const selectedPayment =
@@ -3306,31 +3160,19 @@ document.addEventListener(
         }
 
 
-
         // ==================================================
-        // FORM SUBMIT
+        // SUBMIT
         // ==================================================
 
         form.addEventListener(
             "submit",
-            function (event) {
+            function(event) {
 
 
-                // ------------------------------------------
-                // SAVE ITEMS BEFORE SUBMIT
-                // ------------------------------------------
-
-                if (
-                    reservationItemsInput
-                ) {
-
-                    reservationItemsInput.value =
-                        JSON.stringify(
-                            selectedReservations
-                        );
-
-                }
-
+                reservationItemsInput.value =
+                    JSON.stringify(
+                        selectedReservations
+                    );
 
 
                 // ------------------------------------------
@@ -3349,19 +3191,15 @@ document.addEventListener(
                     )
                 ) {
 
-
                     event.preventDefault();
-
 
                     alert(
                         "Please enter a valid 10-digit mobile number."
                     );
 
-
                     return;
 
                 }
-
 
 
                 // ------------------------------------------
@@ -3376,19 +3214,15 @@ document.addEventListener(
 
                 if (!date) {
 
-
                     event.preventDefault();
-
 
                     alert(
                         "Please select a reservation date."
                     );
 
-
                     return;
 
                 }
-
 
 
                 // ------------------------------------------
@@ -3403,23 +3237,19 @@ document.addEventListener(
 
                 if (!payment) {
 
-
                     event.preventDefault();
-
 
                     alert(
                         "Please select a payment method."
                     );
-
 
                     return;
 
                 }
 
 
-
                 // ------------------------------------------
-                // UPI CONFIRMATION
+                // UPI
                 // ------------------------------------------
 
                 if (
@@ -3428,16 +3258,33 @@ document.addEventListener(
 
 
                     const total =
-                        <?php
-                        echo (float)$grand_total;
-                        ?>;
+                        selectedReservations.reduce(
+                            function(sum, item) {
+
+                                return sum +
+                                    (
+                                        Number(
+                                            item.price || 0
+                                        ) *
+                                        Number(
+                                            item.quantity || 1
+                                        )
+                                    );
+
+                            },
+                            <?php
+                            echo (float)$reservation_fee;
+                            ?>
+                        );
 
 
                     const confirmPayment =
                         confirm(
 
                             "Grand Total: ₹" +
-                            total +
+                            total.toLocaleString(
+                                "en-IN"
+                            ) +
 
                             "\n\n" +
 
@@ -3453,8 +3300,6 @@ document.addEventListener(
                     if (!confirmPayment) {
 
                         event.preventDefault();
-
-                        return;
 
                     }
 
