@@ -128,10 +128,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         } else {
 
-            /* -----------------------------------------
-               SAVE TO CSV
-            ----------------------------------------- */
-
             $file = __DIR__ . "/order.csv";
 
             $newFile =
@@ -1208,15 +1204,17 @@ $itemImage = $item[2];
 </h4>
 
 <p>
-    <?php
 
-    echo htmlspecialchars(
-        $descriptions[$itemName]
-        ??
-        "A delicious creation specially prepared by VELOURE."
-    );
+<?php
 
-    ?>
+echo htmlspecialchars(
+    $descriptions[$itemName]
+    ??
+    "A delicious creation specially prepared by VELOURE."
+);
+
+?>
+
 </p>
 
 
@@ -1803,6 +1801,7 @@ filterButtons.forEach(function(button){
 
 /* =========================================================
    RESERVATIONS
+   ONLY ONE ITEM AT A TIME
 ========================================================= */
 
 let selectedReservations = [];
@@ -1838,15 +1837,7 @@ function saveReservations(){
 function updateReservationCount(){
 
     const count =
-    selectedReservations.reduce(
-        function(total,item){
-
-            return total +
-            Number(item.quantity || 1);
-
-        },
-        0
-    );
+    selectedReservations.length;
 
     const countElement =
     document.getElementById(
@@ -1916,16 +1907,13 @@ function showReservationMessage(message){
 
 /* =========================================================
    ADD MENU ITEM TO RESERVATION
-   PRICE IS AUTOMATIC
+   ONLY ONE ITEM
 ========================================================= */
 
-function addReservationItem(name,price){
+function addReservationItem(name, price){
 
-    name =
-    String(name || "").trim();
-
-    price =
-    parseFloat(price);
+    name = String(name || "").trim();
+    price = parseFloat(price);
 
     if(
         name === "" ||
@@ -1933,47 +1921,35 @@ function addReservationItem(name,price){
         price <= 0
     ){
 
-        alert("Invalid menu item.");
+        alert(
+            "Please select a valid menu item."
+        );
+
         return;
 
     }
 
+    // Clear previous item
+    selectedReservations = [];
 
-    const existing =
-    selectedReservations.find(
-        function(item){
+    // Add only selected item
+    selectedReservations.push({
 
-            return item.name === name;
+        name: name,
 
-        }
-    );
+        price: price,
 
+        quantity: 1
 
-    if(existing){
+    });
 
-        existing.quantity =
-        Number(existing.quantity || 1) + 1;
-
-    }else{
-
-        selectedReservations.push({
-
-            name: name,
-
-            price: price,
-
-            quantity: 1
-
-        });
-
-    }
-
-
+    // Save only selected item
     saveReservations();
 
+    // Update count
     updateReservationCount();
 
-
+    // Confirmation
     showReservationMessage(
         name + " — ₹" + price +
         " added to reservation"
@@ -2317,9 +2293,7 @@ function sendToGoogleSheet(){
         total: total,
 
         paymentStatus:
-        payment === "UPI"
-        ? "Pending"
-        : "Pending",
+        "Pending",
 
         orderType:
         "Build Your Coffee"
@@ -2376,9 +2350,7 @@ if(buildForm){
 
             event.preventDefault();
 
-
             calculateCoffeePrice();
-
 
             const total =
             document.getElementById(
