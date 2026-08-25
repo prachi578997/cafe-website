@@ -16,6 +16,10 @@ rel="stylesheet">
 
 <style>
 
+/* =========================
+   RESET
+========================= */
+
 *{
     margin:0;
     padding:0;
@@ -33,7 +37,10 @@ body{
     overflow-x:hidden;
 }
 
-/* ================= NAVBAR ================= */
+
+/* =========================
+   NAVBAR
+========================= */
 
 .navbar{
     position:fixed;
@@ -118,7 +125,9 @@ body{
 }
 
 
-/* ================= HERO ================= */
+/* =========================
+   HERO
+========================= */
 
 .hero{
     min-height:70vh;
@@ -197,7 +206,9 @@ body{
 }
 
 
-/* ================= SERVICES ================= */
+/* =========================
+   SERVICES
+========================= */
 
 .services{
     padding:100px 7%;
@@ -230,6 +241,11 @@ body{
     line-height:1.7;
 }
 
+
+/* =========================
+   SERVICE GRID
+========================= */
+
 .service-grid{
     max-width:1200px;
     margin:auto;
@@ -239,6 +255,11 @@ body{
 
     gap:25px;
 }
+
+
+/* =========================
+   SERVICE CARD
+========================= */
 
 .service-card{
     position:relative;
@@ -277,6 +298,11 @@ body{
         rgba(163,107,66,.4);
 }
 
+
+/* =========================
+   SERVICE IMAGE
+========================= */
+
 .service-image-link{
     display:block;
 
@@ -295,7 +321,7 @@ body{
 }
 
 .service-image-link::after{
-    content:"VIEW & RESERVE";
+    content:"SELECT & RESERVE";
 
     position:absolute;
 
@@ -305,7 +331,7 @@ body{
     align-items:center;
     justify-content:center;
 
-    background:rgba(45,27,18,.48);
+    background:rgba(45,27,18,.55);
 
     color:white;
 
@@ -337,6 +363,11 @@ body{
     transform:scale(1.08);
 }
 
+
+/* =========================
+   SERVICE CONTENT
+========================= */
+
 .service-card h3{
     font-family:'Cormorant Garamond',serif;
 
@@ -356,7 +387,28 @@ body{
 }
 
 
-/* ================= RESERVATION ================= */
+/* =========================
+   SERVICE PRICE
+========================= */
+
+.service-price{
+    display:block;
+
+    margin-top:15px;
+
+    font-family:'Cormorant Garamond',serif;
+
+    font-size:25px;
+
+    font-weight:700;
+
+    color:#a36b42;
+}
+
+
+/* =========================
+   RESERVATION
+========================= */
 
 .reservation-section{
     padding:110px 7%;
@@ -407,6 +459,11 @@ body{
     color:rgba(255,255,255,.72);
     line-height:1.7;
 }
+
+
+/* =========================
+   FORM
+========================= */
 
 .reservation-form{
     display:grid;
@@ -488,7 +545,9 @@ body{
 }
 
 
-/* ================= FEATURE ================= */
+/* =========================
+   FEATURE
+========================= */
 
 .feature{
     padding:110px 7%;
@@ -551,7 +610,9 @@ body{
 }
 
 
-/* ================= FOOTER ================= */
+/* =========================
+   FOOTER
+========================= */
 
 footer{
     background:#241914;
@@ -580,7 +641,9 @@ footer p{
 }
 
 
-/* ================= ANIMATIONS ================= */
+/* =========================
+   ANIMATIONS
+========================= */
 
 @keyframes heroReveal{
 
@@ -607,7 +670,9 @@ footer p{
 }
 
 
-/* ================= RESPONSIVE ================= */
+/* =========================
+   RESPONSIVE
+========================= */
 
 @media(max-width:1100px){
 
@@ -711,10 +776,13 @@ footer p{
 
 </head>
 
+
 <body>
 
 
-<!-- ================= NAVBAR ================= -->
+<!-- =========================
+     NAVBAR
+========================= -->
 
 <nav class="navbar">
 
@@ -724,36 +792,53 @@ footer p{
 
     <div class="nav-links">
 
-        <a href="index.php">Home</a>
+        <a href="index.php">
+            Home
+        </a>
 
-        <a href="about.php">About</a>
+        <a href="about.php">
+            About
+        </a>
 
-        <a href="menu.php">Menu</a>
+        <a href="menu.php">
+            Menu
+        </a>
 
-        <a href="offers.php">Offers</a>
+        <a href="offers.php">
+            Offers
+        </a>
 
-        <a href="gallery.php">Gallery</a>
+        <a href="gallery.php">
+            Gallery
+        </a>
 
-        <a href="services.php" class="active">Services</a>
+        <a href="services.php" class="active">
+            Services
+        </a>
 
-        <a href="reservation.php">Reservation</a>
+        <a href="reservation.php">
+            Reservation
+        </a>
 
-        <a href="reviews.php">Reviews</a>
+        <a href="reviews.php">
+            Reviews
+        </a>
 
     </div>
 
-    <a
-        href="reservation.php#booking"
-        class="reserve-btn"
-        onclick="openServiceReservation(event)"
-    >
+    <a href="reservation.php#booking"
+       class="reserve-btn">
+
         Reserve Table
+
     </a>
 
 </nav>
 
 
-<!-- ================= HERO ================= -->
+<!-- =========================
+     HERO
+========================= -->
 
 <section class="hero">
 
@@ -780,7 +865,9 @@ footer p{
 </section>
 
 
-<!-- ================= SERVICES ================= -->
+<!-- =========================
+     SERVICES
+========================= -->
 
 <section class="services">
 
@@ -795,9 +882,10 @@ footer p{
         </h2>
 
         <p>
-            Discover thoughtful services created
-            to make every visit comfortable,
-            memorable and effortless.
+            Select a service to continue with your
+            reservation. The selected service and
+            price will automatically appear on the
+            reservation page.
         </p>
 
     </div>
@@ -810,16 +898,13 @@ footer p{
 
         <div class="service-card">
 
-            <a
-                href="reservation.php#booking"
-                onclick="openServiceReservation(event)"
-                class="service-image-link"
-            >
+            <a href="#"
+               class="service-image-link service-select"
+               data-service="Dine-In Experience"
+               data-price="100">
 
-                <img
-                    src="images/dine-in.jpg"
-                    alt="Dine-In Experience"
-                >
+                <img src="images/dine-in.jpg"
+                     alt="Dine-In Experience">
 
             </a>
 
@@ -833,6 +918,10 @@ footer p{
                 food and desserts.
             </p>
 
+            <strong class="service-price">
+                ₹100
+            </strong>
+
         </div>
 
 
@@ -840,16 +929,13 @@ footer p{
 
         <div class="service-card">
 
-            <a
-                href="reservation.php#booking"
-                onclick="openServiceReservation(event)"
-                class="service-image-link"
-            >
+            <a href="#"
+               class="service-image-link service-select"
+               data-service="Takeaway"
+               data-price="50">
 
-                <img
-                    src="images/takeaway.jpg"
-                    alt="Takeaway"
-                >
+                <img src="images/takeaway.jpg"
+                     alt="Takeaway">
 
             </a>
 
@@ -863,6 +949,10 @@ footer p{
                 you go.
             </p>
 
+            <strong class="service-price">
+                ₹50
+            </strong>
+
         </div>
 
 
@@ -870,16 +960,13 @@ footer p{
 
         <div class="service-card">
 
-            <a
-                href="reservation.php#booking"
-                onclick="openServiceReservation(event)"
-                class="service-image-link"
-            >
+            <a href="#"
+               class="service-image-link service-select"
+               data-service="Home Delivery"
+               data-price="80">
 
-                <img
-                    src="images/delivery.jpg"
-                    alt="Home Delivery"
-                >
+                <img src="images/delivery.jpg"
+                     alt="Home Delivery">
 
             </a>
 
@@ -893,6 +980,10 @@ footer p{
                 to your doorstep.
             </p>
 
+            <strong class="service-price">
+                ₹80
+            </strong>
+
         </div>
 
 
@@ -900,16 +991,13 @@ footer p{
 
         <div class="service-card">
 
-            <a
-                href="reservation.php#booking"
-                onclick="openServiceReservation(event)"
-                class="service-image-link"
-            >
+            <a href="#"
+               class="service-image-link service-select"
+               data-service="Celebrations"
+               data-price="500">
 
-                <img
-                    src="images/celebration.jpg"
-                    alt="Celebrations"
-                >
+                <img src="images/celebration.jpg"
+                     alt="Celebrations">
 
             </a>
 
@@ -922,6 +1010,10 @@ footer p{
                 and special moments with us.
             </p>
 
+            <strong class="service-price">
+                ₹500
+            </strong>
+
         </div>
 
 
@@ -929,16 +1021,13 @@ footer p{
 
         <div class="service-card">
 
-            <a
-                href="reservation.php#booking"
-                onclick="openServiceReservation(event)"
-                class="service-image-link"
-            >
+            <a href="#"
+               class="service-image-link service-select"
+               data-service="Couple Dining"
+               data-price="300">
 
-                <img
-                    src="images/couple-dining.jpg"
-                    alt="Couple Dining"
-                >
+                <img src="images/couple-dining.jpg"
+                     alt="Couple Dining">
 
             </a>
 
@@ -952,6 +1041,10 @@ footer p{
                 moments together.
             </p>
 
+            <strong class="service-price">
+                ₹300
+            </strong>
+
         </div>
 
 
@@ -959,16 +1052,13 @@ footer p{
 
         <div class="service-card">
 
-            <a
-                href="reservation.php#booking"
-                onclick="openServiceReservation(event)"
-                class="service-image-link"
-            >
+            <a href="#"
+               class="service-image-link service-select"
+               data-service="Event Booking"
+               data-price="1000">
 
-                <img
-                    src="images/event-booking.jpg"
-                    alt="Event Booking"
-                >
+                <img src="images/event-booking.jpg"
+                     alt="Event Booking">
 
             </a>
 
@@ -982,6 +1072,10 @@ footer p{
                 in our stylish café.
             </p>
 
+            <strong class="service-price">
+                ₹1,000
+            </strong>
+
         </div>
 
 
@@ -989,16 +1083,13 @@ footer p{
 
         <div class="service-card">
 
-            <a
-                href="reservation.php#booking"
-                onclick="openServiceReservation(event)"
-                class="service-image-link"
-            >
+            <a href="#"
+               class="service-image-link service-select"
+               data-service="Free Wi-Fi"
+               data-price="0">
 
-                <img
-                    src="images/wifi.jpg"
-                    alt="Free Wi-Fi"
-                >
+                <img src="images/wifi.jpg"
+                     alt="Free Wi-Fi">
 
             </a>
 
@@ -1012,6 +1103,10 @@ footer p{
                 Wi-Fi.
             </p>
 
+            <strong class="service-price">
+                FREE
+            </strong>
+
         </div>
 
 
@@ -1019,16 +1114,13 @@ footer p{
 
         <div class="service-card">
 
-            <a
-                href="reservation.php#booking"
-                onclick="openServiceReservation(event)"
-                class="service-image-link"
-            >
+            <a href="#"
+               class="service-image-link service-select"
+               data-service="Online Reservation"
+               data-price="100">
 
-                <img
-                    src="images/reservation.jpg"
-                    alt="Online Reservation"
-                >
+                <img src="images/reservation.jpg"
+                     alt="Online Reservation">
 
             </a>
 
@@ -1041,6 +1133,10 @@ footer p{
                 online quickly and conveniently.
             </p>
 
+            <strong class="service-price">
+                ₹100
+            </strong>
+
         </div>
 
 
@@ -1049,12 +1145,12 @@ footer p{
 </section>
 
 
-<!-- ================= RESERVATION ================= -->
+<!-- =========================
+     RESERVATION
+========================= -->
 
-<section
-    class="reservation-section"
-    id="booking"
->
+<section class="reservation-section"
+         id="booking">
 
     <div class="reservation-box">
 
@@ -1077,11 +1173,9 @@ footer p{
         </div>
 
 
-        <form
-            class="reservation-form"
-            action="reservation.php"
-            method="POST"
-        >
+        <form class="reservation-form"
+              action="reservation.php"
+              method="POST">
 
 
             <div class="form-group">
@@ -1094,8 +1188,7 @@ footer p{
                     type="text"
                     name="name"
                     placeholder="Enter your name"
-                    required
-                >
+                    required>
 
             </div>
 
@@ -1110,8 +1203,7 @@ footer p{
                     type="tel"
                     name="phone"
                     placeholder="Enter phone number"
-                    required
-                >
+                    required>
 
             </div>
 
@@ -1126,8 +1218,7 @@ footer p{
                     type="email"
                     name="email"
                     placeholder="Enter email address"
-                    required
-                >
+                    required>
 
             </div>
 
@@ -1138,25 +1229,51 @@ footer p{
                     Number of Guests
                 </label>
 
-                <select
-                    name="guests"
-                    required
-                >
+                <select name="guests" required>
 
                     <option value="">
                         Select Guests
                     </option>
 
-                    <option value="1">1 Guest</option>
-                    <option value="2">2 Guests</option>
-                    <option value="3">3 Guests</option>
-                    <option value="4">4 Guests</option>
-                    <option value="5">5 Guests</option>
-                    <option value="6">6 Guests</option>
-                    <option value="7">7 Guests</option>
-                    <option value="8">8 Guests</option>
-                    <option value="9">9 Guests</option>
-                    <option value="10">10 Guests</option>
+                    <option value="1">
+                        1 Guest
+                    </option>
+
+                    <option value="2">
+                        2 Guests
+                    </option>
+
+                    <option value="3">
+                        3 Guests
+                    </option>
+
+                    <option value="4">
+                        4 Guests
+                    </option>
+
+                    <option value="5">
+                        5 Guests
+                    </option>
+
+                    <option value="6">
+                        6 Guests
+                    </option>
+
+                    <option value="7">
+                        7 Guests
+                    </option>
+
+                    <option value="8">
+                        8 Guests
+                    </option>
+
+                    <option value="9">
+                        9 Guests
+                    </option>
+
+                    <option value="10">
+                        10 Guests
+                    </option>
 
                 </select>
 
@@ -1172,8 +1289,7 @@ footer p{
                 <input
                     type="date"
                     name="date"
-                    required
-                >
+                    required>
 
             </div>
 
@@ -1184,10 +1300,7 @@ footer p{
                     Reservation Time
                 </label>
 
-                <select
-                    name="time"
-                    required
-                >
+                <select name="time" required>
 
                     <option value="">
                         Select Time
@@ -1263,16 +1376,14 @@ footer p{
 
                 <textarea
                     name="special_request"
-                    placeholder="Any special request..."
-                ></textarea>
+                    placeholder="Any special request..."></textarea>
 
             </div>
 
 
             <button
                 type="submit"
-                class="submit-btn"
-            >
+                class="submit-btn">
 
                 Reserve My Table
 
@@ -1285,7 +1396,9 @@ footer p{
 </section>
 
 
-<!-- ================= FEATURE ================= -->
+<!-- =========================
+     FEATURE
+========================= -->
 
 <section class="feature">
 
@@ -1305,9 +1418,7 @@ footer p{
 
         <a
             href="reservation.php#booking"
-            class="feature-btn"
-            onclick="openServiceReservation(event)"
-        >
+            class="feature-btn">
 
             Reserve Your Table
 
@@ -1318,7 +1429,9 @@ footer p{
 </section>
 
 
-<!-- ================= FOOTER ================= -->
+<!-- =========================
+     FOOTER
+========================= -->
 
 <footer>
 
@@ -1338,35 +1451,15 @@ footer p{
 </footer>
 
 
+<!-- =========================
+     JAVASCRIPT
+========================= -->
+
 <script>
 
-/* =====================================================
-   SERVICE → RESERVATION FIX
-===================================================== */
-
-function openServiceReservation(event){
-
-    if(event){
-        event.preventDefault();
-    }
-
-    /*
-     * Menu मधून आधी selected केलेले items
-     * Services मधून reservation करताना clear होतील.
-     */
-    localStorage.removeItem("veloureReservations");
-
-    /*
-     * Clean reservation page open होईल.
-     */
-    window.location.href =
-        "reservation.php#booking";
-}
-
-
-/* =====================================================
+/* =========================
    SERVICE CARD ANIMATION
-===================================================== */
+========================= */
 
 const cards =
     document.querySelectorAll(".service-card");
@@ -1401,27 +1494,124 @@ cards.forEach(card => {
 });
 
 
-/* =====================================================
+/* =========================
    DATE VALIDATION
-===================================================== */
+========================= */
 
 const dateInput =
-    document.querySelector(
-        'input[name="date"]'
-    );
+    document.querySelector('input[name="date"]');
 
 if(dateInput){
 
     const today =
-        new Date()
-        .toISOString()
-        .split("T")[0];
+        new Date().toISOString().split("T")[0];
 
     dateInput.min = today;
 
 }
 
+
+/* =========================
+   SERVICE SELECT
+   SAVE ITEM + PRICE
+========================= */
+
+const serviceButtons =
+    document.querySelectorAll(".service-select");
+
+
+serviceButtons.forEach(button => {
+
+    button.addEventListener(
+        "click",
+        function(event){
+
+            event.preventDefault();
+
+
+            const serviceName =
+                this.getAttribute("data-service");
+
+
+            const servicePrice =
+                Number(
+                    this.getAttribute("data-price")
+                );
+
+
+            /* ---------------------------------
+               CREATE SELECTED SERVICE
+            --------------------------------- */
+
+            const selectedService = [
+
+                {
+                    name: serviceName,
+
+                    price: servicePrice,
+
+                    quantity: 1
+                }
+
+            ];
+
+
+            /* ---------------------------------
+               SAVE TO LOCAL STORAGE
+               SAME KEY USED BY RESERVATION.PHP
+            --------------------------------- */
+
+            localStorage.setItem(
+
+                "veloureReservations",
+
+                JSON.stringify(
+                    selectedService
+                )
+
+            );
+
+
+            /* ---------------------------------
+               GO TO RESERVATION PAGE
+            --------------------------------- */
+
+            window.location.href =
+                "reservation.php#booking";
+
+        }
+    );
+
+});
+
+
+/* =========================
+   RESERVE BUTTON
+========================= */
+
+const reserveButton =
+    document.querySelector(".reserve-btn");
+
+
+if(reserveButton){
+
+    reserveButton.addEventListener(
+        "click",
+        function(){
+
+            /*
+             Do not remove existing
+             menu selections when
+             opening normal reservation.
+            */
+
+        }
+    );
+
+}
+
 </script>
+
 
 </body>
 </html>
