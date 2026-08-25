@@ -16,10 +16,6 @@ rel="stylesheet">
 
 <style>
 
-/* =========================
-   RESET
-========================= */
-
 *{
     margin:0;
     padding:0;
@@ -37,10 +33,7 @@ body{
     overflow-x:hidden;
 }
 
-
-/* =========================
-   NAVBAR
-========================= */
+/* ================= NAVBAR ================= */
 
 .navbar{
     position:fixed;
@@ -125,9 +118,7 @@ body{
 }
 
 
-/* =========================
-   HERO
-========================= */
+/* ================= HERO ================= */
 
 .hero{
     min-height:70vh;
@@ -206,9 +197,7 @@ body{
 }
 
 
-/* =========================
-   SERVICES
-========================= */
+/* ================= SERVICES ================= */
 
 .services{
     padding:100px 7%;
@@ -241,11 +230,6 @@ body{
     line-height:1.7;
 }
 
-
-/* =========================
-   SERVICE GRID
-========================= */
-
 .service-grid{
     max-width:1200px;
     margin:auto;
@@ -256,11 +240,6 @@ body{
     gap:25px;
 }
 
-
-/* =========================
-   SERVICE CARD
-========================= */
-
 .service-card{
     position:relative;
 
@@ -270,9 +249,7 @@ body{
 
     background:rgba(255,255,255,.95);
 
-    border:
-        1px solid
-        rgba(163,107,66,.15);
+    border:1px solid rgba(163,107,66,.15);
 
     border-radius:25px;
 
@@ -300,11 +277,6 @@ body{
         rgba(163,107,66,.4);
 }
 
-
-/* =========================
-   SERVICE IMAGE
-========================= */
-
 .service-image-link{
     display:block;
 
@@ -318,6 +290,8 @@ body{
     margin-bottom:22px;
 
     position:relative;
+
+    cursor:pointer;
 }
 
 .service-image-link::after{
@@ -363,11 +337,6 @@ body{
     transform:scale(1.08);
 }
 
-
-/* =========================
-   SERVICE CONTENT
-========================= */
-
 .service-card h3{
     font-family:'Cormorant Garamond',serif;
 
@@ -387,9 +356,7 @@ body{
 }
 
 
-/* =========================
-   RESERVATION
-========================= */
+/* ================= RESERVATION ================= */
 
 .reservation-section{
     padding:110px 7%;
@@ -440,11 +407,6 @@ body{
     color:rgba(255,255,255,.72);
     line-height:1.7;
 }
-
-
-/* =========================
-   FORM
-========================= */
 
 .reservation-form{
     display:grid;
@@ -526,9 +488,7 @@ body{
 }
 
 
-/* =========================
-   FEATURE
-========================= */
+/* ================= FEATURE ================= */
 
 .feature{
     padding:110px 7%;
@@ -591,9 +551,7 @@ body{
 }
 
 
-/* =========================
-   FOOTER
-========================= */
+/* ================= FOOTER ================= */
 
 footer{
     background:#241914;
@@ -622,9 +580,7 @@ footer p{
 }
 
 
-/* =========================
-   ANIMATIONS
-========================= */
+/* ================= ANIMATIONS ================= */
 
 @keyframes heroReveal{
 
@@ -651,9 +607,7 @@ footer p{
 }
 
 
-/* =========================
-   RESPONSIVE
-========================= */
+/* ================= RESPONSIVE ================= */
 
 @media(max-width:1100px){
 
@@ -757,13 +711,10 @@ footer p{
 
 </head>
 
-
 <body>
 
 
-<!-- =========================
-     NAVBAR
-========================= -->
+<!-- ================= NAVBAR ================= -->
 
 <nav class="navbar">
 
@@ -773,53 +724,36 @@ footer p{
 
     <div class="nav-links">
 
-        <a href="index.php">
-            Home
-        </a>
+        <a href="index.php">Home</a>
 
-        <a href="about.php">
-            About
-        </a>
+        <a href="about.php">About</a>
 
-        <a href="menu.php">
-            Menu
-        </a>
+        <a href="menu.php">Menu</a>
 
-        <a href="offers.php">
-            Offers
-        </a>
+        <a href="offers.php">Offers</a>
 
-        <a href="gallery.php">
-            Gallery
-        </a>
+        <a href="gallery.php">Gallery</a>
 
-        <a href="services.php" class="active">
-            Services
-        </a>
+        <a href="services.php" class="active">Services</a>
 
-        <a href="reservation.php">
-            Reservation
-        </a>
+        <a href="reservation.php">Reservation</a>
 
-        <a href="reviews.php">
-            Reviews
-        </a>
+        <a href="reviews.php">Reviews</a>
 
     </div>
 
-    <a href="reservation.php#booking"
-       class="reserve-btn">
-
+    <a
+        href="reservation.php#booking"
+        class="reserve-btn"
+        onclick="openServiceReservation(event)"
+    >
         Reserve Table
-
     </a>
 
 </nav>
 
 
-<!-- =========================
-     HERO
-========================= -->
+<!-- ================= HERO ================= -->
 
 <section class="hero">
 
@@ -846,9 +780,7 @@ footer p{
 </section>
 
 
-<!-- =========================
-     SERVICES
-========================= -->
+<!-- ================= SERVICES ================= -->
 
 <section class="services">
 
@@ -878,11 +810,16 @@ footer p{
 
         <div class="service-card">
 
-            <a href="reservation.php#booking"
-               class="service-image-link">
+            <a
+                href="reservation.php#booking"
+                onclick="openServiceReservation(event)"
+                class="service-image-link"
+            >
 
-                <img src="images/dine-in.jpg"
-                     alt="Dine-In Experience">
+                <img
+                    src="images/dine-in.jpg"
+                    alt="Dine-In Experience"
+                >
 
             </a>
 
@@ -903,11 +840,16 @@ footer p{
 
         <div class="service-card">
 
-            <a href="reservation.php#booking"
-               class="service-image-link">
+            <a
+                href="reservation.php#booking"
+                onclick="openServiceReservation(event)"
+                class="service-image-link"
+            >
 
-                <img src="images/takeaway.jpg"
-                     alt="Takeaway">
+                <img
+                    src="images/takeaway.jpg"
+                    alt="Takeaway"
+                >
 
             </a>
 
@@ -928,11 +870,16 @@ footer p{
 
         <div class="service-card">
 
-            <a href="reservation.php#booking"
-               class="service-image-link">
+            <a
+                href="reservation.php#booking"
+                onclick="openServiceReservation(event)"
+                class="service-image-link"
+            >
 
-                <img src="images/delivery.jpg"
-                     alt="Home Delivery">
+                <img
+                    src="images/delivery.jpg"
+                    alt="Home Delivery"
+                >
 
             </a>
 
@@ -953,11 +900,16 @@ footer p{
 
         <div class="service-card">
 
-            <a href="reservation.php#booking"
-               class="service-image-link">
+            <a
+                href="reservation.php#booking"
+                onclick="openServiceReservation(event)"
+                class="service-image-link"
+            >
 
-                <img src="images/celebration.jpg"
-                     alt="Celebrations">
+                <img
+                    src="images/celebration.jpg"
+                    alt="Celebrations"
+                >
 
             </a>
 
@@ -977,11 +929,16 @@ footer p{
 
         <div class="service-card">
 
-            <a href="reservation.php#booking"
-               class="service-image-link">
+            <a
+                href="reservation.php#booking"
+                onclick="openServiceReservation(event)"
+                class="service-image-link"
+            >
 
-                <img src="images/couple-dining.jpg"
-                     alt="Couple Dining">
+                <img
+                    src="images/couple-dining.jpg"
+                    alt="Couple Dining"
+                >
 
             </a>
 
@@ -1002,11 +959,16 @@ footer p{
 
         <div class="service-card">
 
-            <a href="reservation.php#booking"
-               class="service-image-link">
+            <a
+                href="reservation.php#booking"
+                onclick="openServiceReservation(event)"
+                class="service-image-link"
+            >
 
-                <img src="images/event-booking.jpg"
-                     alt="Event Booking">
+                <img
+                    src="images/event-booking.jpg"
+                    alt="Event Booking"
+                >
 
             </a>
 
@@ -1027,11 +989,16 @@ footer p{
 
         <div class="service-card">
 
-            <a href="reservation.php#booking"
-               class="service-image-link">
+            <a
+                href="reservation.php#booking"
+                onclick="openServiceReservation(event)"
+                class="service-image-link"
+            >
 
-                <img src="images/wifi.jpg"
-                     alt="Free Wi-Fi">
+                <img
+                    src="images/wifi.jpg"
+                    alt="Free Wi-Fi"
+                >
 
             </a>
 
@@ -1052,11 +1019,16 @@ footer p{
 
         <div class="service-card">
 
-            <a href="reservation.php#booking"
-               class="service-image-link">
+            <a
+                href="reservation.php#booking"
+                onclick="openServiceReservation(event)"
+                class="service-image-link"
+            >
 
-                <img src="images/reservation.jpg"
-                     alt="Online Reservation">
+                <img
+                    src="images/reservation.jpg"
+                    alt="Online Reservation"
+                >
 
             </a>
 
@@ -1077,12 +1049,12 @@ footer p{
 </section>
 
 
-<!-- =========================
-     RESERVATION
-========================= -->
+<!-- ================= RESERVATION ================= -->
 
-<section class="reservation-section"
-         id="booking">
+<section
+    class="reservation-section"
+    id="booking"
+>
 
     <div class="reservation-box">
 
@@ -1105,55 +1077,71 @@ footer p{
         </div>
 
 
-        <form class="reservation-form"
-              action="reservation.php"
-              method="POST">
+        <form
+            class="reservation-form"
+            action="reservation.php"
+            method="POST"
+        >
 
 
             <div class="form-group">
 
-                <label>Full Name</label>
+                <label>
+                    Full Name
+                </label>
 
                 <input
                     type="text"
                     name="name"
                     placeholder="Enter your name"
-                    required>
+                    required
+                >
 
             </div>
 
 
             <div class="form-group">
 
-                <label>Phone Number</label>
+                <label>
+                    Phone Number
+                </label>
 
                 <input
                     type="tel"
                     name="phone"
                     placeholder="Enter phone number"
-                    required>
+                    required
+                >
 
             </div>
 
 
             <div class="form-group">
 
-                <label>Email Address</label>
+                <label>
+                    Email Address
+                </label>
 
                 <input
                     type="email"
                     name="email"
                     placeholder="Enter email address"
-                    required>
+                    required
+                >
 
             </div>
 
 
             <div class="form-group">
 
-                <label>Number of Guests</label>
+                <label>
+                    Number of Guests
+                </label>
 
-                <select name="guests" required>
+                <select
+                    name="guests"
+                    required
+                >
 
                     <option value="">
                         Select Guests
@@ -1167,6 +1155,8 @@ footer p{
                     <option value="6">6 Guests</option>
                     <option value="7">7 Guests</option>
                     <option value="8">8 Guests</option>
+                    <option value="9">9 Guests</option>
+                    <option value="10">10 Guests</option>
 
                 </select>
 
@@ -1175,21 +1165,29 @@ footer p{
 
             <div class="form-group">
 
-                <label>Reservation Date</label>
+                <label>
+                    Reservation Date
+                </label>
 
                 <input
                     type="date"
                     name="date"
-                    required>
+                    required
+                >
 
             </div>
 
 
             <div class="form-group">
 
-                <label>Reservation Time</label>
+                <label>
+                    Reservation Time
+                </label>
 
-                <select name="time" required>
+                <select
+                    name="time"
+                    required
+                >
 
                     <option value="">
                         Select Time
@@ -1214,7 +1212,9 @@ footer p{
 
             <div class="form-group">
 
-                <label>Occasion</label>
+                <label>
+                    Occasion
+                </label>
 
                 <select name="occasion">
 
@@ -1222,13 +1222,33 @@ footer p{
                         Select Occasion
                     </option>
 
-                    <option>Regular Dining</option>
-                    <option>Birthday</option>
-                    <option>Anniversary</option>
-                    <option>Couple Date</option>
-                    <option>Family Gathering</option>
-                    <option>Business Meeting</option>
-                    <option>Other</option>
+                    <option>
+                        Regular Dining
+                    </option>
+
+                    <option>
+                        Birthday
+                    </option>
+
+                    <option>
+                        Anniversary
+                    </option>
+
+                    <option>
+                        Couple Date
+                    </option>
+
+                    <option>
+                        Family Gathering
+                    </option>
+
+                    <option>
+                        Business Meeting
+                    </option>
+
+                    <option>
+                        Other
+                    </option>
 
                 </select>
 
@@ -1237,18 +1257,22 @@ footer p{
 
             <div class="form-group full-width">
 
-                <label>Special Request</label>
+                <label>
+                    Special Request
+                </label>
 
                 <textarea
-                    name="message"
-                    placeholder="Any special request..."></textarea>
+                    name="special_request"
+                    placeholder="Any special request..."
+                ></textarea>
 
             </div>
 
 
             <button
                 type="submit"
-                class="submit-btn">
+                class="submit-btn"
+            >
 
                 Reserve My Table
 
@@ -1261,9 +1285,7 @@ footer p{
 </section>
 
 
-<!-- =========================
-     FEATURE
-========================= -->
+<!-- ================= FEATURE ================= -->
 
 <section class="feature">
 
@@ -1283,7 +1305,9 @@ footer p{
 
         <a
             href="reservation.php#booking"
-            class="feature-btn">
+            class="feature-btn"
+            onclick="openServiceReservation(event)"
+        >
 
             Reserve Your Table
 
@@ -1294,9 +1318,7 @@ footer p{
 </section>
 
 
-<!-- =========================
-     FOOTER
-========================= -->
+<!-- ================= FOOTER ================= -->
 
 <footer>
 
@@ -1316,13 +1338,35 @@ footer p{
 </footer>
 
 
-<!-- =========================
-     JAVASCRIPT
-========================= -->
-
 <script>
 
-/* SERVICE CARD ANIMATION */
+/* =====================================================
+   SERVICE → RESERVATION FIX
+===================================================== */
+
+function openServiceReservation(event){
+
+    if(event){
+        event.preventDefault();
+    }
+
+    /*
+     * Menu मधून आधी selected केलेले items
+     * Services मधून reservation करताना clear होतील.
+     */
+    localStorage.removeItem("veloureReservations");
+
+    /*
+     * Clean reservation page open होईल.
+     */
+    window.location.href =
+        "reservation.php#booking";
+}
+
+
+/* =====================================================
+   SERVICE CARD ANIMATION
+===================================================== */
 
 const cards =
     document.querySelectorAll(".service-card");
@@ -1357,15 +1401,21 @@ cards.forEach(card => {
 });
 
 
-/* DATE VALIDATION */
+/* =====================================================
+   DATE VALIDATION
+===================================================== */
 
 const dateInput =
-    document.querySelector('input[name="date"]');
+    document.querySelector(
+        'input[name="date"]'
+    );
 
 if(dateInput){
 
     const today =
-        new Date().toISOString().split("T")[0];
+        new Date()
+        .toISOString()
+        .split("T")[0];
 
     dateInput.min = today;
 
