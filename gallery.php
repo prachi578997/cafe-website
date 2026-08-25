@@ -1,3 +1,4 @@
+```php
 <?php
 
 // ==========================================
@@ -599,10 +600,10 @@ footer strong{
 
 }
 
+```php
 </style>
 
 </head>
-
 
 <body>
 
@@ -743,14 +744,15 @@ footer strong{
 
 
                 <!-- ======================================
-                     IMPORTANT:
-                     Gallery item + Gallery price
-                     are sent separately.
+                     GALLERY RESERVATION
+                     CURRENT ITEM + CURRENT PRICE
                 ======================================= -->
 
                 <a
-                    href="reservation.php?gallery_item=<?php echo urlencode($item["title"]); ?>&gallery_price=<?php echo (int)$item["price"]; ?>"
-                    class="reserve-btn"
+                    href="reservation.php"
+                    class="reserve-btn gallery-reserve-btn"
+                    data-name="<?php echo htmlspecialchars($item["title"], ENT_QUOTES); ?>"
+                    data-price="<?php echo (int)$item["price"]; ?>"
                 >
                     Reserve This Experience
                 </a>
@@ -871,6 +873,127 @@ document.addEventListener(
 
 
         /* ======================================
+           GALLERY RESERVATION
+           
+           IMPORTANT:
+           Only the clicked gallery item
+           will be saved.
+           
+           Old menu/gallery reservation
+           will be replaced.
+        ====================================== */
+
+        document
+            .querySelectorAll(
+                ".gallery-reserve-btn"
+            )
+            .forEach(
+                function(button){
+
+                    button.addEventListener(
+                        "click",
+                        function(event){
+
+                            event.preventDefault();
+
+
+                            /* Get CURRENT item */
+
+                            const name =
+                                this.getAttribute(
+                                    "data-name"
+                                );
+
+
+                            /* Get CURRENT price */
+
+                            const price =
+                                parseFloat(
+                                    this.getAttribute(
+                                        "data-price"
+                                    )
+                                );
+
+
+                            /* Validate */
+
+                            if(
+                                !name ||
+                                isNaN(price) ||
+                                price <= 0
+                            ){
+
+                                alert(
+                                    "Please select a valid gallery item."
+                                );
+
+                                return;
+
+                            }
+
+
+                            /* ==================================
+                               CLEAR OLD RESERVATION
+                            ================================== */
+
+                            let selectedReservation = [
+
+                                {
+                                    name: name,
+                                    price: price,
+                                    quantity: 1
+                                }
+
+                            ];
+
+
+                            /* ==================================
+                               SAVE CURRENT ITEM ONLY
+                            ================================== */
+
+                            localStorage.setItem(
+                                "veloureReservations",
+                                JSON.stringify(
+                                    selectedReservation
+                                )
+                            );
+
+
+                            /* ==================================
+                               ALSO SAVE GALLERY DETAILS
+                            ================================== */
+
+                            localStorage.setItem(
+                                "veloureGalleryReservation",
+                                JSON.stringify({
+
+                                    name: name,
+
+                                    price: price,
+
+                                    quantity: 1,
+
+                                    source: "Gallery"
+
+                                })
+                            );
+
+
+                            /* ==================================
+                               OPEN RESERVATION PAGE
+                            ================================== */
+
+                            window.location.href =
+                                "reservation.php";
+
+                        }
+                    );
+
+                }
+            );
+
+
+        /* ======================================
            BUTTON ANIMATION
         ====================================== */
 
@@ -913,3 +1036,5 @@ document.addEventListener(
 </body>
 
 </html>
+```
+

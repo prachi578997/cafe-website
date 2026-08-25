@@ -10,6 +10,7 @@ date_default_timezone_set("Asia/Kolkata");
 $orderSuccess = false;
 $orderError = "";
 
+
 /* =========================================================
    GOOGLE APPS SCRIPT URL
 ========================================================= */
@@ -128,7 +129,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         } else {
 
-            $file = __DIR__ . "/order.csv";
+            /* =================================================
+               RENDER-SAFE DATA FOLDER
+            ================================================= */
+
+            $dataFolder = __DIR__ . "/data";
+
+            if (!is_dir($dataFolder)) {
+                @mkdir($dataFolder, 0775, true);
+            }
+
+            $file = $dataFolder . "/order.csv";
 
             $newFile =
                 !file_exists($file) ||
@@ -176,7 +187,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             } else {
 
                 $orderError =
-                    "Order could not be saved. Please check folder permission.";
+                    "Unable to save order. Please check folder permission.";
 
             }
         }
@@ -1282,7 +1293,7 @@ echo htmlspecialchars(
     <br><br>
 
     Your order has been saved in
-    <strong>order.csv</strong>.
+    <strong>data/order.csv</strong>.
 
 </div>
 
@@ -1502,194 +1513,694 @@ echo htmlspecialchars(
 </select>
 
 </div>
+<!-- =========================================================
+   PART 2 — BODY + MENU + BUILD YOUR COFFEE + JAVASCRIPT
+========================================================= -->
+
+<body>
+
+<!-- =========================================================
+   NAVBAR
+========================================================= -->
+
+<nav class="navbar">
+
+    <div class="logo">
+        VELOU<span>RE</span>
+    </div>
+
+    <div class="nav-links">
+        <a href="index.php">Home</a>
+        <a href="about.php">About</a>
+        <a href="menu.php">Menu</a>
+        <a href="offers.php">Offers</a>
+        <a href="gallery.php">Gallery</a>
+        <a href="services.php">Services</a>
+        <a href="reservation.php">Reservation</a>
+        <a href="reviews.php">Reviews</a>
+    </div>
+
+    <a href="reservation.php" class="reserve-btn">
+        Reserve Table
+    </a>
+
+</nav>
 
 
-<!-- NAME -->
+<!-- =========================================================
+   HERO
+========================================================= -->
 
-<div class="build-group">
+<section class="hero">
 
-<label>
-    Your Name *
-</label>
+    <div class="eyebrow">
+        Curated With Passion
+    </div>
 
-<input
-    type="text"
-    name="name"
-    placeholder="Enter your name"
-    required
->
+    <h1>
+        The VELOURE
+        <br>
+        <span>Menu</span>
+    </h1>
 
-</div>
+    <p>
+        Discover handcrafted coffee,
+        refreshing drinks, delicious café favourites
+        and signature creations made especially
+        for unforgettable moments.
+    </p>
 
-
-<!-- PHONE -->
-
-<div class="build-group">
-
-<label>
-    Mobile Number *
-</label>
-
-<input
-    type="tel"
-    name="phone"
-    placeholder="10 digit mobile number"
-    maxlength="10"
-    pattern="[0-9]{10}"
-    required
->
-
-</div>
+</section>
 
 
-<!-- PAYMENT -->
+<!-- =========================================================
+   MENU
+========================================================= -->
 
-<div class="build-group payment-box">
+<section class="menu-section">
 
-<label>
-    Payment Method *
-</label>
+<div class="section-heading">
 
-<select
-    name="payment"
-    id="paymentMethod"
-    required
->
+    <small>EXPLORE OUR SELECTION</small>
 
-<option value="">
-    Select Payment Method
-</option>
+    <h2>
+        Crafted For Every Craving
+    </h2>
 
-<option value="Cash">
-    Cash
-</option>
-
-<option value="UPI">
-    UPI
-</option>
-
-<option value="Card">
-    Card
-</option>
-
-</select>
-
-</div>
-
-
-<!-- UPI QR -->
-
-<div class="qr-box" id="qrBox">
-
-<h3>
-    UPI Payment
-</h3>
-
-<p>
-    Scan this QR Code to pay your bill.
-</p>
-
-<img
-    src="images/upi-qr.jpg"
-    alt="VELOURE UPI QR Code"
-    id="upiQrImage"
-    onerror="this.style.display='none';"
->
-
-<p>
-    Amount to Pay
-</p>
-
-<strong id="qrAmount">
-    ₹0
-</strong>
-
-<p>
-    Please complete the payment using the QR code.
-</p>
+    <p>
+        From your first morning coffee
+        to an indulgent evening dessert.
+    </p>
 
 </div>
 
 
-<!-- PAYMENT STATUS -->
+<!-- =========================================================
+   FILTER BUTTONS
+========================================================= -->
+
+<div class="filters">
+
+    <button
+        class="filter-btn active"
+        data-filter="all"
+        type="button"
+    >
+        All
+    </button>
+
+    <?php foreach($menu as $category => $items): ?>
+
+        <?php
+        $filter = strtolower(
+            preg_replace(
+                '/[^a-z0-9]+/',
+                '-',
+                $category
+            )
+        );
+        ?>
+
+        <button
+            class="filter-btn"
+            data-filter="<?php echo htmlspecialchars($filter); ?>"
+            type="button"
+        >
+            <?php echo htmlspecialchars($category); ?>
+        </button>
+
+    <?php endforeach; ?>
+
+</div>
+
+
+<!-- =========================================================
+   MENU CATEGORIES
+========================================================= -->
+
+<?php foreach($menu as $category => $items): ?>
+
+<?php
+
+$categoryClass = strtolower(
+    preg_replace(
+        '/[^a-z0-9]+/',
+        '-',
+        $category
+    )
+);
+
+?>
 
 <div
-    class="payment-status"
-    id="paymentStatus"
+    class="menu-category"
+    data-category="<?php echo htmlspecialchars($categoryClass); ?>"
 >
 
-⚠️ UPI Payment Status:
-<strong>Pending</strong>
+    <div class="category-title">
 
-<br>
+        <h3>
+            <?php echo htmlspecialchars($category); ?>
+        </h3>
 
-Please complete payment using the QR code.
+        <div class="category-line"></div>
+
+    </div>
+
+
+    <div class="menu-grid">
+
+    <?php foreach($items as $item): ?>
+
+        <?php
+
+        $itemName  = $item[0];
+        $itemPrice = $item[1];
+        $itemImage = $item[2];
+
+        ?>
+
+        <div
+            class="menu-card"
+            data-item-name="<?php echo htmlspecialchars($itemName, ENT_QUOTES); ?>"
+            data-item-price="<?php echo (float)$itemPrice; ?>"
+        >
+
+            <!-- IMAGE -->
+
+            <a
+                href="#"
+                class="food-image reservation-image-link"
+                data-name="<?php echo htmlspecialchars($itemName, ENT_QUOTES); ?>"
+                data-price="<?php echo (float)$itemPrice; ?>"
+            >
+
+                <img
+                    src="images/<?php echo htmlspecialchars($itemImage); ?>"
+                    alt="<?php echo htmlspecialchars($itemName); ?>"
+                    onerror="this.src='images/default-food.jpg';"
+                >
+
+                <span class="image-price">
+                    ₹<?php echo number_format($itemPrice); ?>
+                </span>
+
+                <span class="image-reserve-label">
+                    + Reservation
+                </span>
+
+            </a>
+
+
+            <!-- CONTENT -->
+
+            <div class="menu-content">
+
+                <h4>
+                    <?php echo htmlspecialchars($itemName); ?>
+                </h4>
+
+                <p>
+                    <?php
+                    echo htmlspecialchars(
+                        $descriptions[$itemName]
+                        ??
+                        "A delicious creation specially prepared by VELOURE."
+                    );
+                    ?>
+                </p>
+
+
+                <div class="price-row">
+
+                    <span class="price">
+                        ₹<?php echo number_format($itemPrice); ?>
+                    </span>
+
+                    <button
+                        type="button"
+                        class="reservation-item-btn add-reservation-btn"
+                        data-name="<?php echo htmlspecialchars($itemName, ENT_QUOTES); ?>"
+                        data-price="<?php echo (float)$itemPrice; ?>"
+                    >
+                        + Reservation
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    <?php endforeach; ?>
+
+    </div>
+
+</div>
+
+<?php endforeach; ?>
+
+
+<!-- =========================================================
+   BUILD YOUR COFFEE
+   THIS PART IS KEPT
+========================================================= -->
+
+<div class="build-coffee" id="build-coffee">
+
+<div class="build-title">
+
+    <small>
+        YOUR COFFEE · YOUR WAY
+    </small>
+
+    <h2>
+        Build Your Coffee
+    </h2>
+
+    <p>
+        Create your perfect coffee exactly the way you like it.
+    </p>
 
 </div>
 
 
-<!-- BILL -->
+<?php if($orderSuccess): ?>
 
-<div class="bill-details">
+<div class="success">
 
-<h3>
-    Your Bill
-</h3>
+    ✅ Order placed successfully!
 
-<div class="bill-row">
-    <span>Coffee</span>
-    <strong id="billCoffee">₹0</strong>
-</div>
+    <br><br>
 
-<div class="bill-row">
-    <span>Size</span>
-    <strong id="billSize">₹0</strong>
-</div>
-
-<div class="bill-row">
-    <span>Milk</span>
-    <strong id="billMilk">₹0</strong>
-</div>
-
-<div class="bill-row">
-    <span>Sweetness</span>
-    <strong id="billSweetness">₹0</strong>
-</div>
-
-<div class="bill-row">
-    <span>Topping</span>
-    <strong id="billTopping">₹0</strong>
-</div>
-
-<div class="bill-total">
-    <span>Total Bill</span>
-    <strong id="billTotal">₹0</strong>
-</div>
+    Your order has been saved in
+    <strong>order.csv</strong>.
 
 </div>
 
+<?php endif; ?>
 
-<!-- TOTAL -->
 
-<div class="price-box">
+<?php if($orderError !== ""): ?>
 
-<span>
-    YOUR COFFEE PRICE
-</span>
+<div class="error">
 
-<strong id="coffeeTotal">
-    ₹0
-</strong>
+    ❌ <?php echo htmlspecialchars($orderError); ?>
 
 </div>
 
+<?php endif; ?>
 
-<button
-    type="submit"
-    class="build-btn"
+
+<form
+    class="build-form"
+    method="POST"
+    action="menu.php#build-coffee"
+    id="buildCoffeeForm"
 >
-    Create My Coffee
-</button>
+
+    <!-- COFFEE -->
+
+    <div class="build-group">
+
+        <label>
+            Coffee Type *
+        </label>
+
+        <select
+            name="coffee"
+            id="coffeeType"
+            required
+        >
+
+            <option value="" data-price="0">
+                Select Coffee
+            </option>
+
+            <option value="Classic Coffee" data-price="120">
+                Classic Coffee — ₹120
+            </option>
+
+            <option value="Espresso" data-price="100">
+                Espresso — ₹100
+            </option>
+
+            <option value="Cappuccino" data-price="150">
+                Cappuccino — ₹150
+            </option>
+
+            <option value="Mocha" data-price="170">
+                Mocha — ₹170
+            </option>
+
+            <option value="Cold Coffee" data-price="150">
+                Cold Coffee — ₹150
+            </option>
+
+            <option value="Iced Coffee" data-price="160">
+                Iced Coffee — ₹160
+            </option>
+
+            <option value="Frappé" data-price="190">
+                Frappé — ₹190
+            </option>
+
+            <option value="Signature Coffee" data-price="220">
+                Signature Coffee — ₹220
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <!-- SIZE -->
+
+    <div class="build-group">
+
+        <label>
+            Size *
+        </label>
+
+        <select
+            name="size"
+            id="coffeeSize"
+            required
+        >
+
+            <option value="" data-price="0">
+                Select Size
+            </option>
+
+            <option value="Small" data-price="0">
+                Small — +₹0
+            </option>
+
+            <option value="Medium" data-price="30">
+                Medium — +₹30
+            </option>
+
+            <option value="Large" data-price="50">
+                Large — +₹50
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <!-- MILK -->
+
+    <div class="build-group">
+
+        <label>
+            Milk
+        </label>
+
+        <select
+            name="milk"
+            id="coffeeMilk"
+        >
+
+            <option value="Regular Milk" data-price="0">
+                Regular Milk — +₹0
+            </option>
+
+            <option value="Almond Milk" data-price="30">
+                Almond Milk — +₹30
+            </option>
+
+            <option value="Oat Milk" data-price="25">
+                Oat Milk — +₹25
+            </option>
+
+            <option value="Soy Milk" data-price="20">
+                Soy Milk — +₹20
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <!-- SWEETNESS -->
+
+    <div class="build-group">
+
+        <label>
+            Sweetness
+        </label>
+
+        <select
+            name="sweetness"
+            id="coffeeSweetness"
+        >
+
+            <option value="Normal" data-price="0">
+                Normal — +₹0
+            </option>
+
+            <option value="Less Sugar" data-price="0">
+                Less Sugar — +₹0
+            </option>
+
+            <option value="No Sugar" data-price="0">
+                No Sugar — +₹0
+            </option>
+
+            <option value="Extra Sweet" data-price="10">
+                Extra Sweet — +₹10
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <!-- TOPPING -->
+
+    <div class="build-group">
+
+        <label>
+            Toppings
+        </label>
+
+        <select
+            name="topping"
+            id="coffeeTopping"
+        >
+
+            <option value="No Topping" data-price="0">
+                No Topping — +₹0
+            </option>
+
+            <option value="Whipped Cream" data-price="20">
+                Whipped Cream — +₹20
+            </option>
+
+            <option value="Chocolate" data-price="25">
+                Chocolate — +₹25
+            </option>
+
+            <option value="Caramel" data-price="20">
+                Caramel — +₹20
+            </option>
+
+            <option value="Hazelnut" data-price="30">
+                Hazelnut — +₹30
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <!-- NAME -->
+
+    <div class="build-group">
+
+        <label>
+            Your Name *
+        </label>
+
+        <input
+            type="text"
+            name="name"
+            placeholder="Enter your name"
+            required
+        >
+
+    </div>
+
+
+    <!-- PHONE -->
+
+    <div class="build-group">
+
+        <label>
+            Mobile Number *
+        </label>
+
+        <input
+            type="tel"
+            name="phone"
+            placeholder="10 digit mobile number"
+            maxlength="10"
+            pattern="[0-9]{10}"
+            required
+        >
+
+    </div>
+
+
+    <!-- PAYMENT -->
+
+    <div class="build-group payment-box">
+
+        <label>
+            Payment Method *
+        </label>
+
+        <select
+            name="payment"
+            id="paymentMethod"
+            required
+        >
+
+            <option value="">
+                Select Payment Method
+            </option>
+
+            <option value="Cash">
+                Cash
+            </option>
+
+            <option value="UPI">
+                UPI
+            </option>
+
+            <option value="Card">
+                Card
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <!-- UPI QR -->
+
+    <div class="qr-box" id="qrBox">
+
+        <h3>
+            UPI Payment
+        </h3>
+
+        <p>
+            Scan this QR Code to pay your bill.
+        </p>
+
+        <img
+            src="images/upi-qr.jpg"
+            alt="VELOURE UPI QR Code"
+            id="upiQrImage"
+            onerror="this.style.display='none';"
+        >
+
+        <p>
+            Amount to Pay
+        </p>
+
+        <strong id="qrAmount">
+            ₹0
+        </strong>
+
+        <p>
+            Please complete the payment using the QR code.
+        </p>
+
+    </div>
+
+
+    <!-- PAYMENT STATUS -->
+
+    <div
+        class="payment-status"
+        id="paymentStatus"
+    >
+
+        ⚠️ UPI Payment Status:
+        <strong>Pending</strong>
+
+        <br>
+
+        Please complete payment using the QR code.
+
+    </div>
+
+
+    <!-- BILL -->
+
+    <div class="bill-details">
+
+        <h3>
+            Your Bill
+        </h3>
+
+        <div class="bill-row">
+            <span>Coffee</span>
+            <strong id="billCoffee">₹0</strong>
+        </div>
+
+        <div class="bill-row">
+            <span>Size</span>
+            <strong id="billSize">₹0</strong>
+        </div>
+
+        <div class="bill-row">
+            <span>Milk</span>
+            <strong id="billMilk">₹0</strong>
+        </div>
+
+        <div class="bill-row">
+            <span>Sweetness</span>
+            <strong id="billSweetness">₹0</strong>
+        </div>
+
+        <div class="bill-row">
+            <span>Topping</span>
+            <strong id="billTopping">₹0</strong>
+        </div>
+
+        <div class="bill-total">
+            <span>Total Bill</span>
+            <strong id="billTotal">₹0</strong>
+        </div>
+
+    </div>
+
+
+    <!-- TOTAL -->
+
+    <div class="price-box">
+
+        <span>
+            YOUR COFFEE PRICE
+        </span>
+
+        <strong id="coffeeTotal">
+            ₹0
+        </strong>
+
+    </div>
+
+
+    <button
+        type="submit"
+        class="build-btn"
+    >
+        Create My Coffee
+    </button>
 
 </form>
 
@@ -1699,23 +2210,23 @@ Please complete payment using the QR code.
 
 
 <!-- =========================================================
-   RESERVATION FLOATING BUTTON
+   FLOATING RESERVATION
 ========================================================= -->
 
 <div class="reservation-count-box">
 
-<a
-    href="reservation.php"
-    class="reservation-count-btn"
->
+    <a
+        href="reservation.php"
+        class="reservation-count-btn"
+    >
 
-    Reservation
+        Reservation
 
-    <span id="reservationCount">
-        0
-    </span>
+        <span id="reservationCount">
+            0
+        </span>
 
-</a>
+    </a>
 
 </div>
 
@@ -1726,710 +2237,766 @@ Please complete payment using the QR code.
 
 <footer>
 
-<div class="footer-logo">
-    VELOURE
-</div>
+    <div class="footer-logo">
+        VELOURE
+    </div>
 
-<p>
-    © 2026 VELOURE Artisan Café.
-    All Rights Reserved.
-</p>
+    <p>
+        © 2026 VELOURE Artisan Café.
+        All Rights Reserved.
+    </p>
 
 </footer>
 
 
+<!-- =========================================================
+   JAVASCRIPT
+========================================================= -->
+
 <script>
 
-document.addEventListener("DOMContentLoaded", function(){
+document.addEventListener("DOMContentLoaded", function () {
+
+    /* =====================================================
+       GOOGLE APPS SCRIPT
+    ===================================================== */
+
+    const GOOGLE_SCRIPT_URL =
+        "https://script.google.com/macros/s/AKfycbzRqE9u-c5RuoGC7ZA2MWp2de4Decqymz5yH6AZRdSP6XlT7HQU5FCHrmeTLoliBB51/exec";
 
 
-/* =========================================================
-   GOOGLE SCRIPT
-========================================================= */
+    /* =====================================================
+       MENU FILTER
+    ===================================================== */
 
-const GOOGLE_SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbzRqE9u-c5RuoGC7ZA2MWp2de4Decqymz5yH6AZRdSP6XlT7HQU5FCHrmeTLoliBB51/exec";
+    const filterButtons =
+        document.querySelectorAll(".filter-btn");
 
+    const categories =
+        document.querySelectorAll(".menu-category");
 
-/* =========================================================
-   FILTER
-========================================================= */
+    filterButtons.forEach(function (button) {
 
-const filterButtons =
-document.querySelectorAll(".filter-btn");
+        button.addEventListener("click", function () {
 
-const categories =
-document.querySelectorAll(".menu-category");
+            const filter =
+                this.getAttribute("data-filter");
 
-filterButtons.forEach(function(button){
+            filterButtons.forEach(function (btn) {
+                btn.classList.remove("active");
+            });
 
-    button.addEventListener("click",function(){
+            this.classList.add("active");
 
-        const filter =
-        this.getAttribute("data-filter");
+            categories.forEach(function (category) {
 
-        filterButtons.forEach(function(btn){
-            btn.classList.remove("active");
-        });
+                const categoryName =
+                    category.getAttribute("data-category");
 
-        this.classList.add("active");
+                if (
+                    filter === "all" ||
+                    categoryName === filter
+                ) {
 
-        categories.forEach(function(category){
+                    category.style.display = "block";
 
-            const categoryName =
-            category.getAttribute("data-category");
+                } else {
 
-            if(
-                filter === "all" ||
-                categoryName === filter
-            ){
+                    category.style.display = "none";
 
-                category.style.display = "block";
+                }
 
-            }else{
-
-                category.style.display = "none";
-
-            }
+            });
 
         });
 
     });
 
-});
+
+    /* =====================================================
+       RESERVATION STORAGE
+       ONLY ONE ITEM AT A TIME
+    ===================================================== */
+
+    let selectedReservations = [];
+
+    try {
+
+        selectedReservations =
+            JSON.parse(
+                localStorage.getItem(
+                    "veloureReservations"
+                )
+            ) || [];
+
+        if (!Array.isArray(selectedReservations)) {
+            selectedReservations = [];
+        }
+
+    } catch (error) {
+
+        selectedReservations = [];
+
+    }
 
 
-/* =========================================================
-   RESERVATIONS
-   ONLY ONE ITEM AT A TIME
-========================================================= */
+    function saveReservations() {
 
-let selectedReservations = [];
+        localStorage.setItem(
+            "veloureReservations",
+            JSON.stringify(selectedReservations)
+        );
 
-try{
-
-    selectedReservations =
-    JSON.parse(
-        localStorage.getItem(
-            "veloureReservations"
-        )
-    ) || [];
-
-}catch(error){
-
-    selectedReservations = [];
-
-}
+    }
 
 
-function saveReservations(){
+    function updateReservationCount() {
 
-    localStorage.setItem(
-        "veloureReservations",
-        JSON.stringify(
-            selectedReservations
-        )
-    );
+        const countElement =
+            document.getElementById("reservationCount");
 
-}
-
-
-function updateReservationCount(){
-
-    const count =
-    selectedReservations.length;
-
-    const countElement =
-    document.getElementById(
-        "reservationCount"
-    );
-
-    if(countElement){
+        if (!countElement) {
+            return;
+        }
 
         countElement.textContent =
-        count;
+            selectedReservations.length;
 
     }
 
-}
 
+    /* =====================================================
+       MESSAGE
+    ===================================================== */
 
-function showReservationMessage(message){
+    function showReservationMessage(message) {
 
-    let box =
-    document.getElementById(
-        "reservationMessage"
-    );
-
-    if(!box){
-
-        box =
-        document.createElement("div");
-
-        box.id =
-        "reservationMessage";
-
-        box.style.position = "fixed";
-        box.style.top = "90px";
-        box.style.right = "25px";
-        box.style.zIndex = "99999";
-        box.style.background = "#4b3024";
-        box.style.color = "#fff";
-        box.style.padding = "14px 22px";
-        box.style.borderRadius = "30px";
-        box.style.fontSize = "13px";
-        box.style.fontWeight = "600";
-        box.style.boxShadow =
-        "0 8px 25px rgba(0,0,0,.25)";
-
-        document.body.appendChild(box);
-
-    }
-
-    box.textContent =
-    "✓ " + message;
-
-    box.style.display = "block";
-
-    clearTimeout(
-        window.reservationMessageTimer
-    );
-
-    window.reservationMessageTimer =
-    setTimeout(function(){
-
-        box.style.display = "none";
-
-    },2500);
-
-}
-
-
-/* =========================================================
-   ADD MENU ITEM TO RESERVATION
-   ONLY ONE ITEM
-========================================================= */
-
-function addReservationItem(name, price){
-
-    name = String(name || "").trim();
-    price = parseFloat(price);
-
-    if(
-        name === "" ||
-        isNaN(price) ||
-        price <= 0
-    ){
-
-        alert(
-            "Please select a valid menu item."
-        );
-
-        return;
-
-    }
-
-    // Clear previous item
-    selectedReservations = [];
-
-    // Add only selected item
-    selectedReservations.push({
-
-        name: name,
-
-        price: price,
-
-        quantity: 1
-
-    });
-
-    // Save only selected item
-    saveReservations();
-
-    // Update count
-    updateReservationCount();
-
-    // Confirmation
-    showReservationMessage(
-        name + " — ₹" + price +
-        " added to reservation"
-    );
-
-}
-
-
-/* =========================================================
-   RESERVATION BUTTON
-========================================================= */
-
-document.querySelectorAll(
-    ".add-reservation-btn"
-).forEach(function(button){
-
-    button.addEventListener(
-        "click",
-        function(){
-
-            const name =
-            this.getAttribute(
-                "data-name"
+        let box =
+            document.getElementById(
+                "reservationMessage"
             );
 
-            const price =
-            this.getAttribute(
-                "data-price"
-            );
+        if (!box) {
 
-            addReservationItem(
-                name,
-                price
-            );
+            box =
+                document.createElement("div");
+
+            box.id =
+                "reservationMessage";
+
+            box.style.position = "fixed";
+            box.style.top = "90px";
+            box.style.right = "25px";
+            box.style.zIndex = "99999";
+            box.style.background = "#4b3024";
+            box.style.color = "#fff";
+            box.style.padding = "14px 22px";
+            box.style.borderRadius = "30px";
+            box.style.fontSize = "13px";
+            box.style.fontWeight = "600";
+            box.style.boxShadow =
+                "0 8px 25px rgba(0,0,0,.25)";
+
+            document.body.appendChild(box);
 
         }
-    );
 
-});
+        box.textContent =
+            "✓ " + message;
 
+        box.style.display = "block";
 
-/* =========================================================
-   IMAGE CLICK
-========================================================= */
-
-document.querySelectorAll(
-    ".reservation-image-link"
-).forEach(function(image){
-
-    image.addEventListener(
-        "click",
-        function(event){
-
-            event.preventDefault();
-
-            const name =
-            this.getAttribute(
-                "data-name"
-            );
-
-            const price =
-            this.getAttribute(
-                "data-price"
-            );
-
-            addReservationItem(
-                name,
-                price
-            );
-
-        }
-    );
-
-});
-
-
-/* =========================================================
-   PRICE FUNCTION
-========================================================= */
-
-function getPrice(selectId){
-
-    const select =
-    document.getElementById(selectId);
-
-    if(!select){
-        return 0;
-    }
-
-    const option =
-    select.options[
-        select.selectedIndex
-    ];
-
-    if(!option){
-        return 0;
-    }
-
-    const price =
-    parseFloat(
-        option.getAttribute("data-price")
-    );
-
-    return isNaN(price) ? 0 : price;
-
-}
-
-
-/* =========================================================
-   CALCULATE COFFEE
-========================================================= */
-
-function calculateCoffeePrice(){
-
-    const coffee =
-    getPrice("coffeeType");
-
-    const size =
-    getPrice("coffeeSize");
-
-    const milk =
-    getPrice("coffeeMilk");
-
-    const sweetness =
-    getPrice("coffeeSweetness");
-
-    const topping =
-    getPrice("coffeeTopping");
-
-
-    const total =
-    coffee +
-    size +
-    milk +
-    sweetness +
-    topping;
-
-
-    document.getElementById(
-        "billCoffee"
-    ).textContent =
-    "₹" + coffee;
-
-
-    document.getElementById(
-        "billSize"
-    ).textContent =
-    "₹" + size;
-
-
-    document.getElementById(
-        "billMilk"
-    ).textContent =
-    "₹" + milk;
-
-
-    document.getElementById(
-        "billSweetness"
-    ).textContent =
-    "₹" + sweetness;
-
-
-    document.getElementById(
-        "billTopping"
-    ).textContent =
-    "₹" + topping;
-
-
-    document.getElementById(
-        "billTotal"
-    ).textContent =
-    "₹" + total;
-
-
-    document.getElementById(
-        "coffeeTotal"
-    ).textContent =
-    "₹" + total;
-
-
-    document.getElementById(
-        "qrAmount"
-    ).textContent =
-    "₹" + total;
-
-}
-
-
-/* =========================================================
-   PRICE EVENTS
-========================================================= */
-
-[
-    "coffeeType",
-    "coffeeSize",
-    "coffeeMilk",
-    "coffeeSweetness",
-    "coffeeTopping"
-].forEach(function(id){
-
-    const element =
-    document.getElementById(id);
-
-    if(element){
-
-        element.addEventListener(
-            "change",
-            calculateCoffeePrice
+        clearTimeout(
+            window.reservationMessageTimer
         );
 
+        window.reservationMessageTimer =
+            setTimeout(function () {
+
+                box.style.display = "none";
+
+            }, 2500);
+
     }
 
-});
 
+    /* =====================================================
+       ADD RESERVATION
+       PREVIOUS ITEM WILL BE REPLACED
+    ===================================================== */
 
-/* =========================================================
-   PAYMENT METHOD
-========================================================= */
+    function addReservationItem(name, price) {
 
-const paymentMethod =
-document.getElementById(
-    "paymentMethod"
-);
+        name =
+            String(name || "").trim();
 
-const qrBox =
-document.getElementById(
-    "qrBox"
-);
+        price =
+            parseFloat(price);
 
-const paymentStatus =
-document.getElementById(
-    "paymentStatus"
-);
+        if (
+            name === "" ||
+            isNaN(price) ||
+            price <= 0
+        ) {
 
+            alert(
+                "Please select a valid menu item."
+            );
 
-if(paymentMethod){
+            return;
 
-    paymentMethod.addEventListener(
-        "change",
-        function(){
+        }
 
-            if(this.value === "UPI"){
+        /*
+         * IMPORTANT:
+         * Only one menu item is stored.
+         */
 
-                qrBox.classList.add("show");
+        selectedReservations = [
 
-                paymentStatus.classList.add(
-                    "show"
-                );
-
-                calculateCoffeePrice();
-
-            }else{
-
-                qrBox.classList.remove("show");
-
-                paymentStatus.classList.remove(
-                    "show"
-                );
-
+            {
+                name: name,
+                price: price,
+                quantity: 1
             }
 
+        ];
+
+        saveReservations();
+
+        updateReservationCount();
+
+        showReservationMessage(
+            name +
+            " — ₹" +
+            price +
+            " added to reservation"
+        );
+
+    }
+
+
+    /* =====================================================
+       MENU RESERVATION BUTTON
+    ===================================================== */
+
+    document
+        .querySelectorAll(".add-reservation-btn")
+        .forEach(function (button) {
+
+            button.addEventListener(
+                "click",
+                function () {
+
+                    const name =
+                        this.getAttribute(
+                            "data-name"
+                        );
+
+                    const price =
+                        this.getAttribute(
+                            "data-price"
+                        );
+
+                    addReservationItem(
+                        name,
+                        price
+                    );
+
+                }
+            );
+
+        });
+
+
+    /* =====================================================
+       IMAGE RESERVATION
+    ===================================================== */
+
+    document
+        .querySelectorAll(".reservation-image-link")
+        .forEach(function (image) {
+
+            image.addEventListener(
+                "click",
+                function (event) {
+
+                    event.preventDefault();
+
+                    const name =
+                        this.getAttribute(
+                            "data-name"
+                        );
+
+                    const price =
+                        this.getAttribute(
+                            "data-price"
+                        );
+
+                    addReservationItem(
+                        name,
+                        price
+                    );
+
+                }
+            );
+
+        });
+
+
+    /* =====================================================
+       GET SELECT PRICE
+    ===================================================== */
+
+    function getPrice(selectId) {
+
+        const select =
+            document.getElementById(selectId);
+
+        if (!select) {
+            return 0;
         }
-    );
 
-}
+        const option =
+            select.options[
+                select.selectedIndex
+            ];
+
+        if (!option) {
+            return 0;
+        }
+
+        const price =
+            parseFloat(
+                option.getAttribute("data-price")
+            );
+
+        return isNaN(price)
+            ? 0
+            : price;
+
+    }
 
 
-/* =========================================================
-   GOOGLE SHEET
-========================================================= */
+    /* =====================================================
+       BUILD YOUR COFFEE PRICE
+    ===================================================== */
 
-function sendToGoogleSheet(){
+    function calculateCoffeePrice() {
 
-    const name =
-    document.querySelector(
-        'input[name="name"]'
-    ).value.trim();
+        const coffee =
+            getPrice("coffeeType");
 
-    const phone =
-    document.querySelector(
-        'input[name="phone"]'
-    ).value.trim();
+        const size =
+            getPrice("coffeeSize");
 
-    const coffee =
-    document.getElementById(
-        "coffeeType"
-    ).value;
+        const milk =
+            getPrice("coffeeMilk");
 
-    const size =
-    document.getElementById(
-        "coffeeSize"
-    ).value;
+        const sweetness =
+            getPrice("coffeeSweetness");
 
-    const milk =
-    document.getElementById(
-        "coffeeMilk"
-    ).value;
+        const topping =
+            getPrice("coffeeTopping");
 
-    const sweetness =
-    document.getElementById(
-        "coffeeSweetness"
-    ).value;
+        const total =
+            coffee +
+            size +
+            milk +
+            sweetness +
+            topping;
 
-    const topping =
-    document.getElementById(
+
+        const billCoffee =
+            document.getElementById("billCoffee");
+
+        const billSize =
+            document.getElementById("billSize");
+
+        const billMilk =
+            document.getElementById("billMilk");
+
+        const billSweetness =
+            document.getElementById("billSweetness");
+
+        const billTopping =
+            document.getElementById("billTopping");
+
+        const billTotal =
+            document.getElementById("billTotal");
+
+        const coffeeTotal =
+            document.getElementById("coffeeTotal");
+
+        const qrAmount =
+            document.getElementById("qrAmount");
+
+
+        if (billCoffee)
+            billCoffee.textContent =
+                "₹" + coffee;
+
+        if (billSize)
+            billSize.textContent =
+                "₹" + size;
+
+        if (billMilk)
+            billMilk.textContent =
+                "₹" + milk;
+
+        if (billSweetness)
+            billSweetness.textContent =
+                "₹" + sweetness;
+
+        if (billTopping)
+            billTopping.textContent =
+                "₹" + topping;
+
+        if (billTotal)
+            billTotal.textContent =
+                "₹" + total;
+
+        if (coffeeTotal)
+            coffeeTotal.textContent =
+                "₹" + total;
+
+        if (qrAmount)
+            qrAmount.textContent =
+                "₹" + total;
+
+        return total;
+
+    }
+
+
+    /* =====================================================
+       PRICE CHANGE EVENTS
+    ===================================================== */
+
+    [
+        "coffeeType",
+        "coffeeSize",
+        "coffeeMilk",
+        "coffeeSweetness",
         "coffeeTopping"
-    ).value;
+    ].forEach(function (id) {
 
-    const payment =
-    document.getElementById(
-        "paymentMethod"
-    ).value;
+        const element =
+            document.getElementById(id);
 
-    const total =
-    document.getElementById(
-        "billTotal"
-    ).textContent.replace("₹","");
+        if (element) {
 
+            element.addEventListener(
+                "change",
+                calculateCoffeePrice
+            );
 
-    const data = {
-
-        date:
-        new Date().toLocaleString("en-IN"),
-
-        name: name,
-
-        phone: phone,
-
-        coffee: coffee,
-
-        size: size,
-
-        milk: milk,
-
-        sweetness: sweetness,
-
-        topping: topping,
-
-        payment: payment,
-
-        total: total,
-
-        paymentStatus:
-        "Pending",
-
-        orderType:
-        "Build Your Coffee"
-
-    };
-
-
-    fetch(
-        GOOGLE_SCRIPT_URL,
-        {
-            method:"POST",
-            mode:"no-cors",
-            headers:{
-                "Content-Type":
-                "application/json"
-            },
-            body:JSON.stringify(data)
         }
-    )
-    .then(function(){
-
-        console.log(
-            "Google Sheet request sent."
-        );
-
-    })
-    .catch(function(error){
-
-        console.log(
-            "Google Sheet error:",
-            error
-        );
 
     });
 
-}
+
+    /* =====================================================
+       PAYMENT METHOD
+    ===================================================== */
+
+    const paymentMethod =
+        document.getElementById(
+            "paymentMethod"
+        );
+
+    const qrBox =
+        document.getElementById(
+            "qrBox"
+        );
+
+    const paymentStatus =
+        document.getElementById(
+            "paymentStatus"
+        );
 
 
-/* =========================================================
-   FORM SUBMIT
-========================================================= */
+    if (paymentMethod) {
 
-const buildForm =
-document.getElementById(
-    "buildCoffeeForm"
-);
+        paymentMethod.addEventListener(
+            "change",
+            function () {
+
+                if (this.value === "UPI") {
+
+                    if (qrBox) {
+                        qrBox.classList.add("show");
+                    }
+
+                    if (paymentStatus) {
+                        paymentStatus.classList.add("show");
+                    }
+
+                    calculateCoffeePrice();
+
+                } else {
+
+                    if (qrBox) {
+                        qrBox.classList.remove("show");
+                    }
+
+                    if (paymentStatus) {
+                        paymentStatus.classList.remove("show");
+                    }
+
+                }
+
+            }
+        );
+
+    }
 
 
-if(buildForm){
+    /* =====================================================
+       GOOGLE SHEET
+    ===================================================== */
 
-    buildForm.addEventListener(
-        "submit",
-        function(event){
+    function sendToGoogleSheet() {
 
-            event.preventDefault();
+        const nameElement =
+            document.querySelector(
+                'input[name="name"]'
+            );
 
-            calculateCoffeePrice();
+        const phoneElement =
+            document.querySelector(
+                'input[name="phone"]'
+            );
 
-            const total =
+        const coffeeElement =
+            document.getElementById(
+                "coffeeType"
+            );
+
+        const sizeElement =
+            document.getElementById(
+                "coffeeSize"
+            );
+
+        const milkElement =
+            document.getElementById(
+                "coffeeMilk"
+            );
+
+        const sweetnessElement =
+            document.getElementById(
+                "coffeeSweetness"
+            );
+
+        const toppingElement =
+            document.getElementById(
+                "coffeeTopping"
+            );
+
+        const paymentElement =
+            document.getElementById(
+                "paymentMethod"
+            );
+
+        const totalElement =
             document.getElementById(
                 "billTotal"
-            ).textContent;
+            );
 
 
-            if(total === "₹0"){
+        if (
+            !nameElement ||
+            !phoneElement ||
+            !coffeeElement ||
+            !sizeElement ||
+            !milkElement ||
+            !sweetnessElement ||
+            !toppingElement ||
+            !paymentElement ||
+            !totalElement
+        ) {
 
-                alert(
-                    "Please select coffee and size first."
-                );
+            return;
 
-                return;
+        }
 
+
+        const data = {
+
+            date:
+                new Date().toLocaleString(
+                    "en-IN"
+                ),
+
+            name:
+                nameElement.value.trim(),
+
+            phone:
+                phoneElement.value.trim(),
+
+            coffee:
+                coffeeElement.value,
+
+            size:
+                sizeElement.value,
+
+            milk:
+                milkElement.value,
+
+            sweetness:
+                sweetnessElement.value,
+
+            topping:
+                toppingElement.value,
+
+            payment:
+                paymentElement.value,
+
+            total:
+                totalElement.textContent
+                    .replace("₹", ""),
+
+            paymentStatus:
+                "Pending",
+
+            orderType:
+                "Build Your Coffee"
+
+        };
+
+
+        fetch(
+            GOOGLE_SCRIPT_URL,
+            {
+                method: "POST",
+                mode: "no-cors",
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+                body:
+                    JSON.stringify(data)
             }
+        )
+        .then(function () {
+
+            console.log(
+                "Google Sheet request sent."
+            );
+
+        })
+        .catch(function (error) {
+
+            console.log(
+                "Google Sheet error:",
+                error
+            );
+
+        });
+
+    }
 
 
-            const payment =
-            paymentMethod.value;
+    /* =====================================================
+       BUILD COFFEE FORM SUBMIT
+    ===================================================== */
+
+    const buildForm =
+        document.getElementById(
+            "buildCoffeeForm"
+        );
 
 
-            if(!payment){
+    if (buildForm) {
 
-                alert(
-                    "Please select payment method."
-                );
+        buildForm.addEventListener(
+            "submit",
+            function (event) {
 
-                return;
-
-            }
+                event.preventDefault();
 
 
-            if(payment === "UPI"){
+                const total =
+                    calculateCoffeePrice();
 
-                const ok =
-                confirm(
-                    "Your total amount is " +
-                    total +
-                    ".\n\n" +
-                    "Please scan the UPI QR and complete payment.\n\n" +
-                    "Continue with order?"
-                );
 
-                if(!ok){
+                if (total <= 0) {
+
+                    alert(
+                        "Please select coffee and size first."
+                    );
 
                     return;
 
                 }
 
+
+                const payment =
+                    paymentMethod
+                        ? paymentMethod.value
+                        : "";
+
+
+                if (!payment) {
+
+                    alert(
+                        "Please select payment method."
+                    );
+
+                    return;
+
+                }
+
+
+                /* UPI */
+
+                if (payment === "UPI") {
+
+                    const ok =
+                        confirm(
+                            "Your total amount is ₹" +
+                            total +
+                            ".\n\n" +
+                            "Please scan the UPI QR and complete payment.\n\n" +
+                            "Continue with order?"
+                        );
+
+                    if (!ok) {
+                        return;
+                    }
+
+                }
+
+
+                /* SEND TO GOOGLE SHEET */
+
+                sendToGoogleSheet();
+
+
+                /*
+                 * Submit normal PHP form.
+                 * This saves order.csv.
+                 */
+
+                setTimeout(function () {
+
+                    buildForm.submit();
+
+                }, 700);
+
             }
+        );
+
+    }
 
 
-            /* GOOGLE SHEET */
+    /* =====================================================
+       INITIAL LOAD
+    ===================================================== */
 
-            sendToGoogleSheet();
+    calculateCoffeePrice();
 
-
-            /* PHP + CSV */
-
-            setTimeout(function(){
-
-                buildForm.submit();
-
-            },700);
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   INITIAL
-========================================================= */
-
-calculateCoffeePrice();
-
-updateReservationCount();
+    updateReservationCount();
 
 });
 
