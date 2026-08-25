@@ -2,9 +2,23 @@
 
 // ======================================================
 // VELOURE CAFE - EXCLUSIVE OFFERS + ORDER + PAYMENT
+// GOOGLE SHEET STORAGE
 // ======================================================
 
 date_default_timezone_set("Asia/Kolkata");
+
+
+// ======================================================
+// GOOGLE APPS SCRIPT WEB APP URL
+// ======================================================
+
+$google_script_url =
+    "https://script.google.com/macros/s/AKfycbztvvxdYWnF0GwrtUhf--hPIK1U8JwhiY91yP3rUFVfiFCMbf9Wl8jy__jpLGRBx7ST/exec";
+
+
+// ======================================================
+// OFFERS
+// ======================================================
 
 $offers = [
 
@@ -86,17 +100,21 @@ $payment_status = "Pending";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $customer_name =
-        trim($_POST["customer_name"] ?? "");
+    $customer_name = trim(
+        $_POST["customer_name"] ?? ""
+    );
 
-    $customer_phone =
-        trim($_POST["customer_phone"] ?? "");
+    $customer_phone = trim(
+        $_POST["customer_phone"] ?? ""
+    );
 
-    $selected_offer =
-        trim($_POST["offer_id"] ?? "");
+    $selected_offer = trim(
+        $_POST["offer_id"] ?? ""
+    );
 
-    $payment_method =
-        trim($_POST["payment_method"] ?? "");
+    $payment_method = trim(
+        $_POST["payment_method"] ?? ""
+    );
 
 
     // ==================================================
@@ -148,7 +166,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $order_id =
             "ORD" .
             date("YmdHis") .
-            rand(100,999);
+            rand(100, 999);
 
 
         // ==================================================
@@ -157,8 +175,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($payment_method === "UPI") {
 
-            // UPI payment will remain pending
-            // until actual payment verification
             $payment_status = "Pending";
 
         }
@@ -175,6 +191,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         }
 
+        else {
+
+            $payment_status = "Pending";
+
+        }
+
 
         // ==================================================
         // CREATED DATE
@@ -185,131 +207,183 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
         // ==================================================
-        // ORDER CSV
+        // DATA FOR GOOGLE SHEET
         // ==================================================
 
-        $csv_file =
-            __DIR__ . "/order.csv";
+        $google_data = [
 
+            "order_id" =>
+                $order_id,
 
-        // ==================================================
-        // CSV HEADERS
-        // ==================================================
+            "offer_id" =>
+                $selected_offer,
 
-        $headers = [
+            "offer_name" =>
+                $offer["title"],
 
-            "Order ID",
-            "Customer Name",
-            "Mobile",
-            "Offer ID",
-            "Offer Name",
-            "Offer Price",
-            "Original Price",
-            "Discount",
-            "Payment Method",
-            "Payment Status",
-            "Order Status",
-            "Created At"
+            "offer_price" =>
+                $offer["price"],
+
+            "offer_old_price" =>
+                $offer["old_price"],
+
+            "offer_discount" =>
+                $offer["discount"] . "%",
+
+            "name" =>
+                $customer_name,
+
+            "phone" =>
+                $customer_phone,
+
+            "payment_method" =>
+                $payment_method,
+
+            "payment_status" =>
+                $payment_status,
+
+            "order_status" =>
+                "Pending",
+
+            "created_at" =>
+                $created_at
 
         ];
 
 
         // ==================================================
-        // ORDER DATA
+        // CONVERT TO JSON
         // ==================================================
 
-        $data = [
-
-            $order_id,
-            $customer_name,
-            $customer_phone,
-            $selected_offer,
-            $offer["title"],
-            $offer["price"],
-            $offer["old_price"],
-            $offer["discount"] . "%",
-            $payment_method,
-            $payment_status,
-            "Pending",
-            $created_at
-
-        ];
+        $json_data = json_encode(
+            $google_data,
+            JSON_UNESCAPED_UNICODE
+        );
 
 
         // ==================================================
-        // OPEN CSV
+        // CHECK CURL
         // ==================================================
 
-        $file_exists =
-            file_exists($csv_file);
-
-        $file =
-            fopen($csv_file, "a");
-
-
-        if ($file === false) {
+        if (!function_exists("curl_init")) {
 
             $order_error =
-                "Unable to save order. Please check folder permission.";
+                "Server CURL is not available.";
 
         }
 
         else {
 
-            if (flock($file, LOCK_EX)) {
+            // ==================================================
+            // SEND TO GOOGLE APPS SCRIPT
+            // ==================================================
+
+            $ch = curl_init(
+                $google_script_url
+            );
 
 
-                // ==========================================
-                // CSV HEADER
-                // ==========================================
-
-                if (
-                    !$file_exists ||
-                    filesize($csv_file) === 0
-                ) {
-
-                    fwrite(
-                        $file,
-                        "\xEF\xBB\xBF"
-                    );
-
-                    fputcsv(
-                        $file,
-                        $headers
-                    );
-
-                }
+            curl_setopt(
+                $ch,
+                CURLOPT_POST,
+                true
+            );
 
 
-                // ==========================================
-                // SAVE ORDER
-                // ==========================================
-
-                fputcsv(
-                    $file,
-                    $data
-                );
-
-                fflush($file);
-
-                flock(
-                    $file,
-                    LOCK_UN
-                );
-
-                fclose($file);
+            curl_setopt(
+                $ch,
+                CURLOPT_POSTFIELDS,
+                $json_data
+            );
 
 
-                $order_success = true;
+            curl_setopt(
+                $ch,
+                CURLOPT_HTTPHEADER,
+                [
+                    "Content-Type: application/json"
+                ]
+            );
+
+
+            curl_setopt(
+                $ch,
+                CURLOPT_RETURNTRANSFER,
+                true
+            );
+
+
+            curl_setopt(
+                $ch,
+                CURLOPT_FOLLOWLOCATION,
+                true
+            );
+
+
+            curl_setopt(
+                $ch,
+                CURLOPT_SSL_VERIFYPEER,
+                true
+            );
+
+
+            curl_setopt(
+                $ch,
+                CURLOPT_TIMEOUT,
+                30
+            );
+
+
+            $response =
+                curl_exec($ch);
+
+
+            $curl_error =
+                curl_error($ch);
+
+
+            curl_close($ch);
+
+
+            // ==================================================
+            // CHECK RESPONSE
+            // ==================================================
+
+            if (
+                $response === false ||
+                $curl_error !== ""
+            ) {
+
+                $order_error =
+                    "Unable to connect to Google Sheet. Please try again.";
 
             }
 
             else {
 
-                fclose($file);
+                $result =
+                    json_decode(
+                        $response,
+                        true
+                    );
 
-                $order_error =
-                    "Unable to access order file.";
+
+                if (
+                    is_array($result) &&
+                    isset($result["success"]) &&
+                    $result["success"] === true
+                ) {
+
+                    $order_success = true;
+
+                }
+
+                else {
+
+                    $order_error =
+                        "Unable to save order to Google Sheet.";
+
+                }
 
             }
 
@@ -358,33 +432,20 @@ VELOURE | Exclusive Offers
 ====================================================== */
 
 * {
-
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-
 }
-
 
 html {
-
     scroll-behavior: smooth;
-
 }
 
-
 body {
-
     background: #0b0b0b;
-
     color: white;
-
-    font-family:
-        "DM Sans",
-        sans-serif;
-
+    font-family: "DM Sans", sans-serif;
     overflow-x: hidden;
-
 }
 
 
@@ -393,86 +454,52 @@ body {
 ====================================================== */
 
 nav {
-
     width: 100%;
-
     padding: 20px 8%;
-
     display: flex;
-
     justify-content: space-between;
-
     align-items: center;
 
     position: fixed;
-
     top: 0;
     left: 0;
 
     z-index: 1000;
 
-    background:
-        rgba(10,10,10,.90);
+    background: rgba(10,10,10,.90);
 
-    backdrop-filter:
-        blur(14px);
+    backdrop-filter: blur(14px);
 
     border-bottom:
         1px solid
         rgba(214,168,95,.12);
-
 }
-
 
 .logo {
-
-    font-family:
-        "Cormorant Garamond",
-        serif;
-
+    font-family: "Cormorant Garamond", serif;
     font-size: 32px;
-
     font-weight: 700;
-
     letter-spacing: 5px;
-
     color: #d6a85f;
-
 }
-
 
 nav ul {
-
     display: flex;
-
     align-items: center;
-
     gap: 24px;
-
     list-style: none;
-
 }
-
 
 nav ul li a {
-
     text-decoration: none;
-
     color: white;
-
     font-size: 14px;
-
     font-weight: 500;
-
     transition: .3s;
-
 }
 
-
 nav ul li a:hover {
-
     color: #d6a85f;
-
 }
 
 
@@ -481,13 +508,10 @@ nav ul li a:hover {
 ====================================================== */
 
 .hero {
-
     min-height: 75vh;
 
     display: flex;
-
     justify-content: center;
-
     align-items: center;
 
     text-align: center;
@@ -495,7 +519,6 @@ nav ul li a:hover {
     padding: 140px 20px 80px;
 
     background:
-
         linear-gradient(
             rgba(0,0,0,.55),
             rgba(0,0,0,.85)
@@ -503,35 +526,21 @@ nav ul li a:hover {
 
         url("images/offers-bg.jpg")
         center/cover no-repeat;
-
 }
-
 
 .hero-content {
-
     max-width: 850px;
-
-    animation:
-        heroReveal 1.2s ease both;
-
+    animation: heroReveal 1.2s ease both;
 }
-
 
 .hero span {
-
     color: #d6a85f;
-
     font-size: 13px;
-
     font-weight: 600;
-
     letter-spacing: 6px;
-
 }
 
-
 .hero h1 {
-
     margin: 18px 0;
 
     font-family:
@@ -542,20 +551,15 @@ nav ul li a:hover {
         clamp(55px,8vw,100px);
 
     line-height: .95;
-
 }
 
-
 .hero p {
-
     max-width: 650px;
-
     margin: auto;
 
     color: #ddd;
 
     line-height: 1.8;
-
 }
 
 
@@ -564,36 +568,22 @@ nav ul li a:hover {
 ====================================================== */
 
 .offers {
-
     padding: 100px 8%;
-
 }
-
 
 .section-title {
-
     text-align: center;
-
     margin-bottom: 65px;
-
 }
-
 
 .section-title span {
-
     color: #d6a85f;
-
     font-size: 13px;
-
     font-weight: 600;
-
     letter-spacing: 5px;
-
 }
 
-
 .section-title h2 {
-
     margin-top: 12px;
 
     font-family:
@@ -601,23 +591,14 @@ nav ul li a:hover {
         serif;
 
     font-size: 52px;
-
 }
 
-
-/* ======================================================
-   GRID
-====================================================== */
-
 .offer-container {
-
     display: grid;
-
     grid-template-columns:
         repeat(3,1fr);
 
     gap: 30px;
-
 }
 
 
@@ -626,7 +607,6 @@ nav ul li a:hover {
 ====================================================== */
 
 .offer-card {
-
     position: relative;
 
     padding: 40px 30px;
@@ -634,7 +614,6 @@ nav ul li a:hover {
     min-height: 390px;
 
     display: flex;
-
     flex-direction: column;
 
     border:
@@ -659,22 +638,16 @@ nav ul li a:hover {
 
     transition:
         .7s ease;
-
 }
 
-
 .offer-card.show {
-
     opacity: 1;
 
     transform:
         translateY(0);
-
 }
 
-
 .offer-card:hover {
-
     transform:
         translateY(-10px);
 
@@ -684,7 +657,6 @@ nav ul li a:hover {
     box-shadow:
         0 25px 60px
         rgba(214,168,95,.15);
-
 }
 
 
@@ -693,43 +665,38 @@ nav ul li a:hover {
 ====================================================== */
 
 .badge {
-
     position: absolute;
 
     top: 20px;
-
     right: -38px;
 
-    padding: 8px 42px;
+    padding:
+        8px 42px;
 
-    background: #d6a85f;
+    background:
+        #d6a85f;
 
     color: #111;
 
     font-size: 11px;
-
     font-weight: 700;
 
     transform:
         rotate(45deg);
-
 }
 
 
 /* ======================================================
-   EMOJI
+   ICON
 ====================================================== */
 
 .offer-icon {
-
     width: 75px;
-
     height: 75px;
 
     display: flex;
 
     align-items: center;
-
     justify-content: center;
 
     margin-bottom: 22px;
@@ -746,17 +713,13 @@ nav ul li a:hover {
     font-size: 38px;
 
     transition: .4s;
-
 }
-
 
 .offer-card:hover
 .offer-icon {
-
     transform:
         rotateY(180deg)
         scale(1.08);
-
 }
 
 
@@ -765,7 +728,6 @@ nav ul li a:hover {
 ====================================================== */
 
 .offer-card h3 {
-
     font-family:
         "Cormorant Garamond",
         serif;
@@ -773,16 +735,9 @@ nav ul li a:hover {
     font-size: 30px;
 
     margin-bottom: 12px;
-
 }
 
-
-/* ======================================================
-   DESCRIPTION
-====================================================== */
-
 .offer-card p {
-
     color: #aaa;
 
     line-height: 1.7;
@@ -790,7 +745,6 @@ nav ul li a:hover {
     font-size: 14px;
 
     margin-bottom: 25px;
-
 }
 
 
@@ -799,18 +753,14 @@ nav ul li a:hover {
 ====================================================== */
 
 .price {
-
     font-size: 34px;
 
     color: #d6a85f;
 
     font-weight: 700;
-
 }
 
-
 .old-price {
-
     color: #777;
 
     text-decoration:
@@ -819,7 +769,6 @@ nav ul li a:hover {
     font-size: 15px;
 
     margin-left: 8px;
-
 }
 
 
@@ -828,18 +777,17 @@ nav ul li a:hover {
 ====================================================== */
 
 .offer-btn {
-
     display: inline-flex;
 
     align-items: center;
-
     justify-content: center;
 
     width: max-content;
 
     margin-top: auto;
 
-    padding: 12px 25px;
+    padding:
+        12px 25px;
 
     border:
         1px solid
@@ -858,25 +806,20 @@ nav ul li a:hover {
     font-weight: 600;
 
     transition: .35s;
-
 }
 
-
 .offer-btn:hover {
-
     background: #d6a85f;
 
     color: #111;
-
 }
 
 
 /* ======================================================
-   SPECIAL BANNER
+   SPECIAL
 ====================================================== */
 
 .special {
-
     margin:
         20px 8% 100px;
 
@@ -900,12 +843,9 @@ nav ul li a:hover {
     border:
         1px solid
         rgba(214,168,95,.25);
-
 }
 
-
 .special h2 {
-
     font-family:
         "Cormorant Garamond",
         serif;
@@ -913,12 +853,9 @@ nav ul li a:hover {
     font-size: 52px;
 
     margin-bottom: 15px;
-
 }
 
-
 .special p {
-
     color: #ddd;
 
     max-width: 600px;
@@ -927,17 +864,16 @@ nav ul li a:hover {
         0 auto 28px;
 
     line-height: 1.7;
-
 }
 
-
 .special-btn {
-
     display: inline-block;
 
-    padding: 14px 35px;
+    padding:
+        14px 35px;
 
-    background: #d6a85f;
+    background:
+        #d6a85f;
 
     color: #111;
 
@@ -947,6 +883,9 @@ nav ul li a:hover {
 
     font-weight: 700;
 
+    border: none;
+
+    cursor: pointer;
 }
 
 
@@ -955,7 +894,6 @@ nav ul li a:hover {
 ====================================================== */
 
 .modal {
-
     display: none;
 
     position: fixed;
@@ -975,19 +913,13 @@ nav ul li a:hover {
     justify-content: center;
 
     padding: 20px;
-
 }
-
 
 .modal.active {
-
     display: flex;
-
 }
 
-
 .modal-box {
-
     width: 100%;
 
     max-width: 520px;
@@ -996,52 +928,49 @@ nav ul li a:hover {
 
     overflow-y: auto;
 
-    background: #fffaf4;
+    background:
+        #fffaf4;
 
-    color: #35251d;
+    color:
+        #35251d;
 
-    border-radius: 22px;
+    border-radius:
+        22px;
 
-    padding: 30px;
+    padding:
+        30px;
 
     position: relative;
 
     box-shadow:
         0 30px 80px
         rgba(0,0,0,.5);
-
 }
 
-
 .close {
-
     position: absolute;
 
     top: 15px;
-
     right: 18px;
 
     width: 35px;
-
     height: 35px;
 
     border: none;
 
     border-radius: 50%;
 
-    background: #35251d;
+    background:
+        #35251d;
 
     color: white;
 
     font-size: 20px;
 
     cursor: pointer;
-
 }
 
-
 .modal-box h2 {
-
     font-family:
         "Cormorant Garamond",
         serif;
@@ -1049,18 +978,15 @@ nav ul li a:hover {
     font-size: 38px;
 
     margin-bottom: 5px;
-
 }
 
-
 .modal-subtitle {
-
-    color: #806f61;
+    color:
+        #806f61;
 
     font-size: 13px;
 
     margin-bottom: 20px;
-
 }
 
 
@@ -1069,20 +995,20 @@ nav ul li a:hover {
 ====================================================== */
 
 .bill {
+    background:
+        #f6f1e8;
 
-    background: #f6f1e8;
+    padding:
+        18px;
 
-    padding: 18px;
+    border-radius:
+        14px;
 
-    border-radius: 14px;
-
-    margin-bottom: 20px;
-
+    margin-bottom:
+        20px;
 }
 
-
 .bill-title {
-
     font-family:
         "Cormorant Garamond",
         serif;
@@ -1091,38 +1017,39 @@ nav ul li a:hover {
 
     font-weight: 700;
 
-    margin-bottom: 12px;
-
+    margin-bottom:
+        12px;
 }
 
-
 .bill-row {
-
     display: flex;
 
-    justify-content: space-between;
+    justify-content:
+        space-between;
 
-    padding: 8px 0;
+    padding:
+        8px 0;
 
     border-bottom:
         1px solid
         #dfd2c2;
 
-    font-size: 14px;
-
+    font-size:
+        14px;
 }
 
-
 .bill-total {
+    font-size:
+        20px;
 
-    font-size: 20px;
+    font-weight:
+        700;
 
-    font-weight: 700;
+    color:
+        #a47b4c;
 
-    color: #a47b4c;
-
-    margin-top: 10px;
-
+    margin-top:
+        10px;
 }
 
 
@@ -1131,219 +1058,233 @@ nav ul li a:hover {
 ====================================================== */
 
 .form-group {
-
-    margin-bottom: 15px;
-
+    margin-bottom:
+        15px;
 }
-
 
 .form-group label {
-
     display: block;
 
-    font-size: 13px;
+    font-size:
+        13px;
 
-    font-weight: 700;
+    font-weight:
+        700;
 
-    margin-bottom: 6px;
-
+    margin-bottom:
+        6px;
 }
 
-
 .form-group input {
+    width:
+        100%;
 
-    width: 100%;
-
-    padding: 13px;
+    padding:
+        13px;
 
     border:
         1px solid
         #d9cbbb;
 
-    border-radius: 9px;
+    border-radius:
+        9px;
 
-    outline: none;
+    outline:
+        none;
 
-    font-family: inherit;
-
+    font-family:
+        inherit;
 }
 
-
 .payment-title {
-
     font-family:
         "Cormorant Garamond",
         serif;
 
-    font-size: 25px;
+    font-size:
+        25px;
 
-    margin: 18px 0 12px;
-
+    margin:
+        18px 0 12px;
 }
-
 
 .payment-options {
+    display:
+        flex;
 
-    display: flex;
-
-    gap: 10px;
-
+    gap:
+        10px;
 }
-
 
 .payment-options input {
-
-    display: none;
-
+    display:
+        none;
 }
 
-
 .payment-options label {
+    flex:
+        1;
 
-    flex: 1;
+    text-align:
+        center;
 
-    text-align: center;
-
-    padding: 12px 5px;
+    padding:
+        12px 5px;
 
     border:
         1px solid
         #d2c2b1;
 
-    border-radius: 9px;
+    border-radius:
+        9px;
 
-    cursor: pointer;
+    cursor:
+        pointer;
 
-    background: white;
+    background:
+        white;
 
-    font-size: 13px;
+    font-size:
+        13px;
 
-    font-weight: 600;
-
+    font-weight:
+        600;
 }
 
-
 .payment-options input:checked + label {
+    background:
+        #35251d;
 
-    background: #35251d;
+    color:
+        white;
 
-    color: white;
-
-    border-color: #35251d;
-
+    border-color:
+        #35251d;
 }
 
 
 /* ======================================================
-   UPI QR
+   UPI
 ====================================================== */
 
 .upi-box {
+    display:
+        none;
 
-    display: none;
+    margin-top:
+        18px;
 
-    margin-top: 18px;
+    padding:
+        18px;
 
-    padding: 18px;
+    background:
+        #f6f1e8;
 
-    background: #f6f1e8;
+    border-radius:
+        14px;
 
-    border-radius: 14px;
-
-    text-align: center;
+    text-align:
+        center;
 
     border:
         1px solid
         #dfd2c2;
-
 }
-
 
 .upi-box.show {
-
-    display: block;
-
+    display:
+        block;
 }
 
-
 .upi-box h3 {
-
     font-family:
         "Cormorant Garamond",
         serif;
 
-    font-size: 26px;
+    font-size:
+        26px;
 
-    margin-bottom: 8px;
-
+    margin-bottom:
+        8px;
 }
-
 
 .upi-box p {
+    font-size:
+        13px;
 
-    font-size: 13px;
+    color:
+        #806f61;
 
-    color: #806f61;
-
-    margin-bottom: 12px;
-
+    margin-bottom:
+        12px;
 }
 
-
 .upi-qr {
+    width:
+        220px;
 
-    width: 220px;
+    height:
+        220px;
 
-    height: 220px;
+    object-fit:
+        contain;
 
-    object-fit: contain;
+    display:
+        block;
 
-    display: block;
+    margin:
+        auto;
 
-    margin: auto;
+    background:
+        white;
 
-    background: white;
+    padding:
+        8px;
 
-    padding: 8px;
-
-    border-radius: 10px;
-
+    border-radius:
+        10px;
 }
 
 
 /* ======================================================
-   CONFIRM BUTTON
+   CONFIRM
 ====================================================== */
 
 .confirm-btn {
+    width:
+        100%;
 
-    width: 100%;
+    border:
+        none;
 
-    border: none;
+    background:
+        #35251d;
 
-    background: #35251d;
+    color:
+        white;
 
-    color: white;
+    padding:
+        15px;
 
-    padding: 15px;
+    border-radius:
+        10px;
 
-    border-radius: 10px;
+    font-size:
+        15px;
 
-    font-size: 15px;
+    font-weight:
+        700;
 
-    font-weight: 700;
+    cursor:
+        pointer;
 
-    cursor: pointer;
-
-    margin-top: 20px;
-
+    margin-top:
+        20px;
 }
 
-
 .confirm-btn:hover {
-
-    background: #a47b4c;
-
+    background:
+        #a47b4c;
 }
 
 
@@ -1352,77 +1293,86 @@ nav ul li a:hover {
 ====================================================== */
 
 .success-message {
+    text-align:
+        center;
 
-    text-align: center;
-
-    padding: 25px 5px;
-
+    padding:
+        25px 5px;
 }
-
 
 .success-icon {
+    width:
+        70px;
 
-    width: 70px;
+    height:
+        70px;
 
-    height: 70px;
+    display:
+        flex;
 
-    display: flex;
+    align-items:
+        center;
 
-    align-items: center;
+    justify-content:
+        center;
 
-    justify-content: center;
+    margin:
+        auto;
 
-    margin: auto;
+    border-radius:
+        50%;
 
-    border-radius: 50%;
+    background:
+        #35251d;
 
-    background: #35251d;
+    color:
+        white;
 
-    color: white;
-
-    font-size: 35px;
-
+    font-size:
+        35px;
 }
 
-
 .success-message h2 {
-
     font-family:
         "Cormorant Garamond",
         serif;
 
-    font-size: 38px;
+    font-size:
+        38px;
 
-    margin: 15px 0 5px;
-
+    margin:
+        15px 0 5px;
 }
-
 
 .success-message p {
+    color:
+        #806f61;
 
-    color: #806f61;
-
-    margin: 7px 0;
-
+    margin:
+        7px 0;
 }
 
-
 .error-message {
+    background:
+        #ffe0e0;
 
-    background: #ffe0e0;
+    color:
+        #a52d2d;
 
-    color: #a52d2d;
+    padding:
+        12px;
 
-    padding: 12px;
+    border-radius:
+        8px;
 
-    border-radius: 8px;
+    margin-bottom:
+        15px;
 
-    margin-bottom: 15px;
+    font-size:
+        13px;
 
-    font-size: 13px;
-
-    font-weight: 600;
-
+    font-weight:
+        600;
 }
 
 
@@ -1431,22 +1381,22 @@ nav ul li a:hover {
 ====================================================== */
 
 footer {
+    text-align:
+        center;
 
-    text-align: center;
+    padding:
+        42px 20px;
 
-    padding: 42px 20px;
+    background:
+        #050505;
 
-    background: #050505;
-
-    color: #777;
-
+    color:
+        #777;
 }
 
-
 footer strong {
-
-    color: #d6a85f;
-
+    color:
+        #d6a85f;
 }
 
 
@@ -1457,21 +1407,19 @@ footer strong {
 @keyframes heroReveal {
 
     from {
-
-        opacity: 0;
+        opacity:
+            0;
 
         transform:
             translateY(50px);
-
     }
 
     to {
-
-        opacity: 1;
+        opacity:
+            1;
 
         transform:
             translateY(0);
-
     }
 
 }
@@ -1484,16 +1432,13 @@ footer strong {
 @media(max-width:1000px) {
 
     nav ul {
-
-        gap: 12px;
-
+        gap:
+            12px;
     }
 
     .offer-container {
-
         grid-template-columns:
             repeat(2,1fr);
-
     }
 
 }
@@ -1502,77 +1447,64 @@ footer strong {
 @media(max-width:650px) {
 
     nav {
-
-        padding: 17px 5%;
-
+        padding:
+            17px 5%;
     }
 
     .logo {
-
-        font-size: 27px;
-
+        font-size:
+            27px;
     }
 
     nav ul {
-
-        display: none;
-
+        display:
+            none;
     }
 
     .hero {
-
-        min-height: 65vh;
+        min-height:
+            65vh;
 
         padding:
             120px 20px 60px;
-
     }
 
     .hero h1 {
-
-        font-size: 55px;
-
+        font-size:
+            55px;
     }
 
     .offers {
-
         padding:
             75px 5%;
-
     }
 
     .offer-container {
-
-        grid-template-columns: 1fr;
-
+        grid-template-columns:
+            1fr;
     }
 
     .special {
-
         margin:
             10px 5% 70px;
 
         padding:
             70px 20px;
-
     }
 
     .special h2 {
-
-        font-size: 40px;
-
+        font-size:
+            40px;
     }
 
     .payment-options {
-
-        flex-direction: column;
-
+        flex-direction:
+            column;
     }
 
     .modal-box {
-
-        padding: 25px 18px;
-
+        padding:
+            25px 18px;
     }
 
 }
@@ -1698,15 +1630,11 @@ footer strong {
 
     <div class="offer-container">
 
-
         <?php foreach (
-            $offers
-            as $offerID => $offer
+            $offers as $offerID => $offer
         ): ?>
 
-
         <div class="offer-card">
-
 
             <div class="badge">
 
@@ -1779,9 +1707,7 @@ footer strong {
             <button
                 type="button"
                 class="offer-btn"
-                onclick="openOffer(
-                    '<?php echo $offerID; ?>'
-                )"
+                onclick="openOffer('<?php echo $offerID; ?>')"
             >
 
                 <?php
@@ -1808,12 +1734,9 @@ footer strong {
 
             </button>
 
-
         </div>
 
-
         <?php endforeach; ?>
-
 
     </div>
 
@@ -1859,9 +1782,7 @@ footer strong {
     id="orderModal"
 >
 
-
     <div class="modal-box">
-
 
         <button
             type="button"
@@ -1875,12 +1796,11 @@ footer strong {
         <?php if ($order_success): ?>
 
 
-        <!-- ==============================================
-             ORDER SUCCESS
-        =============================================== -->
+        <!-- ==================================================
+             SUCCESS
+        ================================================== -->
 
         <div class="success-message">
-
 
             <div class="success-icon">
                 ✓
@@ -1898,6 +1818,7 @@ footer strong {
 
 
             <p>
+
                 <strong>
                     Order ID:
                 </strong>
@@ -1907,26 +1828,31 @@ footer strong {
                     $order_id
                 );
                 ?>
+
             </p>
 
 
             <p>
+
                 Payment:
                 <?php
                 echo htmlspecialchars(
                     $payment_method
                 );
                 ?>
+
             </p>
 
 
             <p>
+
                 Status:
                 <?php
                 echo htmlspecialchars(
                     $payment_status
                 );
                 ?>
+
             </p>
 
 
@@ -1941,16 +1867,15 @@ footer strong {
                 Continue
             </button>
 
-
         </div>
 
 
         <?php else: ?>
 
 
-        <!-- ==============================================
+        <!-- ==================================================
              ORDER FORM
-        =============================================== -->
+        ================================================== -->
 
         <h2>
             Complete Your Order
@@ -1984,8 +1909,6 @@ footer strong {
         >
 
 
-            <!-- OFFER ID -->
-
             <input
                 type="hidden"
                 name="offer_id"
@@ -2001,7 +1924,6 @@ footer strong {
             <!-- BILL -->
 
             <div class="bill">
-
 
                 <div class="bill-title">
                     Order Bill
@@ -2059,11 +1981,10 @@ footer strong {
 
                 </div>
 
-
             </div>
 
 
-            <!-- CUSTOMER -->
+            <!-- CUSTOMER NAME -->
 
             <div class="form-group">
 
@@ -2086,6 +2007,8 @@ footer strong {
 
             </div>
 
+
+            <!-- MOBILE -->
 
             <div class="form-group">
 
@@ -2188,9 +2111,7 @@ footer strong {
             </div>
 
 
-            <!-- ==========================================
-                 ONLY UPI IMAGE
-            =========================================== -->
+            <!-- UPI QR -->
 
             <div
                 class="upi-box"
@@ -2237,7 +2158,6 @@ footer strong {
 
 
         <?php endif; ?>
-
 
     </div>
 
@@ -2288,15 +2208,12 @@ echo json_encode(
 
 function openOffer(offerID) {
 
-
     const offer =
         offers[offerID];
 
 
     if (!offer) {
-
         return;
-
     }
 
 
@@ -2398,12 +2315,17 @@ document
 
 
 // ======================================================
-// EXISTING UPI SELECTION
+// PAGE LOAD
 // ======================================================
 
 document.addEventListener(
     "DOMContentLoaded",
     function() {
+
+
+        // ==================================================
+        // EXISTING PAYMENT
+        // ==================================================
 
         const selected =
             document.querySelector(
@@ -2423,7 +2345,10 @@ document.addEventListener(
         }
 
 
-        // Show selected offer after PHP error
+        // ==================================================
+        // SELECTED OFFER
+        // ==================================================
+
         const selectedOffer =
             document.getElementById(
                 "offer_id"
