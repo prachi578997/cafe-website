@@ -10,7 +10,7 @@ $gallery = [
         "image" => "barista-making-coffee.jpg",
         "title" => "Barista Making Coffee",
         "description" => "Our expert barista prepares freshly brewed coffee with care and precision.",
-        "price" => "₹249",
+        "price" => 249,
         "rating" => "4.9"
     ],
 
@@ -18,7 +18,7 @@ $gallery = [
         "image" => "cafe-exterior.jpg",
         "title" => "Café Exterior",
         "description" => "A beautiful and elegant exterior welcoming you to the Veloure experience.",
-        "price" => "₹686",
+        "price" => 686,
         "rating" => "4.8"
     ],
 
@@ -26,7 +26,7 @@ $gallery = [
         "image" => "chef-preparing-food.jpg",
         "title" => "Chef Preparing Food",
         "description" => "Fresh ingredients and expert cooking come together in our kitchen.",
-        "price" => "₹399",
+        "price" => 399,
         "rating" => "4.9"
     ],
 
@@ -34,7 +34,7 @@ $gallery = [
         "image" => "chocolate-lava-cake.jpg",
         "title" => "Chocolate Lava Cake",
         "description" => "Rich chocolate cake with a warm and delicious molten center.",
-        "price" => "₹299",
+        "price" => 299,
         "rating" => "5.0"
     ],
 
@@ -42,7 +42,7 @@ $gallery = [
         "image" => "coffee-counter.jpg",
         "title" => "Coffee Counter",
         "description" => "Our stylish coffee counter serves premium freshly prepared beverages.",
-        "price" => "₹199",
+        "price" => 199,
         "rating" => "4.8"
     ],
 
@@ -50,7 +50,7 @@ $gallery = [
         "image" => "couple-table.jpg",
         "title" => "Couple Table",
         "description" => "A romantic and private table setup for unforgettable moments.",
-        "price" => "₹999",
+        "price" => 999,
         "rating" => "4.9"
     ],
 
@@ -58,7 +58,7 @@ $gallery = [
         "image" => "cozy-seating.jpg",
         "title" => "Cozy Seating",
         "description" => "Relax in our comfortable seating area with a warm café atmosphere.",
-        "price" => "₹865",
+        "price" => 865,
         "rating" => "4.8"
     ],
 
@@ -66,7 +66,7 @@ $gallery = [
         "image" => "dessert-presentation.jpg",
         "title" => "Dessert Presentation",
         "description" => "Beautifully presented desserts made to delight your eyes and taste buds.",
-        "price" => "₹349",
+        "price" => 349,
         "rating" => "4.9"
     ],
 
@@ -74,7 +74,7 @@ $gallery = [
         "image" => "evening-ambience.jpg",
         "title" => "Evening Ambience",
         "description" => "Enjoy a peaceful and elegant evening surrounded by beautiful ambience.",
-        "price" => "₹458",
+        "price" => 458,
         "rating" => "4.9"
     ],
 
@@ -82,7 +82,7 @@ $gallery = [
         "image" => "hazelnut-latte.jpg",
         "title" => "Hazelnut Latte",
         "description" => "Smooth espresso blended with creamy milk and delicious hazelnut flavour.",
-        "price" => "₹279",
+        "price" => 279,
         "rating" => "4.9"
     ],
 
@@ -90,7 +90,7 @@ $gallery = [
         "image" => "luxury-exterior.jpg",
         "title" => "Luxury Exterior",
         "description" => "Experience the premium and sophisticated exterior of Veloure Café.",
-        "price" => "₹963",
+        "price" => 963,
         "rating" => "4.8"
     ],
 
@@ -98,7 +98,7 @@ $gallery = [
         "image" => "pasta-alfredo.jpg",
         "title" => "Pasta Alfredo",
         "description" => "Creamy Alfredo pasta prepared with premium ingredients and rich flavours.",
-        "price" => "₹449",
+        "price" => 449,
         "rating" => "4.9"
     ],
 
@@ -106,15 +106,15 @@ $gallery = [
         "image" => "premium-cafe-corner.jpg",
         "title" => "Premium Café Corner",
         "description" => "A luxurious corner designed for relaxing conversations and memorable moments.",
-        "price" => "₹849",
-        
-                "rating" => "4.8"
+        "price" => 849,
+        "rating" => "4.8"
     ],
+
     [
         "image" => "royal-chocolate-frappe.jpg",
         "title" => "Royal Chocolate Frappe",
         "description" => "A rich chocolate frappe topped with creamy chocolate goodness.",
-        "price" => "₹329",
+        "price" => 329,
         "rating" => "5.0"
     ],
 
@@ -122,7 +122,7 @@ $gallery = [
         "image" => "veloure-signature-coffee.jpg",
         "title" => "Veloure Signature Coffee",
         "description" => "Our signature coffee crafted specially for the unique Veloure experience.",
-        "price" => "₹299",
+        "price" => 299,
         "rating" => "5.0"
     ]
 
@@ -137,14 +137,22 @@ $gallery = [
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
 <title>Veloure | Gallery</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+>
 
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-
+<link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet"
+>
 
 <style>
 
@@ -183,7 +191,7 @@ nav{
     display:flex;
     align-items:center;
     justify-content:space-between;
-    background:rgba(246,241,232,.94);
+    background:rgba(246,241,232,.96);
     backdrop-filter:blur(15px);
     box-shadow:0 5px 25px rgba(50,30,20,.08);
     z-index:1000;
@@ -267,7 +275,7 @@ nav ul li a:hover{
 
 
 /* ==========================================
-   GALLERY SECTION
+   GALLERY
 ========================================== */
 
 .gallery-section{
@@ -301,7 +309,7 @@ nav ul li a:hover{
 
 
 /* ==========================================
-   GALLERY GRID
+   GRID
 ========================================== */
 
 .gallery-grid{
@@ -319,11 +327,7 @@ nav ul li a:hover{
     background:#fff;
     border-radius:22px;
     overflow:hidden;
-
-    box-shadow:
-    0 15px 45px
-    rgba(50,30,20,.10);
-
+    box-shadow:0 15px 45px rgba(50,30,20,.10);
     transition:.5s;
     opacity:0;
     transform:translateY(50px);
@@ -336,10 +340,7 @@ nav ul li a:hover{
 
 .gallery-card:hover{
     transform:translateY(-12px);
-
-    box-shadow:
-    0 25px 60px
-    rgba(50,30,20,.18);
+    box-shadow:0 25px 60px rgba(50,30,20,.18);
 }
 
 
@@ -357,17 +358,13 @@ nav ul li a:hover{
     width:100%;
     height:100%;
     object-fit:cover;
+    display:block;
     transition:.7s;
 }
 
 .gallery-card:hover .image-box img{
     transform:scale(1.1);
 }
-
-
-/* ==========================================
-   IMAGE OVERLAY
-========================================== */
 
 .image-overlay{
     position:absolute;
@@ -389,7 +386,7 @@ nav ul li a:hover{
 
 
 /* ==========================================
-   CARD CONTENT
+   CONTENT
 ========================================== */
 
 .card-content{
@@ -437,7 +434,7 @@ nav ul li a:hover{
 
 
 /* ==========================================
-   RESERVATION BUTTON
+   BUTTON
 ========================================== */
 
 .reserve-btn{
@@ -452,29 +449,11 @@ nav ul li a:hover{
     text-decoration:none;
     font-weight:600;
     transition:.35s;
-    position:relative;
-    overflow:hidden;
 }
 
 .reserve-btn:hover{
     background:#a47b4c;
     transform:translateY(-3px);
-}
-
-.reserve-btn::after{
-    content:"";
-    position:absolute;
-    top:0;
-    left:-100%;
-    width:60%;
-    height:100%;
-    background:rgba(255,255,255,.2);
-    transform:skewX(-25deg);
-    transition:.6s;
-}
-
-.reserve-btn:hover::after{
-    left:130%;
 }
 
 
@@ -544,7 +523,7 @@ footer strong{
 
 
 /* ==========================================
-   ANIMATIONS
+   ANIMATION
 ========================================== */
 
 @keyframes heroReveal{
@@ -573,7 +552,6 @@ footer strong{
     }
 
 }
-
 
 @media(max-width:700px){
 
@@ -641,53 +619,21 @@ footer strong{
 
     <ul>
 
-        <li>
-            <a href="index.php">
-                Home
-            </a>
-        </li>
+        <li><a href="index.php">Home</a></li>
 
-        <li>
-            <a href="about.php">
-                About
-            </a>
-        </li>
+        <li><a href="about.php">About</a></li>
 
-        <li>
-            <a href="menu.php">
-                Menu
-            </a>
-        </li>
+        <li><a href="menu.php">Menu</a></li>
 
-        <li>
-            <a href="offers.php">
-                Offers
-            </a>
-        </li>
+        <li><a href="offers.php">Offers</a></li>
 
-        <li>
-            <a href="gallery.php">
-                Gallery
-            </a>
-        </li>
+        <li><a href="gallery.php">Gallery</a></li>
 
-        <li>
-            <a href="services.php">
-                Services
-            </a>
-        </li>
+        <li><a href="services.php">Services</a></li>
 
-        <li>
-            <a href="reservation.php">
-                Reservation
-            </a>
-        </li>
+        <li><a href="reservation.php">Reservation</a></li>
 
-        <li>
-            <a href="reviews.php">
-                Reviews
-            </a>
-        </li>
+        <li><a href="reviews.php">Reviews</a></li>
 
     </ul>
 
@@ -721,11 +667,10 @@ footer strong{
 
 
 <!-- ==========================================
-     GALLERY
+     GALLERY SECTION
 ========================================== -->
 
 <section class="gallery-section">
-
 
     <div class="section-heading">
 
@@ -747,18 +692,15 @@ footer strong{
 
     <div class="gallery-grid">
 
-
         <?php foreach($gallery as $item): ?>
 
-
         <article class="gallery-card">
-
 
             <div class="image-box">
 
                 <img
-                    src="images/<?php echo htmlspecialchars($item['image']); ?>"
-                    alt="<?php echo htmlspecialchars($item['title']); ?>"
+                    src="images/<?php echo htmlspecialchars($item["image"]); ?>"
+                    alt="<?php echo htmlspecialchars($item["title"]); ?>"
                     loading="lazy"
                 >
 
@@ -768,7 +710,6 @@ footer strong{
 
 
             <div class="card-content">
-
 
                 <h3>
                     <?php
@@ -786,52 +727,46 @@ footer strong{
 
                 <div class="card-info">
 
-
                     <span class="price">
-
-                        <?php
-                        echo htmlspecialchars($item["price"]);
+                        ₹<?php
+                        echo number_format($item["price"]);
                         ?>
-
                     </span>
-
 
                     <span class="rating">
-
-                        ★
-                        <?php
+                        ★ <?php
                         echo htmlspecialchars($item["rating"]);
                         ?>
-
                     </span>
-
 
                 </div>
 
 
+                <!-- ======================================
+                     IMPORTANT:
+                     Gallery item + Gallery price
+                     are sent separately.
+                ======================================= -->
+
                 <a
-                    href="reservation.php"
+                    href="reservation.php?gallery_item=<?php echo urlencode($item["title"]); ?>&gallery_price=<?php echo (int)$item["price"]; ?>"
                     class="reserve-btn"
                 >
-                    Reserve Your Table
+                    Reserve This Experience
                 </a>
-
 
             </div>
 
-
         </article>
 
-
         <?php endforeach; ?>
-
 
     </div>
 
 
-    <!-- ======================================
+    <!-- ==========================================
          CTA
-    ======================================= -->
+    ========================================== -->
 
     <div class="gallery-cta">
 
@@ -851,7 +786,6 @@ footer strong{
         </a>
 
     </div>
-
 
 </section>
 
@@ -875,85 +809,103 @@ footer strong{
 
 <script>
 
-const cards =
-document.querySelectorAll(".gallery-card");
+document.addEventListener(
+    "DOMContentLoaded",
+    function(){
+
+        const cards =
+            document.querySelectorAll(
+                ".gallery-card"
+            );
 
 
-const observer =
-new IntersectionObserver(
+        /* ======================================
+           CARD REVEAL
+        ====================================== */
 
-    (entries) => {
+        const observer =
+            new IntersectionObserver(
+                function(entries){
 
-        entries.forEach(
-            (entry,index) => {
+                    entries.forEach(
+                        function(entry,index){
 
-                if(entry.isIntersecting){
+                            if(
+                                entry.isIntersecting
+                            ){
 
-                    setTimeout(
-                        () => {
+                                setTimeout(
+                                    function(){
 
-                            entry.target
-                            .classList
-                            .add("show");
+                                        entry.target
+                                            .classList
+                                            .add("show");
 
-                        },
-                        index * 100
+                                    },
+                                    index * 100
+                                );
+
+                                observer.unobserve(
+                                    entry.target
+                                );
+
+                            }
+
+                        }
                     );
 
-                    observer.unobserve(
-                        entry.target
-                    );
-
+                },
+                {
+                    threshold:0.12
                 }
+            );
+
+
+        cards.forEach(
+            function(card){
+
+                observer.observe(card);
 
             }
         );
 
-    },
 
-    {
-        threshold:.12
-    }
+        /* ======================================
+           BUTTON ANIMATION
+        ====================================== */
 
-);
+        document
+            .querySelectorAll(
+                ".reserve-btn,.cta-btn"
+            )
+            .forEach(
+                function(button){
 
+                    button.addEventListener(
+                        "click",
+                        function(){
 
-cards.forEach(
-    card => {
+                            this.style.transform =
+                                "scale(.96)";
 
-        observer.observe(card);
+                            setTimeout(
+                                function(){
 
-    }
-);
+                                    button.style.transform =
+                                        "";
 
+                                },
+                                150
+                            );
 
-// Reservation button animation
+                        }
+                    );
 
-document
-.querySelectorAll(".reserve-btn,.cta-btn")
-.forEach(button => {
-
-    button.addEventListener(
-        "click",
-        function(){
-
-            this.style.transform =
-            "scale(.96)";
-
-            setTimeout(
-                () => {
-
-                    this.style.transform =
-                    "";
-
-                },
-                150
+                }
             );
 
-        }
-    );
-
-});
+    }
+);
 
 </script>
 
