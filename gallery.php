@@ -102,13 +102,6 @@ $gallery = [
         "title" => "Royal Chocolate Frappe",
         "description" => "A rich chocolate frappe topped with creamy chocolate goodness.",
         "rating" => "5.0"
-    ],
-
-    [
-        "image" => "veloure-signature-coffee.jpg",
-        "title" => "Veloure Signature Coffee",
-        "description" => "Our signature coffee crafted specially for the unique Veloure experience.",
-        "rating" => "5.0"
     ]
 
 ];
